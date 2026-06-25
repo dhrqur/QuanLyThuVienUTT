@@ -9,10 +9,12 @@ const options = {
             description: "Tai lieu API quan ly thu vien"
         },
         servers: [
-            {
-                url: "http://localhost:3000",
-                description: "Local server"
-            }
+          {
+            url: "https://quanlythuvienutt-production.up.railway.app",
+          },
+          {
+            url: "http://localhost:3000",
+          },
         ],
         components: {
             schemas: {
