@@ -2,7 +2,6 @@ import DataTablePage from "@/components/common/DataTablePage";
 import { useApiLists } from "@/hooks/useApiLists";
 import { api } from "@/lib/api";
 import GiaHanTheDialog from "@/views/thethuvien/components/GiaHanTheDialog";
-import { getCardStatus } from "@/views/thethuvien/theThuVienUtils";
 import { createLookup } from "@/utils/lookup";
 
 function TheThuVienView() {
@@ -25,7 +24,7 @@ function TheThuVienView() {
         { key: "NgayHetHan", label: "NgayHetHan", displayLabel: "Ngày hết hạn", inputType: "date", widthValue: 160 },
         {
           key: "TrangThai", label: "TrangThai", displayLabel: "Trạng thái", badge: true,
-          options: ["Còn hiệu lực", "Hết hạn", "Tạm khóa"].map((value) => ({ label: value, value })),
+          formHidden: true,
           widthValue: 170,
         },
       ]}
@@ -38,7 +37,6 @@ function TheThuVienView() {
               MaDG: row.MaDG,
               NgayCap: row.NgayCap,
               NgayHetHan,
-              TrangThai: getCardStatus(NgayHetHan),
             };
             const response = await api.update("thethuvien", row.MaThe, updated);
             updateRow(response.data ?? updated);
@@ -46,6 +44,8 @@ function TheThuVienView() {
           row={row}
         />
       )}
+      pagination
+      pageSize={10}
       searchPlaceholder="Tìm mã thẻ hoặc độc giả..."
       title="Quản lý Thẻ thư viện"
     />

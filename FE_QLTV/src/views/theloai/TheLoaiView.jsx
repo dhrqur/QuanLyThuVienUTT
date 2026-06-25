@@ -9,6 +9,8 @@ function TheLoaiView() {
         { key: "TenTL", label: "TenTL", displayLabel: "Tên thể loại", widthValue: 220 },
       ]}
       entityName="Thể loại"
+      pagination
+      pageSize={10}
       searchPlaceholder="Tìm mã hoặc tên thể loại..."
       title="Quản lý Thể loại"
     />

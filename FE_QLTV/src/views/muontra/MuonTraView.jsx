@@ -76,6 +76,8 @@ function MuonTraView() {
       renderFormExtra={({ row }) => (
         <SachMuonSelector books={books} details={row?.ChiTiet ?? []} ticketId={row?.MaMT} />
       )}
+      pagination
+      pageSize={10}
       searchPlaceholder="Tìm mã mượn trả hoặc độc giả..."
       title="Quản lý Mượn trả"
     />

@@ -1,6 +1,17 @@
 const TheThuVien = require("../models/entities/thethuvien.entity");
 const TheThuVienRepository = require("../models/repositories/thethuvien.repository");
 
+function getCardStatus(expirationDate) {
+    const today = new Date();
+    const localToday = new Date(today.getTime() - today.getTimezoneOffset() * 60_000)
+        .toISOString()
+        .slice(0, 10);
+
+    return String(expirationDate).slice(0, 10) < localToday
+        ? "Hết hạn"
+        : "Còn hiệu lực";
+}
+
 function createError(message, statusCode) {
     const error = new Error(message);
     error.statusCode = statusCode;
@@ -31,7 +42,10 @@ class TheThuVienService {
             throw createError("Ma the thu vien da ton tai", 409);
         }
 
-        const theThuVien = new TheThuVien(data);
+        const theThuVien = new TheThuVien({
+            ...data,
+            TrangThai: getCardStatus(data.NgayHetHan)
+        });
 
         return await TheThuVienRepository.create(theThuVien);
     }
@@ -43,9 +57,11 @@ class TheThuVienService {
             throw createError("Khong tim thay the thu vien", 404);
         }
 
-        data.MaThe = maThe;
-
-        const theThuVien = new TheThuVien(data);
+        const theThuVien = new TheThuVien({
+            ...data,
+            MaThe: maThe,
+            TrangThai: getCardStatus(data.NgayHetHan)
+        });
 
         return await TheThuVienRepository.update(maThe, theThuVien);
     }

@@ -27,6 +27,8 @@ function LopView() {
         },
       ]}
       entityName="Lớp"
+      pagination
+      pageSize={10}
       searchPlaceholder="Tìm mã lớp hoặc tên lớp..."
       title="Quản lý Lớp"
     />

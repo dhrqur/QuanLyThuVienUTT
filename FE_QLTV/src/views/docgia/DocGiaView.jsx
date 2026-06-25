@@ -24,7 +24,11 @@ function DocGiaView() {
         {
           key: "MaLop", label: "MaLop", displayLabel: "Lớp",
           displayValue: (row) => classNames[row.MaLop] ?? row.MaLop,
-          options: classes.map((item) => ({ label: `${item.MaLop} - ${item.TenLop}`, value: item.MaLop })),
+          dependsOn: "MaKhoa",
+          dependencyPlaceholder: "-- Chọn khoa trước --",
+          options: ({ MaKhoa }) => classes
+            .filter((item) => item.MaKhoa === MaKhoa)
+            .map((item) => ({ label: `${item.MaLop} - ${item.TenLop}`, value: item.MaLop })),
           widthValue: 92,
         },
         { key: "NamSinh", label: "NamSinh", tableLabel: "Năm sinh", displayLabel: "Năm sinh", inputType: "number", required: false, widthValue: 82 },
@@ -37,6 +41,8 @@ function DocGiaView() {
         { key: "Sdt", label: "Sdt", tableLabel: "SĐT", displayLabel: "Số điện thoại", widthValue: 96 },
       ]}
       entityName="Độc giả"
+      pagination
+      pageSize={10}
       searchPlaceholder="Tìm mã, tên hoặc số điện thoại..."
       title="Quản lý Độc giả"
     />

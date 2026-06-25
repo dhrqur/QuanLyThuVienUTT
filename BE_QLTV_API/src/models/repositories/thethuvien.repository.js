@@ -1,15 +1,30 @@
 const db = require("../../config/db");
 
+const cardStatusSql = `
+    CASE
+        WHEN NgayHetHan < CURDATE() THEN 'Hết hạn'
+        ELSE 'Còn hiệu lực'
+    END
+`;
+
 class TheThuVienRepository {
     async getAll() {
-        const sql = "SELECT MaThe, MaDG, NgayCap, NgayHetHan, TrangThai FROM thethuvien ORDER BY MaThe";
+        const sql = `
+            SELECT MaThe, MaDG, NgayCap, NgayHetHan, ${cardStatusSql} AS TrangThai
+            FROM thethuvien
+            ORDER BY MaThe
+        `;
         const [rows] = await db.query(sql);
 
         return rows;
     }
 
     async getById(maThe) {
-        const sql = "SELECT MaThe, MaDG, NgayCap, NgayHetHan, TrangThai FROM thethuvien WHERE MaThe = ?";
+        const sql = `
+            SELECT MaThe, MaDG, NgayCap, NgayHetHan, ${cardStatusSql} AS TrangThai
+            FROM thethuvien
+            WHERE MaThe = ?
+        `;
         const [rows] = await db.query(sql, [maThe]);
 
         return rows[0];
@@ -17,13 +32,13 @@ class TheThuVienRepository {
 
     async search(keyword) {
         const sql = `
-            SELECT MaThe, MaDG, NgayCap, NgayHetHan, TrangThai
+            SELECT MaThe, MaDG, NgayCap, NgayHetHan, ${cardStatusSql} AS TrangThai
             FROM thethuvien
             WHERE MaThe LIKE ?
                 OR MaDG LIKE ?
                 OR NgayCap LIKE ?
                 OR NgayHetHan LIKE ?
-                OR TrangThai LIKE ?
+                OR ${cardStatusSql} LIKE ?
             ORDER BY MaThe
         `;
         const searchValue = `%${keyword}%`;
@@ -36,9 +51,9 @@ class TheThuVienRepository {
     async getStatistics() {
         const [summaryRows] = await db.query("SELECT COUNT(MaThe) AS TongTheThuVien FROM thethuvien");
         const [statusRows] = await db.query(`
-            SELECT TrangThai, COUNT(MaThe) AS SoLuong
+            SELECT ${cardStatusSql} AS TrangThai, COUNT(MaThe) AS SoLuong
             FROM thethuvien
-            GROUP BY TrangThai
+            GROUP BY ${cardStatusSql}
             ORDER BY TrangThai
         `);
         const [expiredRows] = await db.query(`

@@ -26,6 +26,8 @@ function ChiTietMuonTraView() {
         { key: "SoLuong", label: "SoLuong", displayLabel: "Số lượng", inputType: "number", widthValue: 120 },
       ]}
       entityName="Chi tiết mượn trả"
+      pagination
+      pageSize={10}
       searchPlaceholder="Tìm mã phiếu hoặc tên sách..."
       title="Chi tiết Mượn trả"
     />

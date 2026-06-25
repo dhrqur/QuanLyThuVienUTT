@@ -25,16 +25,14 @@ function validateTheThuVien(req, res, next) {
         MaThe,
         MaDG,
         NgayCap,
-        NgayHetHan,
-        TrangThai
+        NgayHetHan
     } = req.body;
 
     if (
         isEmpty(MaThe) ||
         isEmpty(MaDG) ||
         isEmpty(NgayCap) ||
-        isEmpty(NgayHetHan) ||
-        isEmpty(TrangThai)
+        isEmpty(NgayHetHan)
     ) {
         return res.status(400).json({
             message: "Vui long nhap day du thong tin the thu vien"
@@ -62,12 +60,6 @@ function validateTheThuVien(req, res, next) {
     if (isNaN(Date.parse(NgayHetHan))) {
         return res.status(400).json({
             message: "Ngay het han khong hop le"
-        });
-    }
-
-    if (String(TrangThai).trim().length > 20) {
-        return res.status(400).json({
-            message: "Trang thai khong duoc vuot qua 20 ky tu"
         });
     }
 

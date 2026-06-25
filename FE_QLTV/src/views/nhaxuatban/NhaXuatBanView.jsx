@@ -12,6 +12,8 @@ function NhaXuatBanView() {
         { key: "Sdt", label: "Sdt", displayLabel: "Số điện thoại", widthValue: 160 },
       ]}
       entityName="Nhà xuất bản"
+      pagination
+      pageSize={10}
       searchPlaceholder="Tìm mã hoặc tên nhà xuất bản..."
       title="Quản lý Nhà xuất bản"
     />

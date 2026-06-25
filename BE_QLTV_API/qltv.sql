@@ -33,8 +33,42 @@ CREATE TABLE IF NOT EXISTS `chitietmuontra` (
 -- Dumping data for table dbqltv.chitietmuontra: ~3 rows (approximately)
 INSERT INTO `chitietmuontra` (`MaMT`, `MaSach`, `SoLuong`) VALUES
 	('MT001', 'S001', 1),
+	('MT002', 'S015', 1),
 	('MT003', 'S001', 3),
-	('MT003', 'S005', 3);
+	('MT003', 'S005', 3),
+	('MT004', 'S020', 1),
+	('MT004', 'S025', 1),
+	('MT005', 'S017', 2),
+	('MT006', 'S011', 1),
+	('MT006', 'S028', 1),
+	('MT007', 'S022', 1),
+	('MT008', 'S030', 2),
+	('MT009', 'S016', 1),
+	('MT009', 'S031', 1),
+	('MT010', 'S024', 1),
+	('MT011', 'S018', 1),
+	('MT011', 'S035', 1),
+	('MT012', 'S009', 1),
+	('MT013', 'S019', 1),
+	('MT013', 'S036', 1),
+	('MT014', 'S026', 2),
+	('MT015', 'S013', 1),
+	('MT015', 'S029', 1),
+	('MT016', 'S021', 1),
+	('MT017', 'S032', 1),
+	('MT017', 'S037', 1),
+	('MT018', 'S023', 2),
+	('MT019', 'S010', 1),
+	('MT019', 'S034', 1),
+	('MT020', 'S027', 1),
+	('MT021', 'S012', 1),
+	('MT021', 'S038', 1),
+	('MT022', 'S033', 2),
+	('MT023', 'S014', 1),
+	('MT023', 'S039', 1),
+	('MT024', 'S006', 1),
+	('MT024', 'S040', 1),
+	('MT025', 'S008', 1);
 
 -- Dumping structure for table dbqltv.docgia
 CREATE TABLE IF NOT EXISTS `docgia` (
@@ -62,7 +96,25 @@ INSERT INTO `docgia` (`MaDG`, `MaKhoa`, `MaLop`, `TenDG`, `NamSinh`, `GioiTinh`,
 	('DG004', 'KH001', 'L002', 'Lưu Đức Anh Dũng', '2003', 'Nam', 'Hà Nội', 'dunglda06@gmail.com', '0356123456'),
 	('DG005', 'KH001', 'L003', 'Đinh Hoàng Đức', '2003', 'Nam', 'Hà Nội', 'ducdh07@gmail.com', '0345123456'),
 	('DG006', 'KH001', 'L001', 'Nguyễn Nam Khánh', '2003', 'Nam', 'Hà Nội', 'khanhnn08@gmail.com', '0334123456'),
-	('DG007', 'KH001', 'L005', '123', '2005', 'Nam', '213', '22@gmail.com', '0945088052');
+	('DG007', 'KH001', 'L005', 'Phạm Minh Quân', '2005', 'Nam', 'Bắc Ninh', 'quan.pm@utt.edu.vn', '0945088052'),
+	('DG008', 'KH002', 'L022', 'Trần Quốc Bảo', '2004', 'Nam', 'Hải Dương', 'bao.tq@utt.edu.vn', '0912345608'),
+	('DG009', 'KH002', 'L024', 'Đỗ Anh Tuấn', '2005', 'Nam', 'Nam Định', 'tuan.da@utt.edu.vn', '0912345609'),
+	('DG010', 'KH003', 'L026', 'Vũ Khánh Ly', '2005', 'Nữ', 'Hà Nội', 'ly.vk@utt.edu.vn', '0912345610'),
+	('DG011', 'KH003', 'L027', 'Lê Thu Trang', '2004', 'Nữ', 'Thái Bình', 'trang.lt@utt.edu.vn', '0912345611'),
+	('DG012', 'KH004', 'L018', 'Nguyễn Đức Thành', '2004', 'Nam', 'Ninh Bình', 'thanh.nd@utt.edu.vn', '0912345612'),
+	('DG013', 'KH004', 'L020', 'Bùi Minh Châu', '2005', 'Nữ', 'Thanh Hóa', 'chau.bm@utt.edu.vn', '0912345613'),
+	('DG014', 'KH005', 'L014', 'Phan Hoàng Long', '2004', 'Nam', 'Hưng Yên', 'long.ph@utt.edu.vn', '0912345614'),
+	('DG015', 'KH005', 'L016', 'Đặng Ngọc Mai', '2005', 'Nữ', 'Hà Nam', 'mai.dn@utt.edu.vn', '0912345615'),
+	('DG016', 'KH006', 'L034', 'Hoàng Gia Huy', '2004', 'Nam', 'Vĩnh Phúc', 'huy.hg@utt.edu.vn', '0912345616'),
+	('DG017', 'KH006', 'L036', 'Ngô Phương Thảo', '2005', 'Nữ', 'Phú Thọ', 'thao.np@utt.edu.vn', '0912345617'),
+	('DG018', 'KH008', 'L030', 'Đinh Tiến Dũng', '2004', 'Nam', 'Hải Phòng', 'dung.dt@utt.edu.vn', '0912345618'),
+	('DG019', 'KH008', 'L032', 'Trịnh Hà My', '2005', 'Nữ', 'Quảng Ninh', 'my.th@utt.edu.vn', '0912345619'),
+	('DG020', 'KH001', 'L007', 'Mai Trung Kiên', '2005', 'Nam', 'Hà Nội', 'kien.mt@utt.edu.vn', '0912345620'),
+	('DG021', 'KH001', 'L010', 'Chu Quỳnh Anh', '2004', 'Nữ', 'Bắc Giang', 'anh.cq@utt.edu.vn', '0912345621'),
+	('DG022', 'KH002', 'L025', 'Tạ Văn Nam', '2005', 'Nam', 'Thái Nguyên', 'nam.tv@utt.edu.vn', '0912345622'),
+	('DG023', 'KH003', 'L028', 'Dương Bảo Ngọc', '2004', 'Nữ', 'Lào Cai', 'ngoc.db@utt.edu.vn', '0912345623'),
+	('DG024', 'KH004', 'L021', 'Đào Công Minh', '2005', 'Nam', 'Nghệ An', 'minh.dc@utt.edu.vn', '0912345624'),
+	('DG025', 'KH006', 'L037', 'Lý Thanh Hằng', '2005', 'Nữ', 'Hà Tĩnh', 'hang.lt@utt.edu.vn', '0912345625');
 
 -- Dumping structure for table dbqltv.kesach
 CREATE TABLE IF NOT EXISTS `kesach` (
@@ -173,7 +225,29 @@ CREATE TABLE IF NOT EXISTS `muontra` (
 INSERT INTO `muontra` (`MaMT`, `MaDG`, `MaNV`, `NgayMuon`, `HanTra`, `NgayTra`, `TrangThai`) VALUES
 	('MT001', 'DG001', 'NV001', '2026-01-05', '2026-01-06', NULL, 'Đang mượn'),
 	('MT002', 'DG002', 'NV001', '2026-01-01', '2026-01-02', NULL, 'Đang mượn'),
-	('MT003', 'DG002', 'NV001', '2026-01-01', '2026-01-22', NULL, 'Đang mượn');
+	('MT003', 'DG002', 'NV001', '2026-01-01', '2026-01-22', NULL, 'Đang mượn'),
+	('MT004', 'DG004', 'NV002', '2025-09-03', '2025-09-17', '2025-09-15', 'Đã trả'),
+	('MT005', 'DG005', 'NV002', '2025-09-18', '2025-10-02', '2025-10-06', 'Đã trả'),
+	('MT006', 'DG006', 'NV001', '2025-10-06', '2025-10-20', '2025-10-20', 'Đã trả'),
+	('MT007', 'DG007', 'NV003', '2025-10-22', '2025-11-05', '2025-11-02', 'Đã trả'),
+	('MT008', 'DG008', 'NV003', '2025-11-10', '2025-11-24', '2025-11-28', 'Đã trả'),
+	('MT009', 'DG009', 'NV002', '2025-12-01', '2025-12-15', '2025-12-12', 'Đã trả'),
+	('MT010', 'DG010', 'NV001', '2025-12-15', '2025-12-29', '2026-01-03', 'Đã trả'),
+	('MT011', 'DG011', 'NV004', '2026-01-12', '2026-01-26', '2026-01-24', 'Đã trả'),
+	('MT012', 'DG012', 'NV002', '2026-02-02', '2026-02-16', '2026-02-16', 'Đã trả'),
+	('MT013', 'DG013', 'NV003', '2026-02-18', '2026-03-04', '2026-03-10', 'Đã trả'),
+	('MT014', 'DG014', 'NV001', '2026-03-02', '2026-03-16', '2026-03-14', 'Đã trả'),
+	('MT015', 'DG015', 'NV004', '2026-03-20', '2026-04-03', '2026-04-03', 'Đã trả'),
+	('MT016', 'DG016', 'NV002', '2026-04-06', '2026-04-20', '2026-04-25', 'Đã trả'),
+	('MT017', 'DG017', 'NV003', '2026-04-22', '2026-05-06', '2026-05-05', 'Đã trả'),
+	('MT018', 'DG018', 'NV001', '2026-05-04', '2026-05-18', '2026-05-18', 'Đã trả'),
+	('MT019', 'DG019', 'NV004', '2026-05-20', '2026-06-03', '2026-06-08', 'Đã trả'),
+	('MT020', 'DG020', 'NV002', '2026-06-01', '2026-06-15', NULL, 'Đang mượn'),
+	('MT021', 'DG021', 'NV003', '2026-06-08', '2026-06-22', NULL, 'Đang mượn'),
+	('MT022', 'DG022', 'NV001', '2026-06-18', '2026-07-02', NULL, 'Đang mượn'),
+	('MT023', 'DG023', 'NV004', '2026-06-20', '2026-07-04', NULL, 'Đang mượn'),
+	('MT024', 'DG024', 'NV002', '2026-06-23', '2026-07-07', NULL, 'Đang mượn'),
+	('MT025', 'DG025', 'NV003', '2026-06-25', '2026-07-09', NULL, 'Đang mượn');
 
 -- Dumping structure for table dbqltv.ngonngu
 CREATE TABLE IF NOT EXISTS `ngonngu` (
@@ -213,8 +287,8 @@ CREATE TABLE IF NOT EXISTS `nhanvien` (
 INSERT INTO `nhanvien` (`MaNV`, `TenNV`, `QueQuan`, `GioiTinh`, `NamSinh`, `VaiTro`, `Email`, `Sdt`, `User`, `Pass`) VALUES
 	('NV001', 'Trần Hải', 'Hà Nội', 'Nam', '1999', 'Quản lý', 'hai.tran@utt.edu.vn', '0987654321', 'nv1', '123'),
 	('NV002', 'Hà Phương', 'Hải Phòng', 'Nữ', '2000', 'Thủ thư', 'haphuong@gmail.com', '0123456789', 'nv2', '1234'),
-	('NV003', '1', '1', 'Nam', '2005', 'Quản lý', 'ad@gmail.com', '0945088056', 'khanhs', '1234'),
-	('NV004', 'aaa', 'aaa', 'Nữ', '2005', 'Thủ thư', '1221@gmail.com', '0123456788', '123', '123456');
+	('NV003', 'Nguyễn Thu Hà', 'Nam Định', 'Nữ', '1998', 'Thủ thư', 'ha.nguyen@utt.edu.vn', '0945088056', 'nv3', '1234'),
+	('NV004', 'Phạm Đức Minh', 'Bắc Ninh', 'Nam', '1997', 'Thủ thư', 'minh.pham@utt.edu.vn', '0123456788', 'nv4', '1234');
 
 -- Dumping structure for table dbqltv.nhaxuatban
 CREATE TABLE IF NOT EXISTS `nhaxuatban` (
@@ -243,7 +317,7 @@ INSERT INTO `nhaxuatban` (`MaNXB`, `TenNXB`, `DiaChi`, `Email`, `Sdt`) VALUES
 	('NXB013', 'NXB Đại Học Quốc Gia TP.HCM', 'TP. Hồ Chí Minh', 'dhqgtphcm@nxb.vn', '02837221111'),
 	('NXB014', 'NXB Xây Dựng', 'Hà Nội', 'xaydung@nxb.vn', '02438775555'),
 	('NXB015', 'NXB Giao Thông Vận Tải', 'Hà Nội', 'gtvt@nxb.vn', '02439429999'),
-	('NXB016', 'aaaa', 'aaaa', 'k', '43');
+	('NXB016', 'NXB Bách Khoa Hà Nội', 'Hà Nội', 'bachkhoa@nxb.vn', '02438684569');
 
 -- Dumping structure for table dbqltv.sach
 CREATE TABLE IF NOT EXISTS `sach` (
@@ -284,7 +358,33 @@ INSERT INTO `sach` (`MaSach`, `MaTG`, `MaNXB`, `MaTL`, `TenSach`, `NamXB`, `SoLu
 	('S011', 'TG001', 'NXB005', 'TL001', 'Cho tôi xin một vé đi tuổi thơ', 2015, 25, 'NN001', 'KS006'),
 	('S012', 'TG002', 'NXB005', 'TL001', 'Chí Phèo', 2014, 30, 'NN001', 'KS006'),
 	('S013', 'TG006', 'NXB003', 'TL002', 'Harry Potter', 2010, 18, 'NN002', 'KS007'),
-	('S014', 'TG009', 'NXB003', 'TL002', 'The Da Vinci Code', 2012, 12, 'NN002', 'KS007');
+	('S014', 'TG009', 'NXB003', 'TL002', 'The Da Vinci Code', 2012, 12, 'NN002', 'KS007'),
+	('S015', 'TG015', 'NXB012', 'TL006', 'Cấu trúc dữ liệu và giải thuật', 2023, 22, 'NN001', 'KS001'),
+	('S016', 'TG015', 'NXB012', 'TL006', 'Nhập môn trí tuệ nhân tạo', 2024, 16, 'NN001', 'KS001'),
+	('S017', 'TG016', 'NXB016', 'TL006', 'Mạng máy tính hiện đại', 2022, 14, 'NN001', 'KS001'),
+	('S018', 'TG016', 'NXB016', 'TL006', 'An toàn thông tin căn bản', 2023, 11, 'NN001', 'KS001'),
+	('S019', 'TG017', 'NXB006', 'TL005', 'Điện tử công suất', 2021, 13, 'NN001', 'KS002'),
+	('S020', 'TG017', 'NXB006', 'TL005', 'Điều khiển tự động', 2022, 17, 'NN001', 'KS002'),
+	('S021', 'TG018', 'NXB014', 'TL016', 'Thiết kế cầu bê tông cốt thép', 2020, 10, 'NN001', 'KS003'),
+	('S022', 'TG018', 'NXB014', 'TL016', 'Kỹ thuật thi công công trình', 2023, 15, 'NN001', 'KS003'),
+	('S023', 'TG019', 'NXB015', 'TL007', 'Quản trị chuỗi cung ứng', 2024, 20, 'NN001', 'KS004'),
+	('S024', 'TG019', 'NXB015', 'TL007', 'Vận tải đa phương thức', 2022, 12, 'NN001', 'KS004'),
+	('S025', 'TG020', 'NXB011', 'TL008', 'Quản trị chiến lược', 2021, 18, 'NN001', 'KS004'),
+	('S026', 'TG020', 'NXB011', 'TL009', 'Marketing số', 2024, 24, 'NN001', 'KS004'),
+	('S027', 'TG021', 'NXB008', 'TL010', 'Tài chính doanh nghiệp', 2023, 19, 'NN001', 'KS004'),
+	('S028', 'TG021', 'NXB008', 'TL010', 'Phân tích đầu tư', 2022, 9, 'NN001', 'KS004'),
+	('S029', 'TG022', 'NXB007', 'TL011', 'Pháp luật đại cương', 2023, 26, 'NN001', 'KS005'),
+	('S030', 'TG022', 'NXB007', 'TL011', 'Luật giao thông đường bộ', 2024, 21, 'NN001', 'KS005'),
+	('S031', 'TG007', 'NXB005', 'TL002', 'Rừng Na Uy', 2018, 14, 'NN001', 'KS006'),
+	('S032', 'TG010', 'NXB005', 'TL002', 'Án mạng trên chuyến tàu tốc hành', 2019, 16, 'NN001', 'KS006'),
+	('S033', 'TG011', 'NXB005', 'TL002', 'Những cuộc phiêu lưu của Sherlock Holmes', 2020, 18, 'NN001', 'KS006'),
+	('S034', 'TG013', 'NXB005', 'TL002', 'Những người khốn khổ', 2017, 12, 'NN001', 'KS006'),
+	('S035', 'TG014', 'NXB005', 'TL002', 'Chiến tranh và hòa bình', 2016, 8, 'NN001', 'KS006'),
+	('S036', 'TG012', 'NXB005', 'TL002', 'Ông già và biển cả', 2021, 15, 'NN001', 'KS006'),
+	('S037', 'TG006', 'NXB003', 'TL002', 'Harry Potter and the Prisoner of Azkaban', 2015, 10, 'NN002', 'KS007'),
+	('S038', 'TG009', 'NXB009', 'TL002', 'Digital Fortress', 2018, 9, 'NN002', 'KS007'),
+	('S039', 'TG007', 'NXB009', 'TL002', 'Kafka on the Shore', 2019, 7, 'NN002', 'KS007'),
+	('S040', 'TG023', 'NXB012', 'TL015', 'English for Transport Engineering', 2024, 20, 'NN002', 'KS007');
 
 -- Dumping structure for table dbqltv.tacgia
 CREATE TABLE IF NOT EXISTS `tacgia` (
@@ -311,7 +411,16 @@ INSERT INTO `tacgia` (`MaTG`, `TenTG`, `NamSinh`, `GioiTinh`, `QuocTich`) VALUES
 	('TG011', 'Arthur Conan Doyle', '1859', 'Nam', 'Anh'),
 	('TG012', 'Ernest Hemingway', '1899', 'Nam', 'Mỹ'),
 	('TG013', 'Victor Hugo', '1802', 'Nam', 'Pháp'),
-	('TG014', 'Lev Tolstoy', '1828', 'Nam', 'Nga');
+	('TG014', 'Lev Tolstoy', '1828', 'Nam', 'Nga'),
+	('TG015', 'Lê Minh Hoàng', '1978', 'Nam', 'Việt Nam'),
+	('TG016', 'Nguyễn Văn Tam', '1975', 'Nam', 'Việt Nam'),
+	('TG017', 'Trần Quang Vinh', '1972', 'Nam', 'Việt Nam'),
+	('TG018', 'Phạm Duy Hòa', '1968', 'Nam', 'Việt Nam'),
+	('TG019', 'Đặng Đình Đào', '1956', 'Nam', 'Việt Nam'),
+	('TG020', 'Nguyễn Hoàng Long', '1974', 'Nam', 'Việt Nam'),
+	('TG021', 'Phan Thị Thu Hà', '1976', 'Nữ', 'Việt Nam'),
+	('TG022', 'Vũ Văn Mẫu', '1914', 'Nam', 'Việt Nam'),
+	('TG023', 'Sarah Cunningham', '1967', 'Nữ', 'Anh');
 
 -- Dumping structure for table dbqltv.theloai
 CREATE TABLE IF NOT EXISTS `theloai` (
@@ -356,9 +465,31 @@ CREATE TABLE IF NOT EXISTS `thethuvien` (
 
 -- Dumping data for table dbqltv.thethuvien: ~3 rows (approximately)
 INSERT INTO `thethuvien` (`MaThe`, `MaDG`, `NgayCap`, `NgayHetHan`, `TrangThai`) VALUES
-	('TTV001', 'DG001', '2025-06-01', '2025-07-02', 'Hết hiệu lực'),
+	('TTV001', 'DG001', '2025-06-01', '2025-07-02', 'Hết hạn'),
 	('TTV002', 'DG002', '2026-01-01', '2027-01-01', 'Còn hiệu lực'),
-	('TTV003', 'DG003', '2025-11-11', '2026-11-11', 'Còn hiệu lực');
+	('TTV003', 'DG003', '2025-11-11', '2026-11-11', 'Còn hiệu lực'),
+	('TTV004', 'DG004', '2025-09-01', '2026-09-01', 'Còn hiệu lực'),
+	('TTV005', 'DG005', '2024-09-05', '2025-09-05', 'Hết hạn'),
+	('TTV006', 'DG006', '2026-01-10', '2027-01-10', 'Còn hiệu lực'),
+	('TTV007', 'DG007', '2025-10-15', '2026-10-15', 'Còn hiệu lực'),
+	('TTV008', 'DG008', '2024-11-01', '2025-11-01', 'Hết hạn'),
+	('TTV009', 'DG009', '2026-02-01', '2027-02-01', 'Còn hiệu lực'),
+	('TTV010', 'DG010', '2025-08-20', '2026-08-20', 'Còn hiệu lực'),
+	('TTV011', 'DG011', '2024-12-12', '2025-12-12', 'Hết hạn'),
+	('TTV012', 'DG012', '2026-03-01', '2027-03-01', 'Còn hiệu lực'),
+	('TTV013', 'DG013', '2025-09-18', '2026-09-18', 'Còn hiệu lực'),
+	('TTV014', 'DG014', '2025-01-15', '2026-01-15', 'Hết hạn'),
+	('TTV015', 'DG015', '2026-04-01', '2027-04-01', 'Còn hiệu lực'),
+	('TTV016', 'DG016', '2025-10-06', '2026-10-06', 'Còn hiệu lực'),
+	('TTV017', 'DG017', '2024-10-10', '2025-10-10', 'Hết hạn'),
+	('TTV018', 'DG018', '2026-04-20', '2027-04-20', 'Còn hiệu lực'),
+	('TTV019', 'DG019', '2025-11-05', '2026-11-05', 'Còn hiệu lực'),
+	('TTV020', 'DG020', '2025-02-14', '2026-02-14', 'Hết hạn'),
+	('TTV021', 'DG021', '2026-05-01', '2027-05-01', 'Còn hiệu lực'),
+	('TTV022', 'DG022', '2025-12-01', '2026-12-01', 'Còn hiệu lực'),
+	('TTV023', 'DG023', '2024-12-20', '2025-12-20', 'Hết hạn'),
+	('TTV024', 'DG024', '2026-05-15', '2027-05-15', 'Còn hiệu lực'),
+	('TTV025', 'DG025', '2026-06-01', '2027-06-01', 'Còn hiệu lực');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

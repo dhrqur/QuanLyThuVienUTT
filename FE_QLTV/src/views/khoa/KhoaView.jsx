@@ -9,6 +9,8 @@ function KhoaView() {
         { key: "TenKhoa", label: "TenKhoa", displayLabel: "Tên khoa", widthValue: 250 },
       ]}
       entityName="Khoa"
+      pagination
+      pageSize={10}
       searchPlaceholder="Tìm mã khoa hoặc tên khoa..."
       title="Quản lý Khoa"
     />

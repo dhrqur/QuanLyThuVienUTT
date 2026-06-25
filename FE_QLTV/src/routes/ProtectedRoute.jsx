@@ -11,7 +11,7 @@ function ProtectedRoute({ children, managerOnly = false }) {
   }
 
   if (managerOnly && !isManager(user)) {
-    return <Navigate replace to="/sach" />;
+    return <Navigate replace to="/muon-tra" />;
   }
 
   return children;

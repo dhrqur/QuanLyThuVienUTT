@@ -18,6 +18,8 @@ function TacGiaView() {
         { key: "QuocTich", label: "QuocTich", displayLabel: "Quốc tịch", widthValue: 150 },
       ]}
       entityName="Tác giả"
+      pagination
+      pageSize={10}
       searchPlaceholder="Tìm mã hoặc tên tác giả..."
       title="Quản lý Tác giả"
     />

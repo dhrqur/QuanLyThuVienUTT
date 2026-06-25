@@ -35,10 +35,10 @@ function LoginView() {
     setLoading(false);
 
     const requestedPath = location.state?.from;
-    const fallbackPath = isManager(user) ? "/" : "/sach";
+    const fallbackPath = isManager(user) ? "/" : "/muon-tra";
     const isForbiddenPath =
       isLibrarian(user) &&
-      (requestedPath === "/" || requestedPath === "/nhan-vien");
+      requestedPath === "/nhan-vien";
 
     navigate(isForbiddenPath ? fallbackPath : requestedPath || fallbackPath, {
       replace: true,
