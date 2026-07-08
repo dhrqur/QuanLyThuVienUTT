@@ -20,7 +20,7 @@ export function useEntityTable({ apiModule, columns, entityName }) {
   const [error, setError] = useState("");
 
   const loadRows = useCallback(
-    async (keyword = "") => {
+    async (keyword = "", shouldUpdate = () => true) => {
       setLoading(true);
       setError("");
 
@@ -28,13 +28,15 @@ export function useEntityTable({ apiModule, columns, entityName }) {
         const response = keyword
           ? await api.search(apiModule, keyword)
           : await api.getAll(apiModule);
-        setRows(response.data ?? []);
+        if (shouldUpdate()) setRows(response.data ?? []);
       } catch (requestError) {
+        if (!shouldUpdate()) return;
+
         const message = getApiErrorMessage(requestError);
         setError(message);
         toast.error("Không thể tải dữ liệu", { description: message });
       } finally {
-        setLoading(false);
+        if (shouldUpdate()) setLoading(false);
       }
     },
     [apiModule],
@@ -43,25 +45,16 @@ export function useEntityTable({ apiModule, columns, entityName }) {
   useEffect(() => {
     let active = true;
 
-    api.getAll(apiModule)
-      .then((response) => {
-        if (active) setRows(response.data ?? []);
-      })
-      .catch((requestError) => {
-        if (!active) return;
+    async function loadInitialRows() {
+      await loadRows("", () => active);
+    }
 
-        const message = getApiErrorMessage(requestError);
-        setError(message);
-        toast.error("Không thể tải dữ liệu", { description: message });
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
+    loadInitialRows();
 
     return () => {
       active = false;
     };
-  }, [apiModule]);
+  }, [loadRows]);
 
   async function createRow(newRow) {
     try {

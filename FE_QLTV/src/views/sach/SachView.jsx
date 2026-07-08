@@ -1,4 +1,4 @@
-import DataTablePage from "@/components/common/DataTablePage";
+import DataTablePage from "@/components/common/DataTable/DataTablePage";
 import { useApiLists } from "@/hooks/useApiLists";
 import { getSachStatus } from "@/views/sach/sachUtils";
 import { createLookup } from "@/utils/lookup";

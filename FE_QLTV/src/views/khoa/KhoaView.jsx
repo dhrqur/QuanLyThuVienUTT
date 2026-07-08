@@ -1,4 +1,4 @@
-import DataTablePage from "@/components/common/DataTablePage";
+import DataTablePage from "@/components/common/DataTable/DataTablePage";
 
 function KhoaView() {
   return (

@@ -30,14 +30,3 @@ export function getNextGeneratedValue(rows, key) {
   const highest = values.reduce((current, value) => value.number > current.number ? value : current);
   return `${highest.prefix}${String(highest.number + 1).padStart(highest.width, "0")}`;
 }
-
-export function matchesSearch(row, columns, query) {
-  const normalizedQuery = normalizeText(query);
-  return !normalizedQuery || columns.some((column) =>
-    normalizeText(getDisplayValue(column, row)).includes(normalizedQuery),
-  );
-}
-
-function normalizeText(value) {
-  return String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-}
