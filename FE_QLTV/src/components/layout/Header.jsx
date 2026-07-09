@@ -1,7 +1,6 @@
-import { ChevronDown, LogOut, Menu } from "lucide-react";
+import { ChevronDown, LogOut } from "lucide-react";
 import { useNavigate } from "react-router";
 
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getCurrentUser, logout } from "@/utils/session";
 
-function Header({ onToggleSidebar }) {
+function Header() {
   const navigate = useNavigate();
   const user = getCurrentUser();
 
@@ -20,18 +19,7 @@ function Header({ onToggleSidebar }) {
   };
 
   return (
-    <header className="relative z-20 flex h-16 shrink-0 items-center justify-between bg-white px-4 md:px-7">
-      <Button
-        aria-label="Mở thanh điều hướng"
-        className="text-slate-600 lg:hidden"
-        onClick={onToggleSidebar}
-        size="icon"
-        type="button"
-        variant="ghost"
-      >
-        <Menu className="size-5" />
-      </Button>
-
+    <header className="relative z-20 flex h-16 shrink-0 items-center justify-end bg-white px-4 md:px-7">
       <div className="ml-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

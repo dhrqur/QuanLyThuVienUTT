@@ -9,6 +9,8 @@ function NgonNguView() {
         { key: "TenNN", label: "TenNN", displayLabel: "Tên ngôn ngữ", widthValue: 190 },
       ]}
       entityName="Ngôn ngữ"
+      pagination
+      pageSize={10}
       searchPlaceholder="Tìm tên ngôn ngữ..."
       title="Quản lý Ngôn ngữ"
     />

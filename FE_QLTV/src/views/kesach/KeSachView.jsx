@@ -10,6 +10,8 @@ function KeSachView() {
         { key: "MoTa", label: "MoTa", displayLabel: "Mô tả", widthValue: 250 },
       ]}
       entityName="Kệ sách"
+      pagination
+      pageSize={10}
       searchPlaceholder="Tìm mã kệ hoặc tên kệ..."
       title="Quản lý Kệ sách"
     />

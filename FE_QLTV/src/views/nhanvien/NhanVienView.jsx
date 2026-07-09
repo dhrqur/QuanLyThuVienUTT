@@ -49,6 +49,8 @@ function NhanVienView() {
         },
       ]}
       entityName="Nhân viên"
+      pagination
+      pageSize={10}
       searchPlaceholder="Tìm mã, tên hoặc tên đăng nhập..."
       title="Quản lý Nhân viên"
     />
