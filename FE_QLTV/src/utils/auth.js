@@ -5,7 +5,8 @@ const AUTH_STORAGE_KEY = "library-current-user";
 export function getCurrentUser() {
   try {
     const storedUser = localStorage.getItem(AUTH_STORAGE_KEY);
-    return storedUser ? JSON.parse(storedUser) : null;
+    const user = storedUser ? JSON.parse(storedUser) : null;
+    return user?.token ? user : null;
   } catch {
     localStorage.removeItem(AUTH_STORAGE_KEY);
     return null;
@@ -14,12 +15,14 @@ export function getCurrentUser() {
 
 export async function login(username, password) {
   const response = await api.login(username.trim(), password);
-  const account = response.data;
+  const payload = response.data;
+  const account = payload.user ?? payload;
   const user = {
     id: account.MaNV,
     username: account.User,
     name: account.TenNV,
     role: account.VaiTro,
+    token: payload.token ?? "",
   };
 
   localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
@@ -33,10 +36,6 @@ export function logout() {
 export function isManager(user = getCurrentUser()) {
   const role = normalizeRole(user?.role);
   return role === "quan ly" || role === "quan ly thu vien" || role === "admin";
-}
-
-export function isLibrarian(user = getCurrentUser()) {
-  return normalizeRole(user?.role) === "thu thu";
 }
 
 function normalizeRole(role) {

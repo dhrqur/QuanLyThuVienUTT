@@ -32,7 +32,6 @@ import { cn } from "@/lib/utils";
 import { formatDisplayDate } from "@/utils/dateUtils";
 import {
   formatCurrency,
-  getMuonTraStatus,
   getOverdueDays,
   getTodayValue,
 } from "@/views/muontra/muonTraUtils";
@@ -88,7 +87,7 @@ function DashboardView() {
           overview: overviewResponse.data?.tongQuan ?? {},
           topReaders: (loanStatsResponse.data?.theoDocGia ?? []).slice(0, 3),
           topBorrowedBooks: (loanStatsResponse.data?.sachMuonNhieu ?? []).slice(0, 3),
-          overdueTickets: loans.filter((ticket) => getMuonTraStatus(ticket) === "Quá hạn"),
+          overdueTickets: loans.filter(isOverdueTicket),
         });
       } catch (error) {
         if (!active) return;
@@ -528,10 +527,14 @@ function buildMonthlyLoanData(tickets) {
 function buildStatusData(tickets) {
   const counts = { "Đang mượn": 0, "Quá hạn": 0, "Đã trả": 0 };
   tickets.forEach((ticket) => {
-    const status = getMuonTraStatus(ticket);
+    const status = ticket.TrangThai;
     if (status in counts) counts[status] += 1;
   });
   return Object.entries(counts).map(([name, value]) => ({ name, value }));
+}
+
+function isOverdueTicket(ticket) {
+  return ticket.TrangThai === "Quá hạn";
 }
 
 export default DashboardView;

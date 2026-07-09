@@ -7,6 +7,7 @@ const {
     validateLogin,
     validateSearch
 } = require("../middlewares/nhanvien.middleware");
+const { authenticate, requireManager } = require("../middlewares/auth.middleware");
 
 /**
  * @swagger
@@ -71,7 +72,7 @@ router.post("/dang-nhap", validateLogin, NhanVienController.login);
  *                   type: string
  *                   example: Dang xuat thanh cong
  */
-router.post("/dang-xuat", NhanVienController.logout);
+router.post("/dang-xuat", authenticate, NhanVienController.logout);
 
 /**
  * @swagger
@@ -83,7 +84,7 @@ router.post("/dang-xuat", NhanVienController.logout);
  *       200:
  *         description: Lay danh sach nhan vien thanh cong
  */
-router.get("/", NhanVienController.getAll);
+router.get("/", authenticate, NhanVienController.getAll);
 
 /**
  * @swagger
@@ -104,7 +105,7 @@ router.get("/", NhanVienController.getAll);
  *       400:
  *         description: Tu khoa tim kiem khong hop le
  */
-router.get("/tim-kiem", validateSearch, NhanVienController.search);
+router.get("/tim-kiem", authenticate, validateSearch, NhanVienController.search);
 
 /**
  * @swagger
@@ -116,7 +117,7 @@ router.get("/tim-kiem", validateSearch, NhanVienController.search);
  *       200:
  *         description: Thong ke nhan vien thanh cong
  */
-router.get("/thong-ke", NhanVienController.getStatistics);
+router.get("/thong-ke", authenticate, requireManager, NhanVienController.getStatistics);
 /**
  * @swagger
  * /api/nhanvien/{maNV}:
@@ -136,7 +137,7 @@ router.get("/thong-ke", NhanVienController.getStatistics);
  *       404:
  *         description: Khong tim thay nhan vien
  */
-router.get("/:maNV", NhanVienController.getById);
+router.get("/:maNV", authenticate, NhanVienController.getById);
 
 /**
  * @swagger
@@ -158,7 +159,7 @@ router.get("/:maNV", NhanVienController.getById);
  *       409:
  *         description: Ma nhan vien hoac ten dang nhap da ton tai
  */
-router.post("/", validateNhanVien, NhanVienController.create);
+router.post("/", authenticate, requireManager, validateNhanVien, NhanVienController.create);
 
 /**
  * @swagger
@@ -189,7 +190,7 @@ router.post("/", validateNhanVien, NhanVienController.create);
  *       409:
  *         description: Ten dang nhap da ton tai
  */
-router.put("/:maNV", validateNhanVien, NhanVienController.update);
+router.put("/:maNV", authenticate, requireManager, validateNhanVien, NhanVienController.update);
 
 /**
  * @swagger
@@ -212,6 +213,6 @@ router.put("/:maNV", validateNhanVien, NhanVienController.update);
  *       404:
  *         description: Khong tim thay nhan vien
  */
-router.delete("/:maNV", NhanVienController.delete);
+router.delete("/:maNV", authenticate, requireManager, NhanVienController.delete);
 
 module.exports = router;

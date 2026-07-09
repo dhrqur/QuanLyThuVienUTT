@@ -1,5 +1,6 @@
 const NhanVien = require("../models/entities/nhanvien.entity");
 const NhanVienRepository = require("../models/repositories/nhanvien.repository");
+const { createToken } = require("../config/auth");
 
 function createError(message, statusCode) {
     const error = new Error(message);
@@ -30,8 +31,17 @@ class NhanVienService {
         }
 
         const { Pass, ...safeNhanVien } = nhanVien;
+        const token = createToken({
+            MaNV: safeNhanVien.MaNV,
+            User: safeNhanVien.User,
+            TenNV: safeNhanVien.TenNV,
+            VaiTro: safeNhanVien.VaiTro
+        });
 
-        return safeNhanVien;
+        return {
+            token,
+            user: safeNhanVien
+        };
     }
 
     async logout() {

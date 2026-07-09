@@ -1,17 +1,3 @@
-export const OVERDUE_FINE_PER_DAY = 2000;
-
-export function getMuonTraStatus(row) {
-  if (row?.NgayTra) {
-    return "Đã trả";
-  }
-
-  if (row?.HanTra && row.HanTra < getTodayValue()) {
-    return "Quá hạn";
-  }
-
-  return "Đang mượn";
-}
-
 export function getTodayValue() {
   const today = new Date();
   const timezoneOffset = today.getTimezoneOffset() * 60_000;

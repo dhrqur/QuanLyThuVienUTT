@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getCurrentUser, isLibrarian, isManager, login } from "@/utils/auth";
+import { getCurrentUser, isManager, login } from "@/utils/auth";
 
 function LoginView() {
   const navigate = useNavigate();
@@ -36,11 +36,8 @@ function LoginView() {
 
     const requestedPath = location.state?.from;
     const fallbackPath = isManager(user) ? "/" : "/muon-tra";
-    const isForbiddenPath =
-      isLibrarian(user) &&
-      requestedPath === "/nhan-vien";
 
-    navigate(isForbiddenPath ? fallbackPath : requestedPath || fallbackPath, {
+    navigate(requestedPath || fallbackPath, {
       replace: true,
     });
   };

@@ -2,10 +2,7 @@ import DataTablePage from "@/components/common/DataTable/DataTablePage";
 import { useApiLists } from "@/hooks/useApiLists";
 import { api } from "@/lib/api";
 import { SachMuonDetail, SachMuonSelector } from "@/views/muontra/components/SachMuonContent";
-import {
-  formatCurrency,
-  getMuonTraStatus,
-} from "@/views/muontra/muonTraUtils";
+import { formatCurrency } from "@/views/muontra/muonTraUtils";
 import { createLookup } from "@/utils/lookup";
 
 function MuonTraView() {
@@ -57,7 +54,7 @@ function MuonTraView() {
           displayLabel: "Trạng thái",
           badge: true,
           formHidden: true,
-          displayValue: getMuonTraStatus,
+          displayValue: (row) => row.TrangThai,
           widthValue: 140,
         },
       ]}

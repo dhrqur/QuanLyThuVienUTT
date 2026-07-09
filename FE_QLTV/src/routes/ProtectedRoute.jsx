@@ -1,17 +1,13 @@
 import { Navigate, useLocation } from "react-router";
 
-import { getCurrentUser, isManager } from "@/utils/auth";
+import { getCurrentUser } from "@/utils/auth";
 
-function ProtectedRoute({ children, managerOnly = false }) {
+function ProtectedRoute({ children }) {
   const location = useLocation();
   const user = getCurrentUser();
 
   if (!user) {
     return <Navigate replace state={{ from: location.pathname }} to="/login" />;
-  }
-
-  if (managerOnly && !isManager(user)) {
-    return <Navigate replace to="/muon-tra" />;
   }
 
   return children;

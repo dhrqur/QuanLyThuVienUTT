@@ -20,9 +20,7 @@ import TheThuVienView from "@/views/thethuvien/TheThuVienView";
 
 const DashboardView = lazy(() => import("@/views/DashboardView"));
 
-const protectedPage = (page, managerOnly = false) => (
-  <ProtectedRoute managerOnly={managerOnly}>{page}</ProtectedRoute>
-);
+const protectedPage = (page) => <ProtectedRoute>{page}</ProtectedRoute>;
 
 const dashboardPage = protectedPage(
   <Suspense
@@ -34,7 +32,6 @@ const dashboardPage = protectedPage(
   >
     <DashboardView />
   </Suspense>,
-  true,
 );
 
 function AppRoutes() {
@@ -49,7 +46,7 @@ function AppRoutes() {
       <Route path="/tac-gia" element={protectedPage(<TacGiaView />)} />
       <Route path="/the-loai" element={protectedPage(<TheLoaiView />)} />
       <Route path="/the-thu-vien" element={protectedPage(<TheThuVienView />)} />
-      <Route path="/nhan-vien" element={protectedPage(<NhanVienView />, true)} />
+      <Route path="/nhan-vien" element={protectedPage(<NhanVienView />)} />
       <Route path="/nha-xuat-ban" element={protectedPage(<NhaXuatBanView />)} />
       <Route path="/ngon-ngu" element={protectedPage(<NgonNguView />)} />
       <Route path="/ke-sach" element={protectedPage(<KeSachView />)} />
