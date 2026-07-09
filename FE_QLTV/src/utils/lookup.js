@@ -1,3 +1,8 @@
-export function createLookup(items, keyField, valueField) {
-  return Object.fromEntries(items.map((item) => [item[keyField], item[valueField]]));
+export function createLookup(danhSach, truongKhoa, truongGiaTri) {
+  const danhSachCapGiaTri = danhSach.map((dongDuLieu) => [
+    dongDuLieu[truongKhoa],
+    dongDuLieu[truongGiaTri],
+  ]);
+
+  return Object.fromEntries(danhSachCapGiaTri);
 }

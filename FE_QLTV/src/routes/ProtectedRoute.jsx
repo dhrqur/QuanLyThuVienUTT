@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from "react-router";
+import { Navigate, Outlet, useLocation } from "react-router";
 
 import { getCurrentUser } from "@/utils/session";
 
@@ -10,7 +10,7 @@ function ProtectedRoute({ children }) {
     return <Navigate replace state={{ from: location.pathname }} to="/login" />;
   }
 
-  return children;
+  return children ?? <Outlet />;
 }
 
 export default ProtectedRoute;

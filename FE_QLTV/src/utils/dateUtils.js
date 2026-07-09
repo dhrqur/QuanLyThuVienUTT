@@ -1,8 +1,10 @@
-export function formatDisplayDate(value) {
-  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return value ?? "";
+export function formatDisplayDate(giaTriNgay) {
+  const khongPhaiNgayHopLe = !giaTriNgay || !/^\d{4}-\d{2}-\d{2}$/.test(giaTriNgay);
+
+  if (khongPhaiNgayHopLe) {
+    return giaTriNgay ?? "";
   }
 
-  const [year, month, day] = value.split("-");
-  return `${day}/${month}/${year}`;
+  const [nam, thang, ngay] = giaTriNgay.split("-");
+  return `${ngay}/${thang}/${nam}`;
 }

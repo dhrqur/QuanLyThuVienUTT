@@ -1,8 +1,7 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import MainLayout from "@/components/layout/MainLayout";
-import { getColumnWidth } from "@/components/common/dataTableUtils";
 import DataSearchCard from "@/components/common/DataTable/DataSearchCard";
 import DataTableCard from "@/components/common/DataTable/DataTableCard";
 import EntityFormDialog from "@/components/common/DataTable/EntityFormDialog";
@@ -23,14 +22,15 @@ function DataTablePage({
 }) {
   const [searchInput, setSearchInput] = useState("");
   const [page, setPage] = useState(1);
+
   const {
     createRow,
     deleteRow,
     error,
     loadRows,
     loading,
-    rows: tableRows,
-    setRows: setTableRows,
+    rows,
+    setRows,
     updateRow,
   } = useEntityTable({
     apiModule,
@@ -38,47 +38,30 @@ function DataTablePage({
     entityName,
   });
 
-  const tableSettings = useMemo(() => {
-    const tableColumns = columns.filter((column) => !column.tableHidden);
-    const compactTable = tableColumns.length >= 7;
-    const actionWidth = compactTable ? 170 : 164;
-    const tableMinWidth = Math.max(
-      720,
-      tableColumns.reduce(
-        (total, column) => total + getColumnWidth(column, compactTable),
-        actionWidth,
-      ),
-    );
-
-    return { actionWidth, compactTable, tableColumns, tableMinWidth };
-  }, [columns]);
-
-  const totalPages = pagination ? Math.max(1, Math.ceil(tableRows.length / pageSize)) : 1;
+  const tableColumns = columns.filter((column) => !column.tableHidden);
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const displayedRows = pagination
-    ? tableRows.slice((currentPage - 1) * pageSize, currentPage * pageSize)
-    : tableRows;
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = currentPage * pageSize;
+  const visibleRows = pagination ? rows.slice(startIndex, endIndex) : rows;
+
+  function handleSearch() {
+    setPage(1);
+    loadRows(searchInput.trim());
+  }
 
   function handleResetSearch() {
     setSearchInput("");
     setPage(1);
     loadRows();
-    toast.info("Đã đặt lại bộ lọc");
-  }
-
-  function handleSearch() {
-    const keyword = searchInput.trim();
-    setPage(1);
-    loadRows(keyword);
+    toast.info("Đã đặt lại tìm kiếm");
   }
 
   return (
     <MainLayout>
-      <div className="space-y-5">
-        <section className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">{title}</h1>
-          </div>
+      <div className="space-y-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
           <EntityFormDialog
             buildExtraPayload={buildExtraPayload}
             columns={columns}
@@ -86,10 +69,10 @@ function DataTablePage({
             mode="create"
             onSave={createRow}
             renderFormExtra={renderFormExtra}
-            rows={tableRows}
+            rows={rows}
             title={`Thêm ${entityName.toLowerCase()}`}
           />
-        </section>
+        </div>
 
         <DataSearchCard
           onChange={setSearchInput}
@@ -100,40 +83,37 @@ function DataTablePage({
         />
 
         {error ? (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
         ) : null}
 
         {loading ? (
-          <div className="rounded-xl border border-slate-200 bg-white px-4 py-10 text-center text-sm font-semibold text-slate-500">
+          <div className="rounded-lg border border-slate-200 bg-white px-4 py-10 text-center text-sm text-slate-500">
             Đang tải dữ liệu...
           </div>
         ) : (
           <DataTableCard
-            actionWidth={tableSettings.actionWidth}
             allColumns={columns}
             buildExtraPayload={buildExtraPayload}
-            columns={tableSettings.tableColumns}
-            compactTable={tableSettings.compactTable}
+            columns={tableColumns}
             entityName={entityName}
             onDelete={deleteRow}
             onEdit={updateRow}
             renderDetailExtra={renderDetailExtra}
             renderFormExtra={renderFormExtra}
-            rows={tableRows}
-            setRows={setTableRows}
-            tableMinWidth={tableSettings.tableMinWidth}
-            visibleRows={displayedRows}
+            rows={rows}
+            setRows={setRows}
+            visibleRows={visibleRows}
           />
         )}
 
-        {!loading && pagination && tableRows.length > 0 ? (
+        {!loading && pagination && rows.length > 0 ? (
           <TablePagination
             currentPage={currentPage}
             onPageChange={setPage}
             pageSize={pageSize}
-            totalRows={tableRows.length}
+            totalRows={rows.length}
           />
         ) : null}
       </div>

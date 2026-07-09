@@ -1,7 +1,13 @@
 export function getSachStatus(soLuong) {
-  const quantity = Number(soLuong);
+  const soLuongSach = Number(soLuong);
 
-  if (quantity <= 0) return "Hết";
-  if (quantity === 1) return "Sắp hết";
+  if (soLuongSach <= 0) {
+    return "Hết";
+  }
+
+  if (soLuongSach === 1) {
+    return "Sắp hết";
+  }
+
   return "Còn";
 }
