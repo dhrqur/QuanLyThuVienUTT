@@ -2,7 +2,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router";
 
 import ProtectedRoute from "@/routes/ProtectedRoute";
-import { getCurrentUser } from "@/utils/auth";
+import { getCurrentUser } from "@/utils/session";
 import ChiTietMuonTraView from "@/views/chitietmuontra/ChiTietMuonTraView";
 import DocGiaView from "@/views/docgia/DocGiaView";
 import KeSachView from "@/views/kesach/KeSachView";

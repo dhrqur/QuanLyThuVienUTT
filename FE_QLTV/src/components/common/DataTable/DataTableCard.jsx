@@ -22,6 +22,7 @@ import TruncatedText from "@/components/common/DataTable/TruncatedText";
 function DataTableCard({
   actionWidth,
   allColumns,
+  buildExtraPayload,
   columns,
   compactTable,
   entityName,
@@ -78,6 +79,7 @@ function DataTableCard({
                         updateRow={(updates) => setRows((currentRows) => currentRows.map((item) => (item === row ? { ...item, ...updates } : item)))}
                       />
                       <EntityFormDialog
+                        buildExtraPayload={buildExtraPayload}
                         columns={allColumns}
                         entityName={entityName}
                         mode="edit"

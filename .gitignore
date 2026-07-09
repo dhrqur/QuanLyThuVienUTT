@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+FE_QLTV/dist/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Logs and local caches
+*.log
+.vite/
+.vercel/

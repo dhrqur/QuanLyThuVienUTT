@@ -19,7 +19,6 @@ import {
 import { NavLink } from "react-router";
 
 import { cn } from "@/lib/utils";
-import { getCurrentUser, isManager } from "@/utils/auth";
 
 const navGroups = [
   {
@@ -40,7 +39,7 @@ const navGroups = [
       { label: "Thẻ thư viện", href: "/the-thu-vien", icon: CreditCard },
       { label: "Khoa", href: "/khoa", icon: GraduationCap },
       { label: "Lớp", href: "/lop", icon: School },
-      { label: "Nhân viên", href: "/nhan-vien", icon: BarChart3, managerOnly: true },
+      { label: "Nhân viên", href: "/nhan-vien", icon: BarChart3 },
     ],
   },
   {
@@ -50,8 +49,6 @@ const navGroups = [
 ];
 
 function AppSidebar({ collapsed = false, onToggle }) {
-  const user = getCurrentUser();
-
   return (
     <aside
       className={cn(
@@ -79,17 +76,15 @@ function AppSidebar({ collapsed = false, onToggle }) {
       </div>
 
       <nav className="min-h-0 flex-1 overflow-y-auto px-4 pb-3 [scrollbar-width:none]">
-        {isManager(user) && (
-          <SidebarLink
-            collapsed={collapsed}
-            href="/"
-            icon={LayoutDashboard}
-            label="Dashboard"
-          />
-        )}
+        <SidebarLink
+          collapsed={collapsed}
+          href="/"
+          icon={LayoutDashboard}
+          label="Dashboard"
+        />
 
         {navGroups.map((group) => {
-          const items = group.items.filter((item) => !item.managerOnly || isManager(user));
+          const items = group.items;
           if (!items.length) return null;
 
           return (

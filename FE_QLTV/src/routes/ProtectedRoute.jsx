@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from "react-router";
 
-import { getCurrentUser } from "@/utils/auth";
+import { getCurrentUser } from "@/utils/session";
 
 function ProtectedRoute({ children }) {
   const location = useLocation();

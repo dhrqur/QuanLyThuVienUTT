@@ -1,6 +1,13 @@
 const NhanVienService = require("../services/nhanvien.service");
 
 function handleError(res, error) {
+    if (error.code === "ECONNREFUSED") {
+        return res.status(503).json({
+            success: false,
+            message: "Khong the ket noi co so du lieu. Vui long kiem tra MySQL."
+        });
+    }
+
     const statusCode = error.statusCode || 500;
 
     return res.status(statusCode).json({

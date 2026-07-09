@@ -17,7 +17,17 @@ import { Input } from "@/components/ui/input";
 import { getNextGeneratedValue } from "@/components/common/dataTableUtils";
 import { hasErrors, validateGenericEntityForm } from "@/utils/formValidation";
 
-function EntityFormDialog({ columns, entityName, mode, onSave, renderFormExtra, row, rows, title }) {
+function EntityFormDialog({
+  buildExtraPayload,
+  columns,
+  entityName,
+  mode,
+  onSave,
+  renderFormExtra,
+  row,
+  rows,
+  title,
+}) {
   const isEdit = mode === "edit";
   const [open, setOpen] = useState(false);
   const [errors, setErrors] = useState({});
@@ -87,16 +97,7 @@ function EntityFormDialog({ columns, entityName, mode, onSave, renderFormExtra, 
       nextRow[column.key] = column.inputType === "number" ? Number(value) : value;
     });
 
-    const loanDetails = Array.from(formData.entries())
-      .filter(([key]) => key.startsWith("SachMuon["))
-      .map(([key, value]) => ({
-        MaSach: key.slice("SachMuon[".length, -1),
-        SoLuong: Number(value),
-      }));
-
-    if (loanDetails.length) {
-      nextRow.ChiTiet = loanDetails;
-    }
+    Object.assign(nextRow, buildExtraPayload?.({ formData, isEdit, row }) ?? {});
 
     setSaving(true);
     try {

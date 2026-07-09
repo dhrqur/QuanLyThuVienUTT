@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "cd FE_QLTV && npm ci",
+  "buildCommand": "cd FE_QLTV && npm run build",
+  "outputDirectory": "FE_QLTV/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

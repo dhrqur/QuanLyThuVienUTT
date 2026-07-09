@@ -16,7 +16,6 @@ const muontra = require("./routes/muontra.routes");
 const chitietmuontra = require("./routes/chitietmuontra.routes");
 const thongke = require("./routes/thongke.routes");
 const cors = require("cors");
-const { authenticate, requireManager } = require("./middlewares/auth.middleware");
 
 const app = express();
 const swaggerSpec = require("./config/swagger");
@@ -24,12 +23,11 @@ const swaggerSpec = require("./config/swagger");
 app.use(cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    allowedHeaders: ["Content-Type"]
 }));
 app.use(express.json());
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api/nhanvien", nhanvien);
-app.use(authenticate);
 app.use("/api/sach", sach);
 app.use("/api/theloai", theloai);
 app.use("/api/tacgia", tacgia);
@@ -42,7 +40,7 @@ app.use("/api/ngonngu", ngonngu);
 app.use("/api/thethuvien", thethuvien);
 app.use("/api/muontra", muontra);
 app.use("/api/chitietmuontra", chitietmuontra);
-app.use("/api/thongke", requireManager, thongke);
+app.use("/api/thongke", thongke);
 
 const PORT = process.env.PORT || 3000;
 

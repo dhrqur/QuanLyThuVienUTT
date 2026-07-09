@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getCurrentUser, isManager, login } from "@/utils/auth";
+import { getCurrentUser, login } from "@/utils/session";
 
 function LoginView() {
   const navigate = useNavigate();
@@ -22,9 +22,8 @@ function LoginView() {
     event.preventDefault();
     setLoading(true);
 
-    let user;
     try {
-      user = await login(username, password);
+      await login(username, password);
     } catch (error) {
       toast.error("Đăng nhập thất bại", {
         description: error?.response?.data?.message || error.message,
@@ -35,9 +34,8 @@ function LoginView() {
     setLoading(false);
 
     const requestedPath = location.state?.from;
-    const fallbackPath = isManager(user) ? "/" : "/muon-tra";
 
-    navigate(requestedPath || fallbackPath, {
+    navigate(requestedPath || "/", {
       replace: true,
     });
   };
@@ -111,7 +109,7 @@ function LoginView() {
             {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </Button>
           <p className="mt-5 text-center text-xs font-semibold text-slate-500">
-            Quản lý: <span className="text-slate-800">nv1 / 123</span>
+            Tài khoản mẫu: <span className="text-slate-800">nv1 / 123</span>
             <br />
             Thủ thư: <span className="text-slate-800">nv2 / 1234</span>
           </p>

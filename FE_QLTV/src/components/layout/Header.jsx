@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getCurrentUser, logout } from "@/utils/auth";
+import { getCurrentUser, logout } from "@/utils/session";
 
 function Header({ onToggleSidebar }) {
   const navigate = useNavigate();

@@ -1,6 +1,7 @@
 const NhanVien = require("../models/entities/nhanvien.entity");
 const NhanVienRepository = require("../models/repositories/nhanvien.repository");
-const { createToken } = require("../config/auth");
+
+const DEFAULT_EMPLOYEE_ROLE = "Nhan vien";
 
 function createError(message, statusCode) {
     const error = new Error(message);
@@ -31,15 +32,8 @@ class NhanVienService {
         }
 
         const { Pass, ...safeNhanVien } = nhanVien;
-        const token = createToken({
-            MaNV: safeNhanVien.MaNV,
-            User: safeNhanVien.User,
-            TenNV: safeNhanVien.TenNV,
-            VaiTro: safeNhanVien.VaiTro
-        });
 
         return {
-            token,
             user: safeNhanVien
         };
     }
@@ -65,7 +59,10 @@ class NhanVienService {
             throw createError("Ten dang nhap da ton tai", 409);
         }
 
-        const nhanVien = new NhanVien(data);
+        const nhanVien = new NhanVien({
+            ...data,
+            VaiTro: data.VaiTro || DEFAULT_EMPLOYEE_ROLE
+        });
 
         return await NhanVienRepository.create(nhanVien);
     }
@@ -85,6 +82,7 @@ class NhanVienService {
 
         data.MaNV = maNV;
         data.Pass = data.Pass || nhanVienTonTai.Pass;
+        data.VaiTro = data.VaiTro || nhanVienTonTai.VaiTro || DEFAULT_EMPLOYEE_ROLE;
 
         const nhanVien = new NhanVien(data);
 

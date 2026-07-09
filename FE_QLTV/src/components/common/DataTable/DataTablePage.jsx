@@ -13,6 +13,7 @@ function DataTablePage({
   apiModule,
   title,
   entityName,
+  buildExtraPayload,
   columns,
   pagination = false,
   pageSize = 10,
@@ -79,6 +80,7 @@ function DataTablePage({
             <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">{title}</h1>
           </div>
           <EntityFormDialog
+            buildExtraPayload={buildExtraPayload}
             columns={columns}
             entityName={entityName}
             mode="create"
@@ -111,6 +113,7 @@ function DataTablePage({
           <DataTableCard
             actionWidth={tableSettings.actionWidth}
             allColumns={columns}
+            buildExtraPayload={buildExtraPayload}
             columns={tableSettings.tableColumns}
             compactTable={tableSettings.compactTable}
             entityName={entityName}
