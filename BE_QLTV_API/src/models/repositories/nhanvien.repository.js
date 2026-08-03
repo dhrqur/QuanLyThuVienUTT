@@ -42,6 +42,10 @@ class NhanVienRepository {
         return rows[0];
     }
 
+    async updatePassword(maNV, passwordHash) {
+        await db.query("UPDATE nhanvien SET `Pass` = ? WHERE MaNV = ?", [passwordHash, maNV]);
+    }
+
     async search(keyword) {
         const sql = `
             SELECT ${SAFE_COLUMNS}

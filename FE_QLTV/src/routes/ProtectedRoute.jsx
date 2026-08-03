@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from "react-router";
 
 import { getCurrentUser } from "@/utils/session";
+import { canAccessPath, getDefaultRoute } from "@/utils/accessControl";
 
 function ProtectedRoute({ children }) {
   const location = useLocation();
@@ -8,6 +9,10 @@ function ProtectedRoute({ children }) {
 
   if (!user) {
     return <Navigate replace state={{ from: location.pathname }} to="/login" />;
+  }
+
+  if (!canAccessPath(user, location.pathname)) {
+    return <Navigate replace to={getDefaultRoute(user)} />;
   }
 
   return children ?? <Outlet />;

@@ -5,18 +5,24 @@ import {
   BookCopy,
   BookOpen,
   CalendarClock,
+  CircleDollarSign,
   ClipboardCheck,
+  Download,
+  FileText,
   Users,
 } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Link } from "react-router";
 import { toast } from "sonner";
 
 import StatusBadge from "@/components/common/StatusBadge";
 import MainLayout from "@/components/layout/MainLayout";
+import { Input } from "@/components/ui/input";
 import { api, getApiErrorMessage } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { formatDisplayDate } from "@/utils/dateUtils";
-import { getOverdueDays, getTodayValue } from "@/views/muontra/muonTraUtils";
+import { exportDashboardExcel, printDashboardPdf } from "@/utils/dashboardExport";
+import { formatCurrency, getOverdueDays, getTodayValue } from "@/views/muontra/muonTraUtils";
 
 const STAT_STYLES = [
   { icon: BookOpen, iconClass: "bg-blue-50 text-blue-600", label: "Đầu sách", valueKey: "TongSach" },
@@ -33,6 +39,19 @@ const STAT_STYLES = [
     label: "Tổng số bản sách",
     valueKey: "TongSoLuongSach",
   },
+  {
+    icon: CircleDollarSign,
+    iconClass: "bg-rose-50 text-rose-600",
+    label: "Tổng tiền phạt",
+    valueKey: "TongTienPhatDaThu",
+    valueFormatter: formatCurrency,
+  },
+];
+
+const PERIODS = [
+  { value: "week", label: "7 ngày gần đây", days: 7 },
+  { value: "month", label: "30 ngày gần đây", days: 30 },
+  { value: "quarter", label: "3 tháng gần đây", days: 90 },
 ];
 
 function DashboardView() {
@@ -44,6 +63,9 @@ function DashboardView() {
     topReaders: [],
   });
   const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState("month");
+  const [dateFrom, setDateFrom] = useState(getDateDaysAgo(29));
+  const [dateTo, setDateTo] = useState(getTodayValue());
 
   useEffect(() => {
     let active = true;
@@ -82,21 +104,42 @@ function DashboardView() {
   }, []);
 
   const { loanTickets, overview, overdueTickets, topBorrowedBooks, topReaders } = dashboard;
+  const timeline = buildTimeline(loanTickets, dateFrom, dateTo);
+  const reportData = {
+    overview,
+    overdueTickets: overdueTickets.map((ticket) => ({
+      ...ticket,
+      overdueDays: getOverdueDays(ticket.HanTra, getTodayValue()),
+    })),
+    timeline,
+    title: `Khoảng thống kê: ${formatDisplayDate(dateFrom)} - ${formatDisplayDate(dateTo)}`,
+    topBooks: topBorrowedBooks.slice(0, 5),
+    topReaders: topReaders.slice(0, 5),
+  };
+
+  const handlePeriodChange = (nextPeriod) => {
+    const days = PERIODS.find((item) => item.value === nextPeriod)?.days ?? 30;
+    setPeriod(nextPeriod);
+    setDateTo(getTodayValue());
+    setDateFrom(getDateDaysAgo(days - 1));
+  };
 
   return (
-    <MainLayout compact>
-      <div className="dashboard-page mx-auto flex h-full max-w-[1600px] flex-col gap-2.5">
-        <DashboardHeader overdueCount={overdueTickets.length} />
+    <MainLayout>
+      <div className="dashboard-page mx-auto flex max-w-[1600px] flex-col gap-4">
+        <DashboardHeader dateFrom={dateFrom} dateTo={dateTo} onDateFromChange={setDateFrom} onDateToChange={setDateTo} onExportExcel={() => exportDashboardExcel(reportData)} onExportPdf={() => printDashboardPdf(reportData)} onPeriodChange={handlePeriodChange} overdueCount={overdueTickets.length} period={period} />
 
         {loading ? (
           <DashboardSkeleton />
         ) : (
           <>
-            <section className="grid shrink-0 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+            <section className="grid shrink-0 gap-2.5 sm:grid-cols-2 xl:grid-cols-5">
               {STAT_STYLES.map((stat) => (
                 <StatCard key={stat.valueKey} {...stat} value={overview[stat.valueKey] ?? 0} />
               ))}
             </section>
+
+            <TrendChart dateFrom={dateFrom} dateTo={dateTo} timeline={timeline} />
 
             <section className="grid min-h-0 flex-1 gap-2.5 xl:grid-cols-2">
               <OverdueCasesTable tickets={overdueTickets} totalTickets={loanTickets.length} />
@@ -112,12 +155,16 @@ function DashboardView() {
   );
 }
 
-function DashboardHeader({ overdueCount }) {
+function DashboardHeader({ dateFrom, dateTo, onDateFromChange, onDateToChange, onExportExcel, onExportPdf, onPeriodChange, overdueCount, period }) {
+  const exportPdf = () => {
+    if (!onExportPdf()) toast.error("Trình duyệt đã chặn cửa sổ in PDF. Hãy cho phép cửa sổ bật lên và thử lại.");
+  };
+
   return (
     <section className="relative min-h-[90px] shrink-0 overflow-hidden rounded-2xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-400 px-6 py-3.5 text-white shadow-lg shadow-orange-500/10">
       <div className="absolute -right-8 -top-24 size-64 rounded-full border-[34px] border-white/5" />
       <div className="absolute -bottom-28 right-56 size-56 rounded-full border-[30px] border-white/5" />
-      <div className="relative flex h-full items-center justify-between gap-5">
+      <div className="relative flex min-h-[90px] flex-wrap items-center justify-between gap-4">
         <div>
           <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-2.5 py-1 text-[11px] font-bold ring-1 ring-white/15">
             <CalendarClock className="size-3.5" />
@@ -126,6 +173,15 @@ function DashboardHeader({ overdueCount }) {
           <h1 className="text-2xl font-black leading-tight tracking-tight md:text-[26px]">Thống kê và báo cáo</h1>
         </div>
 
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <select className="h-8 rounded-lg bg-white/15 px-2 text-xs font-bold ring-1 ring-white/20" onChange={(event) => onPeriodChange(event.target.value)} value={period}>
+            {PERIODS.map((item) => <option className="text-slate-900" key={item.value} value={item.value}>{item.label}</option>)}
+          </select>
+          <Input aria-label="Từ ngày" className="h-8 w-32 border-white/20 bg-white/15 text-xs text-white [color-scheme:dark]" max={dateTo} onChange={(event) => onDateFromChange(event.target.value)} type="date" value={dateFrom} />
+          <Input aria-label="Đến ngày" className="h-8 w-32 border-white/20 bg-white/15 text-xs text-white [color-scheme:dark]" min={dateFrom} onChange={(event) => onDateToChange(event.target.value)} type="date" value={dateTo} />
+          <button className="inline-flex h-8 items-center gap-1 rounded-lg bg-white/15 px-2.5 text-xs font-bold ring-1 ring-white/20 hover:bg-white/25" onClick={onExportExcel} type="button"><Download className="size-3.5" /> Excel</button>
+          <button className="inline-flex h-8 items-center gap-1 rounded-lg bg-white/15 px-2.5 text-xs font-bold ring-1 ring-white/20 hover:bg-white/25" onClick={exportPdf} type="button"><FileText className="size-3.5" /> PDF</button>
+        </div>
         <Link
           className="hidden items-center gap-3 rounded-2xl bg-white/15 p-2.5 pr-4 ring-1 ring-white/15 backdrop-blur-sm transition hover:bg-white/20 sm:flex"
           to="/muon-tra"
@@ -144,7 +200,7 @@ function DashboardHeader({ overdueCount }) {
   );
 }
 
-function StatCard({ icon: Icon, iconClass, label, value }) {
+function StatCard({ icon: Icon, iconClass, label, value, valueFormatter }) {
   return (
     <article className="flex min-h-[72px] items-center gap-3.5 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80">
       <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${iconClass}`}>
@@ -153,12 +209,62 @@ function StatCard({ icon: Icon, iconClass, label, value }) {
       <div className="min-w-0">
         <p className="truncate text-xs font-semibold text-slate-500">{label}</p>
         <p className="text-2xl font-black leading-tight tracking-tight text-slate-900">
-          {Number(value).toLocaleString("vi-VN")}
+          {valueFormatter ? valueFormatter(value) : Number(value).toLocaleString("vi-VN")}
         </p>
         <p className="text-[10px] text-slate-400">Dữ liệu hiện tại</p>
       </div>
     </article>
   );
+}
+
+function TrendChart({ dateFrom, dateTo, timeline }) {
+  return (
+    <DashboardCard className="h-[280px] shrink-0">
+      <CardHeading icon={CalendarClock} subtitle={`${formatDisplayDate(dateFrom)} đến ${formatDisplayDate(dateTo)}`} title="Diễn biến mượn và tiền phạt" />
+      <div className="min-h-0 flex-1 px-3 pb-3">
+        <ResponsiveContainer height="100%" width="100%">
+          <BarChart data={timeline} margin={{ left: 0, right: 8, top: 6 }}>
+            <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="label" fontSize={11} tickLine={false} />
+            <YAxis allowDecimals={false} fontSize={11} tickLine={false} width={28} yAxisId="loans" />
+            <YAxis axisLine={false} fontSize={11} orientation="right" tickFormatter={(value) => `${Math.round(value / 1000)}k`} tickLine={false} width={38} yAxisId="fines" />
+            <Tooltip formatter={(value, name) => [name === "Tiền phạt" ? formatCurrency(value) : value, name]} />
+            <Legend />
+            <Bar dataKey="loans" fill="#f97316" name="Phiếu mượn" radius={[5, 5, 0, 0]} yAxisId="loans" />
+            <Bar dataKey="fines" fill="#e11d48" name="Tiền phạt" radius={[5, 5, 0, 0]} yAxisId="fines" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </DashboardCard>
+  );
+}
+
+function buildTimeline(loans, dateFrom, dateTo) {
+  const start = new Date(`${dateFrom}T00:00:00`);
+  const end = new Date(`${dateTo}T00:00:00`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) return [];
+  const days = Math.min(Math.floor((end - start) / 86_400_000) + 1, 366);
+  const entries = Array.from({ length: days }, (_, index) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+    const key = date.toISOString().slice(0, 10);
+    return { date: key, fines: 0, label: `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`, loans: 0 };
+  });
+  const byDate = new Map(entries.map((item) => [item.date, item]));
+  loans.forEach((loan) => {
+    const borrowed = byDate.get(String(loan.NgayMuon ?? "").slice(0, 10));
+    if (borrowed) borrowed.loans += 1;
+    const returned = byDate.get(String(loan.NgayTra ?? "").slice(0, 10));
+    if (returned) returned.fines += Number(loan.TienPhat ?? 0);
+  });
+  const step = days > 90 ? 7 : days > 30 ? 3 : 1;
+  return entries.filter((_, index) => index % step === 0 || index === entries.length - 1);
+}
+
+function getDateDaysAgo(days) {
+  const date = new Date(`${getTodayValue()}T00:00:00`);
+  date.setDate(date.getDate() - days);
+  return date.toISOString().slice(0, 10);
 }
 
 function DashboardCard({ children, className = "" }) {

@@ -26,6 +26,7 @@ export async function login(username, password) {
     username: taiKhoan.User,
     name: taiKhoan.TenNV,
     role: taiKhoan.VaiTro,
+    token: ketQuaDangNhap.data?.token,
   };
 
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(nguoiDungHienTai));

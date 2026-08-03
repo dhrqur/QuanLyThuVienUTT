@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router";
 
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import { getCurrentUser } from "@/utils/session";
+import { getDefaultRoute } from "@/utils/accessControl";
 import ChiTietMuonTraView from "@/views/chitietmuontra/ChiTietMuonTraView";
 import DashboardView from "@/views/DashboardView";
 import DocGiaView from "@/views/docgia/DocGiaView";
@@ -40,7 +41,7 @@ function AppRoutes() {
         <Route path="/lop" element={<LopView />} />
       </Route>
 
-      <Route path="*" element={<Navigate to={getCurrentUser() ? "/" : "/login"} replace />} />
+      <Route path="*" element={<Navigate to={getCurrentUser() ? getDefaultRoute(getCurrentUser()) : "/login"} replace />} />
     </Routes>
   );
 }

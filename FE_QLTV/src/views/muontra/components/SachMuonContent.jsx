@@ -1,11 +1,19 @@
 import { useState } from "react";
-import { BookOpen } from "lucide-react";
+import { BookOpen, FileText } from "lucide-react";
+import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { printLoanReceipt } from "@/utils/loanReceiptPdf";
 import TraSachDialog from "@/views/muontra/components/TraSachDialog";
 
 export function SachMuonDetail({ books, details: allDetails, onReturned, row }) {
   const details = allDetails;
+  const handlePrintReceipt = () => {
+    if (!printLoanReceipt({ books, details, row })) {
+      toast.error("Trình duyệt đã chặn cửa sổ in. Hãy cho phép cửa sổ bật lên và thử lại.");
+    }
+  };
 
   return (
     <section className="mt-5 space-y-3">
@@ -13,7 +21,12 @@ export function SachMuonDetail({ books, details: allDetails, onReturned, row }) 
         <h3 className="flex items-center gap-2 text-sm font-extrabold">
           <BookOpen className="size-4 text-orange-500" />Danh sách sách mượn
         </h3>
-        <TraSachDialog books={books} details={details} onReturned={onReturned} row={row} />
+        <div className="flex items-center gap-2">
+          <Button onClick={handlePrintReceipt} size="sm" type="button" variant="outline">
+            <FileText /> Xuất PDF
+          </Button>
+          <TraSachDialog books={books} details={details} onReturned={onReturned} row={row} />
+        </div>
       </div>
       <div className="overflow-hidden rounded-xl border border-slate-200">
         <div className="grid grid-cols-[110px_1fr_100px] bg-orange-50 px-4 py-2 text-xs font-extrabold text-orange-800">

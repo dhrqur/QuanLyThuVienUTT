@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getCurrentUser, login } from "@/utils/session";
+import { canAccessPath, getDefaultRoute } from "@/utils/accessControl";
 
 function LoginView() {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ function LoginView() {
   const [loading, setLoading] = useState(false);
 
   if (getCurrentUser()) {
-    return <Navigate replace to="/" />;
+    return <Navigate replace to={getDefaultRoute(getCurrentUser())} />;
   }
 
   const handleSubmit = async (event) => {
@@ -23,7 +24,15 @@ function LoginView() {
     setLoading(true);
 
     try {
-      await login(username, password);
+      const user = await login(username, password);
+      const requestedPath = location.state?.from;
+
+      navigate(
+        requestedPath && canAccessPath(user, requestedPath)
+          ? requestedPath
+          : getDefaultRoute(user),
+        { replace: true },
+      );
     } catch (error) {
       toast.error("Đăng nhập thất bại", {
         description: error?.response?.data?.message || error.message,
@@ -33,11 +42,6 @@ function LoginView() {
     }
     setLoading(false);
 
-    const requestedPath = location.state?.from;
-
-    navigate(requestedPath || "/", {
-      replace: true,
-    });
   };
 
   return (

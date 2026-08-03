@@ -1,5 +1,7 @@
 const NhanVien = require("../models/entities/nhanvien.entity");
 const NhanVienRepository = require("../models/repositories/nhanvien.repository");
+const crypto = require("crypto");
+const { createAccessToken } = require("../middlewares/auth.middleware");
 
 const DEFAULT_EMPLOYEE_ROLE = "Nhan vien";
 
@@ -7,6 +9,23 @@ function createError(message, statusCode) {
     const error = new Error(message);
     error.statusCode = statusCode;
     return error;
+}
+
+function hashPassword(password) {
+    const salt = crypto.randomBytes(16).toString("base64url");
+    return new Promise((resolve, reject) => crypto.scrypt(password, salt, 64, (error, derivedKey) => {
+        if (error) reject(error);
+        else resolve(`scrypt$${salt}$${derivedKey.toString("base64url")}`);
+    }));
+}
+
+function verifyPassword(password, storedPassword) {
+    if (!String(storedPassword).startsWith("scrypt$")) return Promise.resolve(password === storedPassword);
+    const [, salt, hash] = String(storedPassword).split("$");
+    return new Promise((resolve, reject) => crypto.scrypt(password, salt, 64, (error, derivedKey) => {
+        if (error) reject(error);
+        else resolve(crypto.timingSafeEqual(derivedKey, Buffer.from(hash, "base64url")));
+    }));
 }
 
 class NhanVienService {
@@ -27,13 +46,18 @@ class NhanVienService {
         const pass = String(data.Pass).trim();
         const nhanVien = await NhanVienRepository.getByUserWithPassword(user);
 
-        if (!nhanVien || String(nhanVien.Pass) !== pass) {
+        if (!nhanVien || !(await verifyPassword(pass, String(nhanVien.Pass)))) {
             throw createError("Ten dang nhap hoac mat khau khong dung", 401);
+        }
+
+        if (!String(nhanVien.Pass).startsWith("scrypt$")) {
+            await NhanVienRepository.updatePassword(nhanVien.MaNV, await hashPassword(pass));
         }
 
         const { Pass, ...safeNhanVien } = nhanVien;
 
         return {
+            token: createAccessToken(safeNhanVien),
             user: safeNhanVien
         };
     }
@@ -61,6 +85,7 @@ class NhanVienService {
 
         const nhanVien = new NhanVien({
             ...data,
+            Pass: await hashPassword(String(data.Pass).trim()),
             VaiTro: data.VaiTro || DEFAULT_EMPLOYEE_ROLE
         });
 
@@ -81,7 +106,7 @@ class NhanVienService {
         }
 
         data.MaNV = maNV;
-        data.Pass = data.Pass || nhanVienTonTai.Pass;
+        data.Pass = data.Pass ? await hashPassword(String(data.Pass).trim()) : nhanVienTonTai.Pass;
         data.VaiTro = data.VaiTro || nhanVienTonTai.VaiTro || DEFAULT_EMPLOYEE_ROLE;
 
         const nhanVien = new NhanVien(data);

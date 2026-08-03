@@ -18,6 +18,8 @@ import {
 import { NavLink } from "react-router";
 
 import { cn } from "@/lib/utils";
+import { isLibrarian } from "@/utils/accessControl";
+import { getCurrentUser } from "@/utils/session";
 
 const navGroups = [
   {
@@ -48,6 +50,9 @@ const navGroups = [
 ];
 
 function AppSidebar() {
+  const user = getCurrentUser();
+  const isThuThu = isLibrarian(user);
+
   return (
     <aside
       className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200/80 bg-white text-slate-600 lg:flex"
@@ -62,14 +67,10 @@ function AppSidebar() {
       </div>
 
       <nav className="min-h-0 flex-1 overflow-y-auto px-4 pb-3 [scrollbar-width:none]">
-        <SidebarLink
-          href="/"
-          icon={LayoutDashboard}
-          label="Dashboard"
-        />
+        {!isThuThu && <SidebarLink href="/" icon={LayoutDashboard} label="Dashboard" />}
 
         {navGroups.map((group) => {
-          const items = group.items;
+          const items = group.items.filter((item) => !isThuThu || item.href !== "/nhan-vien");
           if (!items.length) return null;
 
           return (

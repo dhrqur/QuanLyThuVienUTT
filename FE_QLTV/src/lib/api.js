@@ -23,6 +23,16 @@ const apiClient = axios.create({
   timeout: 15000,
 });
 
+apiClient.interceptors.request.use((config) => {
+  try {
+    const session = JSON.parse(localStorage.getItem("library-current-user") || "null");
+    if (session?.token) config.headers.Authorization = `Bearer ${session.token}`;
+  } catch {
+    localStorage.removeItem("library-current-user");
+  }
+  return config;
+});
+
 function normalizeDates(value) {
   if (Array.isArray(value)) return value.map(normalizeDates);
 
@@ -59,6 +69,9 @@ function buildResourcePath(module, id) {
 }
 
 export const api = {
+  async request(method, path, data, config = {}) {
+    return unwrap(await apiClient.request({ method, url: path, data, ...config }));
+  },
   async getAll(module) {
     return unwrap(await apiClient.get(`/${module}`));
   },
