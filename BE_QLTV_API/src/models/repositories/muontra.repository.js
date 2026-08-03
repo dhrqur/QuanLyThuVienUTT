@@ -139,7 +139,7 @@ class MuonTraRepository {
         try {
             await connection.beginTransaction();
 
-            await this.#assertDocGiaExists(connection, muonTra.getMaDG());
+            await this.#assertReaderCanBorrow(connection, muonTra.getMaDG());
             await this.#assertNhanVienExists(connection, muonTra.getMaNV());
             await this.#insertMuonTra(connection, muonTra);
             await this.#insertDetailsAndAdjustStock(connection, muonTra.getMaMT(), chiTiet, {});
@@ -171,7 +171,15 @@ class MuonTraRepository {
                 throw new Error("Khong the sua phieu muon da tra");
             }
 
-            await this.#assertDocGiaExists(connection, muonTra.getMaDG());
+            if (current.QuaHan) {
+                throw new Error("Khong the sua phieu muon da qua han");
+            }
+
+            if (String(current.MaDG) !== String(muonTra.getMaDG())) {
+                throw new Error("Khong duoc thay doi doc gia cua phieu muon");
+            }
+
+            await this.#assertReaderCanBorrow(connection, muonTra.getMaDG(), maMT);
             await this.#assertNhanVienExists(connection, muonTra.getMaNV());
 
             const oldDetails = await this.#getDetailsMap(connection, maMT);
@@ -217,6 +225,10 @@ class MuonTraRepository {
 
             if (current.NgayTra) {
                 throw new Error("Phieu muon da duoc tra");
+            }
+
+            if (new Date(`${String(ngayTra).slice(0, 10)}T00:00:00`) < new Date(current.NgayMuon)) {
+                throw new Error("Ngay tra khong duoc nho hon ngay muon");
             }
 
             const [details] = await connection.query(
@@ -280,11 +292,40 @@ class MuonTraRepository {
         }
     }
 
-    async #assertDocGiaExists(connection, maDG) {
-        const [rows] = await connection.query("SELECT MaDG FROM docgia WHERE MaDG = ?", [maDG]);
+    async #assertReaderCanBorrow(connection, maDG, excludedLoanId = null) {
+        const [rows] = await connection.query(
+            "SELECT MaDG FROM docgia WHERE MaDG = ? FOR UPDATE",
+            [maDG]
+        );
 
         if (!rows[0]) {
             throw new Error("Doc gia khong ton tai");
+        }
+
+
+        const [cardRows] = await connection.query(`
+            SELECT MaThe
+            FROM thethuvien
+            WHERE MaDG = ?
+                AND NgayCap <= CURDATE()
+                AND NgayHetHan >= CURDATE()
+                AND TrangThai IN ('Còn hiệu lực', 'Con hieu luc')
+            LIMIT 1
+            FOR UPDATE
+        `, [maDG]);
+
+        if (!cardRows[0]) {
+            throw new Error("The thu vien cua doc gia khong con hieu luc");
+        }
+
+        const openLoanSql = excludedLoanId
+            ? "SELECT MaMT FROM muontra WHERE MaDG = ? AND NgayTra IS NULL AND MaMT <> ? LIMIT 1 FOR UPDATE"
+            : "SELECT MaMT FROM muontra WHERE MaDG = ? AND NgayTra IS NULL LIMIT 1 FOR UPDATE";
+        const openLoanParams = excludedLoanId ? [maDG, excludedLoanId] : [maDG];
+        const [openLoanRows] = await connection.query(openLoanSql, openLoanParams);
+
+        if (openLoanRows[0]) {
+            throw new Error("Doc gia dang co phieu muon chua tra");
         }
     }
 
@@ -298,7 +339,11 @@ class MuonTraRepository {
 
     async #getMuonTraForUpdate(connection, maMT) {
         const [rows] = await connection.query(
-            "SELECT MaMT, TrangThai, NgayTra FROM muontra WHERE MaMT = ? FOR UPDATE",
+            `SELECT MaMT, MaDG, TrangThai, NgayMuon, HanTra, NgayTra,
+                (NgayTra IS NULL AND HanTra < CURDATE()) AS QuaHan
+             FROM muontra
+             WHERE MaMT = ?
+             FOR UPDATE`,
             [maMT]
         );
         return rows[0];

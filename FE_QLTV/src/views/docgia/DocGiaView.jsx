@@ -1,17 +1,8 @@
 import DataTablePage from "@/components/common/DataTable/DataTablePage";
-import { useApiLists } from "@/hooks/useApiLists";
-import { createLookup } from "@/utils/lookup";
 
 const currentYear = new Date().getFullYear();
 
 function DocGiaView() {
-  const { data } = useApiLists(["khoa", "lop"]);
-  const faculties = data.khoa ?? [];
-  const classes = data.lop ?? [];
-
-  const facultyNames = createLookup(faculties, "MaKhoa", "TenKhoa");
-  const classNames = createLookup(classes, "MaLop", "TenLop");
-
   return (
     <DataTablePage
       apiModule="docgia"
@@ -35,35 +26,6 @@ function DocGiaView() {
           displayLabel: "Tên độc giả",
           maxLength: 50,
           widthValue: 118,
-        },
-        {
-          key: "MaKhoa",
-          label: "MaKhoa",
-          displayLabel: "Khoa",
-          maxLength: 10,
-          displayValue: (row) => facultyNames[row.MaKhoa] ?? row.MaKhoa,
-          options: faculties.map((item) => ({
-            label: `${item.MaKhoa} - ${item.TenKhoa}`,
-            value: item.MaKhoa,
-          })),
-          widthValue: 118,
-        },
-        {
-          key: "MaLop",
-          label: "MaLop",
-          displayLabel: "Lớp",
-          maxLength: 10,
-          displayValue: (row) => classNames[row.MaLop] ?? row.MaLop,
-          dependsOn: "MaKhoa",
-          dependencyPlaceholder: "-- Chọn khoa trước --",
-          options: ({ MaKhoa }) =>
-            classes
-              .filter((item) => item.MaKhoa === MaKhoa)
-              .map((item) => ({
-                label: `${item.MaLop} - ${item.TenLop}`,
-                value: item.MaLop,
-              })),
-          widthValue: 92,
         },
         {
           key: "NamSinh",

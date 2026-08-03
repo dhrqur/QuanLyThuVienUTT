@@ -19,6 +19,10 @@ function hasUnexpectedFields(data, allowedFields) {
     return Object.keys(data).some((field) => !allowedFields.includes(field));
 }
 
+function normalizeRole(role) {
+    return String(role || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+}
+
 function validateNhanVien(req, res, next) {
     if (hasUnexpectedFields(req.body, allowedNhanVienFields)) {
         return res.status(400).json({
@@ -81,7 +85,8 @@ function validateNhanVien(req, res, next) {
         });
     }
 
-    if (isNaN(NamSinh) || String(NamSinh).trim().length > 10) {
+    const currentYear = new Date().getFullYear();
+    if (!/^\d{4}$/.test(String(NamSinh).trim()) || Number(NamSinh) > currentYear) {
         return res.status(400).json({
             message: "Nam sinh khong hop le"
         });
@@ -93,13 +98,19 @@ function validateNhanVien(req, res, next) {
         });
     }
 
+    if (!["quan ly", "thu thu"].includes(normalizeRole(VaiTro))) {
+        return res.status(400).json({
+            message: "Vai tro chi duoc la Quan ly hoac Thu thu"
+        });
+    }
+
     if (String(Email).trim().length > 50 || !String(Email).includes("@")) {
         return res.status(400).json({
             message: "Email khong hop le"
         });
     }
 
-    if (String(Sdt).trim().length > 13 || isNaN(Sdt)) {
+    if (!/^\d{10,12}$/.test(String(Sdt).trim())) {
         return res.status(400).json({
             message: "So dien thoai khong hop le"
         });
@@ -111,9 +122,16 @@ function validateNhanVien(req, res, next) {
         });
     }
 
-    if (!isEmpty(Pass) && String(Pass).trim().length > 50) {
+
+    if (/\s/.test(String(User))) {
         return res.status(400).json({
-            message: "Mat khau khong duoc vuot qua 50 ky tu"
+            message: "Ten dang nhap khong duoc chua khoang trang"
+        });
+    }
+
+    if (!isEmpty(Pass) && (String(Pass).length < 6 || Buffer.byteLength(String(Pass), "utf8") > 72)) {
+        return res.status(400).json({
+            message: "Mat khau phai co tu 6 ky tu va khong vuot qua 72 byte"
         });
     }
 

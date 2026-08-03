@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `chitietmuontra` (
   `MaMT` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `MaSach` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `SoLuong` int NOT NULL,
-  KEY `MaMT` (`MaMT`),
+  PRIMARY KEY (`MaMT`, `MaSach`),
   KEY `MaSach` (`MaSach`),
   CONSTRAINT `chitietmuontra_ibfk_1` FOREIGN KEY (`MaMT`) REFERENCES `muontra` (`MaMT`),
   CONSTRAINT `chitietmuontra_ibfk_2` FOREIGN KEY (`MaSach`) REFERENCES `sach` (`MaSach`)
@@ -73,8 +73,8 @@ INSERT INTO `chitietmuontra` (`MaMT`, `MaSach`, `SoLuong`) VALUES
 -- Dumping structure for table dbqltv.docgia
 CREATE TABLE IF NOT EXISTS `docgia` (
   `MaDG` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `MaKhoa` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `MaLop` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `MaKhoa` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `MaLop` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `TenDG` varchar(50) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `NamSinh` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `GioiTinh` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
@@ -279,16 +279,17 @@ CREATE TABLE IF NOT EXISTS `nhanvien` (
   `Email` varchar(50) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `Sdt` varchar(13) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `User` varchar(50) COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `Pass` varchar(50) COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  PRIMARY KEY (`MaNV`)
+  `Pass` varchar(255) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  PRIMARY KEY (`MaNV`),
+  UNIQUE KEY `uq_nhanvien_user` (`User`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 -- Dumping data for table dbqltv.nhanvien: ~4 rows (approximately)
 INSERT INTO `nhanvien` (`MaNV`, `TenNV`, `QueQuan`, `GioiTinh`, `NamSinh`, `VaiTro`, `Email`, `Sdt`, `User`, `Pass`) VALUES
-	('NV001', 'Trần Hải', 'Hà Nội', 'Nam', '1999', 'Quản lý', 'hai.tran@utt.edu.vn', '0987654321', 'nv1', '123'),
-	('NV002', 'Hà Phương', 'Hải Phòng', 'Nữ', '2000', 'Thủ thư', 'haphuong@gmail.com', '0123456789', 'nv2', '1234'),
-	('NV003', 'Nguyễn Thu Hà', 'Nam Định', 'Nữ', '1998', 'Thủ thư', 'ha.nguyen@utt.edu.vn', '0945088056', 'nv3', '1234'),
-	('NV004', 'Phạm Đức Minh', 'Bắc Ninh', 'Nam', '1997', 'Thủ thư', 'minh.pham@utt.edu.vn', '0123456788', 'nv4', '1234');
+	('NV001', 'Trần Hải', 'Hà Nội', 'Nam', '1999', 'Quản lý', 'hai.tran@utt.edu.vn', '0987654321', 'nv1', '$2b$12$c8X6s8oK/Sf3gZivONAY3u3izOCykdfr2sVaQobK2YwYQIuY9wx2i'),
+	('NV002', 'Hà Phương', 'Hải Phòng', 'Nữ', '2000', 'Thủ thư', 'haphuong@gmail.com', '0123456789', 'nv2', '$2b$12$c8X6s8oK/Sf3gZivONAY3u3izOCykdfr2sVaQobK2YwYQIuY9wx2i'),
+	('NV003', 'Nguyễn Thu Hà', 'Nam Định', 'Nữ', '1998', 'Thủ thư', 'ha.nguyen@utt.edu.vn', '0945088056', 'nv3', '$2b$12$c8X6s8oK/Sf3gZivONAY3u3izOCykdfr2sVaQobK2YwYQIuY9wx2i'),
+	('NV004', 'Phạm Đức Minh', 'Bắc Ninh', 'Nam', '1997', 'Thủ thư', 'minh.pham@utt.edu.vn', '0123456788', 'nv4', '$2b$12$c8X6s8oK/Sf3gZivONAY3u3izOCykdfr2sVaQobK2YwYQIuY9wx2i');
 
 -- Dumping structure for table dbqltv.nhaxuatban
 CREATE TABLE IF NOT EXISTS `nhaxuatban` (

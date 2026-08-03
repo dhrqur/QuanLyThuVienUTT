@@ -2,8 +2,6 @@ class DocGia {
 
     constructor(data) {
         this.MaDG = data.MaDG;
-        this.MaKhoa = data.MaKhoa;
-        this.MaLop = data.MaLop;
         this.TenDG = data.TenDG;
         this.NamSinh = data.NamSinh || null;
         this.GioiTinh = data.GioiTinh;
@@ -14,14 +12,6 @@ class DocGia {
 
     getMaDG() {
         return this.MaDG;
-    }
-
-    getMaKhoa() {
-        return this.MaKhoa;
-    }
-
-    getMaLop() {
-        return this.MaLop;
     }
 
     getTenDG() {
@@ -51,8 +41,6 @@ class DocGia {
     toObject() {
         return {
             MaDG: this.MaDG,
-            MaKhoa: this.MaKhoa,
-            MaLop: this.MaLop,
             TenDG: this.TenDG,
             NamSinh: this.NamSinh,
             GioiTinh: this.GioiTinh,

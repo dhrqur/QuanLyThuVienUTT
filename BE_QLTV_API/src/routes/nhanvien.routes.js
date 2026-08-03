@@ -22,6 +22,7 @@ const { authenticate, requireManager } = require("../middlewares/auth.middleware
  *   post:
  *     summary: Dang nhap nhan vien
  *     tags: [NhanVien]
+ *     security: []
  *     requestBody:
  *       required: true
  *       content:

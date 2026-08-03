@@ -16,6 +16,16 @@ function hasUnexpectedFields(data, allowedFields) {
     return Object.keys(data).some((field) => !allowedFields.includes(field));
 }
 
+function getTodayValue() {
+    const now = new Date();
+    return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+}
+
+function useAuthenticatedEmployee(req, res, next) {
+    req.body.MaNV = req.user.id;
+    next();
+}
+
 function validateChiTiet(chiTiet, res) {
     if (!Array.isArray(chiTiet) || chiTiet.length === 0) {
         return res.status(400).json({
@@ -63,6 +73,10 @@ function validateMuonTra(req, res, next) {
         });
     }
 
+    if (isEmpty(req.body.NgayMuon)) {
+        req.body.NgayMuon = getTodayValue();
+    }
+
     const {
         MaMT,
         MaDG,
@@ -102,7 +116,7 @@ function validateMuonTra(req, res, next) {
         });
     }
 
-    if (!isEmpty(NgayMuon) && isNaN(Date.parse(NgayMuon))) {
+    if (isNaN(Date.parse(NgayMuon))) {
         return res.status(400).json({
             message: "Ngay muon khong hop le"
         });
@@ -111,6 +125,18 @@ function validateMuonTra(req, res, next) {
     if (isNaN(Date.parse(HanTra))) {
         return res.status(400).json({
             message: "Han tra khong hop le"
+        });
+    }
+
+    if (String(NgayMuon).slice(0, 10) > getTodayValue()) {
+        return res.status(400).json({
+            message: "Ngay muon khong duoc lon hon ngay hien tai"
+        });
+    }
+
+    if (String(HanTra).slice(0, 10) <= String(NgayMuon).slice(0, 10)) {
+        return res.status(400).json({
+            message: "Han tra phai lon hon ngay muon"
         });
     }
 
@@ -156,10 +182,18 @@ function validateTraSach(req, res, next) {
         });
     }
 
+
+    if (String(NgayTra).slice(0, 10) > getTodayValue()) {
+        return res.status(400).json({
+            message: "Ngay tra khong duoc lon hon ngay hien tai"
+        });
+    }
+
     next();
 }
 
 module.exports = {
+    useAuthenticatedEmployee,
     validateMuonTra,
     validateSearchMuonTra,
     validateTraSach

@@ -1,9 +1,10 @@
 const NhanVien = require("../models/entities/nhanvien.entity");
 const NhanVienRepository = require("../models/repositories/nhanvien.repository");
-const crypto = require("crypto");
+const bcrypt = require("bcrypt");
 const { createAccessToken } = require("../middlewares/auth.middleware");
 
-const DEFAULT_EMPLOYEE_ROLE = "Nhan vien";
+const DEFAULT_EMPLOYEE_ROLE = "Thu thu";
+const BCRYPT_ROUNDS = 12;
 
 function createError(message, statusCode) {
     const error = new Error(message);
@@ -12,20 +13,14 @@ function createError(message, statusCode) {
 }
 
 function hashPassword(password) {
-    const salt = crypto.randomBytes(16).toString("base64url");
-    return new Promise((resolve, reject) => crypto.scrypt(password, salt, 64, (error, derivedKey) => {
-        if (error) reject(error);
-        else resolve(`scrypt$${salt}$${derivedKey.toString("base64url")}`);
-    }));
+    return bcrypt.hash(password, BCRYPT_ROUNDS);
 }
 
 function verifyPassword(password, storedPassword) {
-    if (!String(storedPassword).startsWith("scrypt$")) return Promise.resolve(password === storedPassword);
-    const [, salt, hash] = String(storedPassword).split("$");
-    return new Promise((resolve, reject) => crypto.scrypt(password, salt, 64, (error, derivedKey) => {
-        if (error) reject(error);
-        else resolve(crypto.timingSafeEqual(derivedKey, Buffer.from(hash, "base64url")));
-    }));
+    if (!String(storedPassword).startsWith("$2")) {
+        return Promise.resolve(password === storedPassword);
+    }
+    return bcrypt.compare(password, storedPassword);
 }
 
 class NhanVienService {
@@ -50,7 +45,7 @@ class NhanVienService {
             throw createError("Ten dang nhap hoac mat khau khong dung", 401);
         }
 
-        if (!String(nhanVien.Pass).startsWith("scrypt$")) {
+        if (!String(nhanVien.Pass).startsWith("$2")) {
             await NhanVienRepository.updatePassword(nhanVien.MaNV, await hashPassword(pass));
         }
 

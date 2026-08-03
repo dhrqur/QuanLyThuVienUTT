@@ -1,14 +1,12 @@
-const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
 
-const TOKEN_TTL_SECONDS = 8 * 60 * 60;
-const SECRET = process.env.AUTH_SECRET || crypto.randomBytes(32).toString("base64url");
+const TOKEN_TTL = "8h";
+const JWT_ISSUER = "quan-ly-thu-vien-utt";
+const JWT_AUDIENCE = "quan-ly-thu-vien-utt-api";
+const SECRET = process.env.AUTH_SECRET || "development-only-change-this-auth-secret";
 
-function base64url(value) {
-    return Buffer.from(value).toString("base64url");
-}
-
-function sign(value) {
-    return crypto.createHmac("sha256", SECRET).update(value).digest("base64url");
+if (process.env.NODE_ENV === "production" && !process.env.AUTH_SECRET) {
+    throw new Error("AUTH_SECRET is required in production");
 }
 
 function normalizeRole(role) {
@@ -16,42 +14,58 @@ function normalizeRole(role) {
 }
 
 function createAccessToken(employee) {
-    const payload = base64url(JSON.stringify({
-        exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS,
-        id: employee.MaNV,
+    return jwt.sign({
         role: employee.VaiTro,
         username: employee.User
-    }));
-    return `${payload}.${sign(payload)}`;
+    }, SECRET, {
+        subject: String(employee.MaNV),
+        expiresIn: TOKEN_TTL,
+        issuer: JWT_ISSUER,
+        audience: JWT_AUDIENCE
+    });
 }
 
 function authenticate(req, res, next) {
     const token = req.headers.authorization?.replace(/^Bearer\s+/i, "");
     if (!token) return res.status(401).json({ message: "Vui long dang nhap de tiep tuc" });
 
-    const [payload, signature] = token.split(".");
-    const expectedSignature = sign(payload || "");
-    if (!payload || !signature || signature.length !== expectedSignature.length || !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {
-        return res.status(401).json({ message: "Phien dang nhap khong hop le" });
-    }
-
     try {
-        const user = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
-        if (!user.exp || user.exp < Math.floor(Date.now() / 1000)) {
+        const payload = jwt.verify(token, SECRET, {
+            issuer: JWT_ISSUER,
+            audience: JWT_AUDIENCE
+        });
+        req.user = {
+            id: payload.sub,
+            role: payload.role,
+            username: payload.username
+        };
+        next();
+    } catch (error) {
+        if (error.name === "TokenExpiredError") {
             return res.status(401).json({ message: "Phien dang nhap da het han" });
         }
-        req.user = user;
-        next();
-    } catch {
         return res.status(401).json({ message: "Phien dang nhap khong hop le" });
     }
 }
 
-function requireManager(req, res, next) {
-    if (normalizeRole(req.user?.role) !== "quan ly") {
-        return res.status(403).json({ message: "Ban khong co quyen truy cap chuc nang nay" });
-    }
-    next();
+function authorizeRoles(...roles) {
+    const allowedRoles = new Set(roles.map(normalizeRole));
+
+    return (req, res, next) => {
+        if (!allowedRoles.has(normalizeRole(req.user?.role))) {
+            return res.status(403).json({ message: "Ban khong co quyen truy cap chuc nang nay" });
+        }
+        next();
+    };
 }
 
-module.exports = { authenticate, createAccessToken, requireManager };
+const requireManager = authorizeRoles("Quan ly");
+const requireLibraryStaff = authorizeRoles("Quan ly", "Thu thu");
+
+module.exports = {
+    authenticate,
+    authorizeRoles,
+    createAccessToken,
+    requireLibraryStaff,
+    requireManager
+};

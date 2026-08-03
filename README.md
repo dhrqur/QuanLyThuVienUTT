@@ -12,7 +12,7 @@ Hệ thống hỗ trợ quản lý sách, độc giả, nhân viên, thẻ thư 
 - Đăng nhập và phân quyền `Quản lý` / `Thủ thư`.
 - Dashboard thống kê tổng quan dành cho quản lý.
 - Quản lý sách, tác giả, thể loại, nhà xuất bản, ngôn ngữ và kệ sách.
-- Quản lý độc giả, khoa, lớp và thẻ thư viện.
+- Quản lý độc giả và thẻ thư viện.
 - Quản lý nhân viên.
 - Lập phiếu mượn gồm nhiều đầu sách và số lượng tương ứng.
 - Tự động trừ tồn kho khi mượn và hoàn tồn kho khi trả.
@@ -43,6 +43,8 @@ Hệ thống hỗ trợ quản lý sách, độc giả, nhân viên, thẻ thư 
 - mysql2
 - CORS
 - Swagger UI
+- bcrypt
+- JSON Web Token (JWT)
 - Nodemon
 
 ## Cấu trúc dự án
@@ -112,9 +114,16 @@ DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=
 DB_NAME=qltv
+AUTH_SECRET=thay-bang-chuoi-ngau-nhien-dai-it-nhat-32-ky-tu
 ```
 
 Điền `DB_PASSWORD` theo tài khoản MySQL trên máy.
+
+Nếu nâng cấp một database đã có dữ liệu, hãy sao lưu rồi chạy file migration trước khi deploy backend mới:
+
+```bash
+mysql -u root -p qltv < BE_QLTV_API/migrations/20260803_security_and_remove_khoa_lop.sql
+```
 
 Khởi động backend:
 
@@ -148,8 +157,8 @@ Tài liệu giải thích cấu trúc, luồng dữ liệu và cách thêm màn 
 
 | Vai trò | Tên đăng nhập | Mật khẩu |
 | --- | --- | --- |
-| Quản lý | `nv1` | `123` |
-| Thủ thư | `nv2` | `1234` |
+| Quản lý | `nv1` | `123456` |
+| Thủ thư | `nv2` | `123456` |
 
 Quản lý được truy cập Dashboard và quản lý nhân viên. Thủ thư được sử dụng các màn hình nghiệp vụ thư viện còn lại.
 
@@ -163,12 +172,9 @@ theloai
 tacgia
 nhaxuatban
 kesach
-khoa
-lop
 ngonngu
 thethuvien
 muontra
-chitietmuontra
 thongke
 ```
 
@@ -191,19 +197,17 @@ Endpoint riêng:
 | POST | `/api/nhanvien/dang-nhap` | Đăng nhập |
 | PUT | `/api/muontra/:maMT/tra-sach` | Trả sách |
 | GET | `/api/thongke/tong-quan` | Thống kê Dashboard |
-| GET | `/api/chitietmuontra/:maMT/:maSach` | Chi tiết theo khóa ghép |
-| PUT | `/api/chitietmuontra/:maMT/:maSach` | Sửa chi tiết theo khóa ghép |
-| DELETE | `/api/chitietmuontra/:maMT/:maSach` | Xóa chi tiết theo khóa ghép |
 
 ## Nghiệp vụ mượn–trả
 
 1. Phiếu mượn được lưu tại `muontra`.
 2. Danh sách sách và số lượng được lưu tại `chitietmuontra`.
-3. Khi lập hoặc sửa phiếu, BE kiểm tra tồn kho trong transaction.
-4. Khi mượn thành công, số lượng sách trong kho được trừ.
-5. Khi trả, `NgayTra` được cập nhật và tồn kho được hoàn lại.
-6. Trạng thái được tính tự động từ `NgayTra` và `HanTra`.
-7. Nếu trả muộn, tiền phạt bằng số ngày quá hạn nhân `2.000 đồng`.
+3. Khi lập phiếu, BE kiểm tra thẻ còn hiệu lực và độc giả không có phiếu chưa trả.
+4. Lập, sửa và trả phiếu đều khóa dữ liệu cần thiết và chạy trong transaction.
+5. Khi mượn thành công, số lượng sách trong kho được trừ.
+6. Khi trả, `NgayTra` được cập nhật, tồn kho được hoàn lại và không thể trả lần hai.
+7. Trạng thái được tính tự động từ `NgayTra` và `HanTra`.
+8. Nếu trả muộn, tiền phạt bằng số ngày quá hạn nhân `2.000 đồng`.
 
 Các bảng `phieudattruoc` và `phieutra` không được sử dụng. Ngày trả được lưu trực tiếp trong `muontra`.
 
@@ -226,8 +230,8 @@ npm start
 
 ## Lưu ý
 
-- `API_BASE_URL` của FE hiện là `http://localhost:3000/api`.
-- Mật khẩu trong dữ liệu mẫu hiện được lưu dạng văn bản thuần, chỉ phù hợp cho mục đích học tập/demo. Khi triển khai thực tế cần mã hóa mật khẩu và sử dụng cơ chế xác thực bằng token hoặc session.
+- Mật khẩu được băm bằng bcrypt; API nghiệp vụ yêu cầu JWT trong header `Authorization: Bearer <token>`.
+- `AUTH_SECRET` là bắt buộc khi chạy với `NODE_ENV=production`.
 - Nếu đổi cổng FE hoặc BE, cần cập nhật đồng thời CORS ở BE và `API_BASE_URL` ở FE.
 
 ## Nhóm thực hiện

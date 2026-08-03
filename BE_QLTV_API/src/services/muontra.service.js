@@ -8,16 +8,20 @@ function createError(message, statusCode) {
 }
 
 function getBusinessStatusCode(message) {
+    const normalizedMessage = String(message).toLowerCase();
     const businessMessages = [
         "khong du so luong",
         "khong ton tai",
         "da duoc tra",
         "khong co chi tiet",
-        "Khong the sua",
-        "Chi duoc xoa"
+        "khong the sua",
+        "chi duoc xoa",
+        "khong duoc",
+        "khong con hieu luc",
+        "dang co phieu muon"
     ];
 
-    return businessMessages.some((item) => message.includes(item)) ? 400 : 500;
+    return businessMessages.some((item) => normalizedMessage.includes(item)) ? 400 : 500;
 }
 
 class MuonTraService {
@@ -65,7 +69,10 @@ class MuonTraService {
 
         data.MaMT = maMT;
 
-        const muonTra = new MuonTra(data);
+        const muonTra = new MuonTra({
+            ...data,
+            TrangThai: "Dang muon"
+        });
 
         try {
             return await MuonTraRepository.update(maMT, muonTra, data.ChiTiet);

@@ -6,12 +6,10 @@ import {
   ChevronDown,
   ClipboardList,
   CreditCard,
-  GraduationCap,
   Languages,
   LayoutDashboard,
   Library,
   PenLine,
-  School,
   Tags,
   Users,
 } from "lucide-react";
@@ -38,8 +36,6 @@ const navGroups = [
     items: [
       { label: "Độc giả", href: "/doc-gia", icon: Users },
       { label: "Thẻ thư viện", href: "/the-thu-vien", icon: CreditCard },
-      { label: "Khoa", href: "/khoa", icon: GraduationCap },
-      { label: "Lớp", href: "/lop", icon: School },
       { label: "Nhân viên", href: "/nhan-vien", icon: BarChart3 },
     ],
   },

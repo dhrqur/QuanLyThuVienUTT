@@ -6,12 +6,10 @@ import { formatCurrency } from "@/views/muontra/muonTraUtils";
 import { createLookup } from "@/utils/lookup";
 
 function MuonTraView() {
-  const { data } = useApiLists(["docgia", "nhanvien", "sach"]);
+  const { data } = useApiLists(["docgia", "sach"]);
   const readers = data.docgia ?? [];
-  const employees = data.nhanvien ?? [];
   const books = data.sach ?? [];
   const readerNames = createLookup(readers, "MaDG", "TenDG");
-  const employeeNames = createLookup(employees, "MaNV", "TenNV");
 
   return (
     <DataTablePage
@@ -27,8 +25,8 @@ function MuonTraView() {
         },
         {
           key: "MaNV", label: "MaNV", displayLabel: "Nhân viên",
-          displayValue: (row) => row.TenNV ?? employeeNames[row.MaNV] ?? row.MaNV,
-          options: employees.map((employee) => ({ label: `${employee.MaNV} - ${employee.TenNV}`, value: employee.MaNV })),
+          displayValue: (row) => row.TenNV ?? row.MaNV,
+          formHidden: true,
           widthValue: 160,
         },
         { key: "NgayMuon", label: "NgayMuon", displayLabel: "Ngày mượn", inputType: "date", required: false, widthValue: 140 },

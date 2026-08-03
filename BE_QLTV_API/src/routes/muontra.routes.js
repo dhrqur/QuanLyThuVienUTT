@@ -3,6 +3,7 @@ const router = express.Router();
 
 const MuonTraController = require("../controllers/muontra.controller");
 const {
+    useAuthenticatedEmployee,
     validateMuonTra,
     validateSearchMuonTra,
     validateTraSach
@@ -160,7 +161,7 @@ router.get("/:maMT", MuonTraController.getById);
  *       409:
  *         description: Ma muon tra da ton tai
  */
-router.post("/", validateMuonTra, MuonTraController.create);
+router.post("/", useAuthenticatedEmployee, validateMuonTra, MuonTraController.create);
 
 /**
  * @swagger
@@ -219,7 +220,7 @@ router.post("/", validateMuonTra, MuonTraController.create);
  *       404:
  *         description: Khong tim thay muon tra
  */
-router.put("/:maMT", validateMuonTra, MuonTraController.update);
+router.put("/:maMT", useAuthenticatedEmployee, validateMuonTra, MuonTraController.update);
 
 /**
  * @swagger
