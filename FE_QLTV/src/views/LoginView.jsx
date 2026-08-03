@@ -12,7 +12,7 @@ function LoginView() {
   const navigate = useNavigate();
   const location = useLocation();
   const [username, setUsername] = useState("nv1");
-  const [password, setPassword] = useState("123");
+  const [password, setPassword] = useState("123456");
   const [loading, setLoading] = useState(false);
 
   if (getCurrentUser()) {
@@ -113,9 +113,9 @@ function LoginView() {
             {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </Button>
           <p className="mt-5 text-center text-xs font-semibold text-slate-500">
-            Tài khoản mẫu: <span className="text-slate-800">nv1 / 123</span>
+            Tài khoản mẫu: <span className="text-slate-800">nv1 / 123456</span>
             <br />
-            Thủ thư: <span className="text-slate-800">nv2 / 1234</span>
+            Thủ thư: <span className="text-slate-800">nv2 / 123456</span>
           </p>
         </form>
       </section>

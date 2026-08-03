@@ -3,7 +3,7 @@ import axios from "axios";
 const LOCAL_API_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:3000";
 const PUBLIC_API_URL =
   import.meta.env.VITE_PUBLIC_API_URL ||
-  "https://quanlythuvienutt-production.up.railway.app";
+  "https://quanlythuvienutt.onrender.com";
 const isLocalFrontend =
   typeof window !== "undefined" &&
   ["localhost", "127.0.0.1"].includes(window.location.hostname);
