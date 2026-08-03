@@ -1,6 +1,7 @@
 const NhanVien = require("../models/entities/nhanvien.entity");
 const NhanVienRepository = require("../models/repositories/nhanvien.repository");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const { createAccessToken } = require("../middlewares/auth.middleware");
 
 const DEFAULT_EMPLOYEE_ROLE = "Thu thu";
@@ -16,11 +17,31 @@ function hashPassword(password) {
     return bcrypt.hash(password, BCRYPT_ROUNDS);
 }
 
-function verifyPassword(password, storedPassword) {
-    if (!String(storedPassword).startsWith("$2")) {
-        return Promise.resolve(password === storedPassword);
+async function verifyPassword(password, storedPassword) {
+    const passwordValue = String(storedPassword);
+
+    if (passwordValue.startsWith("$2")) {
+        return await bcrypt.compare(password, passwordValue);
     }
-    return bcrypt.compare(password, storedPassword);
+
+    if (passwordValue.startsWith("scrypt$")) {
+        const [, salt, encodedHash] = passwordValue.split("$");
+
+        if (!salt || !encodedHash) return false;
+
+        const expectedHash = Buffer.from(encodedHash, "base64url");
+        const actualHash = await new Promise((resolve, reject) => {
+            crypto.scrypt(password, salt, expectedHash.length, (error, derivedKey) => {
+                if (error) reject(error);
+                else resolve(derivedKey);
+            });
+        });
+
+        return actualHash.length === expectedHash.length
+            && crypto.timingSafeEqual(actualHash, expectedHash);
+    }
+
+    return password === passwordValue;
 }
 
 class NhanVienService {

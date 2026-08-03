@@ -8,8 +8,7 @@ ALTER TABLE `nhanvien`
 -- Doi mat khau cua bon tai khoan mau thanh 123456, da bam bcrypt (cost 12).
 UPDATE `nhanvien`
 SET `Pass` = '$2b$12$c8X6s8oK/Sf3gZivONAY3u3izOCykdfr2sVaQobK2YwYQIuY9wx2i'
-WHERE `User` IN ('nv1', 'nv2', 'nv3', 'nv4')
-  AND `Pass` IN ('123', '1234');
+WHERE `User` IN ('nv1', 'nv2', 'nv3', 'nv4');
 
 ALTER TABLE `chitietmuontra`
   ADD PRIMARY KEY (`MaMT`, `MaSach`);
