@@ -247,18 +247,49 @@ function buildTimeline(loans, dateFrom, dateTo) {
   const entries = Array.from({ length: days }, (_, index) => {
     const date = new Date(start);
     date.setDate(start.getDate() + index);
-    const key = date.toISOString().slice(0, 10);
+    const key = toLocalDateKey(date);
     return { date: key, fines: 0, label: `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`, loans: 0 };
   });
   const byDate = new Map(entries.map((item) => [item.date, item]));
   loans.forEach((loan) => {
-    const borrowed = byDate.get(String(loan.NgayMuon ?? "").slice(0, 10));
+    const borrowed = byDate.get(normalizeDateKey(loan.NgayMuon));
     if (borrowed) borrowed.loans += 1;
-    const returned = byDate.get(String(loan.NgayTra ?? "").slice(0, 10));
-    if (returned) returned.fines += Number(loan.TienPhat ?? 0);
+    const returned = byDate.get(normalizeDateKey(loan.NgayTra));
+    const fine = Number(loan.TienPhat ?? 0);
+    if (returned && Number.isFinite(fine)) returned.fines += fine;
   });
   const step = days > 90 ? 7 : days > 30 ? 3 : 1;
-  return entries.filter((_, index) => index % step === 0 || index === entries.length - 1);
+  if (step === 1) return entries;
+
+  return Array.from({ length: Math.ceil(entries.length / step) }, (_, index) => {
+    const bucket = entries.slice(index * step, (index + 1) * step);
+    const first = bucket[0];
+    const last = bucket[bucket.length - 1];
+
+    return {
+      date: first.date,
+      fines: bucket.reduce((total, item) => total + item.fines, 0),
+      label: first === last ? first.label : `${first.label}-${last.label}`,
+      loans: bucket.reduce((total, item) => total + item.loans, 0),
+    };
+  });
+}
+
+function normalizeDateKey(value) {
+  if (!value) return "";
+  const text = String(value);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? text.slice(0, 10) : toLocalDateKey(date);
+}
+
+function toLocalDateKey(date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
 }
 
 function getDateDaysAgo(days) {
