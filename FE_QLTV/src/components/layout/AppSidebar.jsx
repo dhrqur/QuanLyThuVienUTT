@@ -6,10 +6,14 @@ import {
   ChevronDown,
   ClipboardList,
   CreditCard,
+  GraduationCap,
   Languages,
   LayoutDashboard,
   Library,
   PenLine,
+  School,
+  ShieldAlert,
+  Settings2,
   Tags,
   Users,
 } from "lucide-react";
@@ -36,12 +40,18 @@ const navGroups = [
     items: [
       { label: "Độc giả", href: "/doc-gia", icon: Users },
       { label: "Thẻ thư viện", href: "/the-thu-vien", icon: CreditCard },
+      { label: "Khoa", href: "/khoa", icon: GraduationCap },
+      { label: "Lớp", href: "/lop", icon: School },
       { label: "Nhân viên", href: "/nhan-vien", icon: BarChart3 },
     ],
   },
   {
     label: "Nghiệp vụ",
-    items: [{ label: "Mượn trả", href: "/muon-tra", icon: ClipboardList }],
+    items: [
+      { label: "Mượn trả", href: "/muon-tra", icon: ClipboardList },
+      { label: "Xử lý vi phạm", href: "/xu-ly-vi-pham", icon: ShieldAlert },
+      { label: "Quy định thư viện", href: "/quy-dinh-thu-vien", icon: Settings2, managerOnly: true },
+    ],
   },
 ];
 
@@ -57,7 +67,7 @@ function AppSidebar() {
         <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-500">
           <Library className="size-5" strokeWidth={2.4} />
         </div>
-        <h1 className="whitespace-nowrap text-lg font-black text-slate-900">
+        <h1 className="whitespace-nowrap text-lg font-black text-[#25245A]">
           Thư viện UTT
         </h1>
       </div>
@@ -66,13 +76,13 @@ function AppSidebar() {
         {!isThuThu && <SidebarLink href="/" icon={LayoutDashboard} label="Dashboard" />}
 
         {navGroups.map((group) => {
-          const items = group.items.filter((item) => !isThuThu || item.href !== "/nhan-vien");
+          const items = group.items.filter((item) => !isThuThu || (item.href !== "/nhan-vien" && !item.managerOnly));
           if (!items.length) return null;
 
           return (
             <div className="mt-4" key={group.label}>
               <div className="mb-1.5 flex items-center justify-between px-2">
-                <p className="text-xs font-semibold text-slate-500">{group.label}</p>
+                <p className="text-xs font-semibold text-[#25245A]/60">{group.label}</p>
                 <ChevronDown className="size-3.5 text-slate-400" />
               </div>
               <div className="space-y-0.5">
@@ -96,7 +106,7 @@ function SidebarLink({ href, icon: Icon, label }) {
           "flex h-10 items-center gap-3 rounded-xl px-4 text-sm font-medium transition",
           isActive
             ? "bg-orange-50 text-orange-600"
-            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+            : "text-[#25245A]/75 hover:bg-slate-50 hover:text-[#25245A]",
         )
       }
       end={href === "/"}

@@ -2,6 +2,10 @@ const db = require("../../config/db");
 
 const DOCGIA_COLUMNS = `
     dg.MaDG,
+    dg.MaKhoa,
+    k.TenKhoa,
+    dg.MaLop,
+    l.TenLop,
     dg.TenDG,
     dg.NamSinh,
     dg.GioiTinh,
@@ -15,6 +19,8 @@ class DocGiaRepository {
         const sql = `
             SELECT ${DOCGIA_COLUMNS}
             FROM docgia dg
+            LEFT JOIN khoa k ON dg.MaKhoa = k.MaKhoa
+            LEFT JOIN lop l ON dg.MaLop = l.MaLop
             ORDER BY dg.MaDG
         `;
         const [rows] = await db.query(sql);
@@ -26,6 +32,8 @@ class DocGiaRepository {
         const sql = `
             SELECT ${DOCGIA_COLUMNS}
             FROM docgia dg
+            LEFT JOIN khoa k ON dg.MaKhoa = k.MaKhoa
+            LEFT JOIN lop l ON dg.MaLop = l.MaLop
             WHERE dg.MaDG = ?
         `;
         const [rows] = await db.query(sql, [maDG]);
@@ -37,7 +45,13 @@ class DocGiaRepository {
         const sql = `
             SELECT ${DOCGIA_COLUMNS}
             FROM docgia dg
+            LEFT JOIN khoa k ON dg.MaKhoa = k.MaKhoa
+            LEFT JOIN lop l ON dg.MaLop = l.MaLop
             WHERE dg.MaDG LIKE ?
+                OR dg.MaKhoa LIKE ?
+                OR k.TenKhoa LIKE ?
+                OR dg.MaLop LIKE ?
+                OR l.TenLop LIKE ?
                 OR dg.TenDG LIKE ?
                 OR dg.NamSinh LIKE ?
                 OR dg.GioiTinh LIKE ?
@@ -47,7 +61,7 @@ class DocGiaRepository {
             ORDER BY dg.MaDG
         `;
         const searchValue = `%${keyword}%`;
-        const values = Array(7).fill(searchValue);
+        const values = Array(11).fill(searchValue);
         const [rows] = await db.query(sql, values);
 
         return rows;
@@ -55,6 +69,16 @@ class DocGiaRepository {
 
     async getStatistics() {
         const [summaryRows] = await db.query("SELECT COUNT(MaDG) AS TongDocGia FROM docgia");
+        const [facultyRows] = await db.query(`
+            SELECT
+                dg.MaKhoa,
+                k.TenKhoa,
+                COUNT(dg.MaDG) AS TongDocGia
+            FROM docgia dg
+            LEFT JOIN khoa k ON dg.MaKhoa = k.MaKhoa
+            GROUP BY dg.MaKhoa, k.TenKhoa
+            ORDER BY TongDocGia DESC, dg.MaKhoa
+        `);
         const [genderRows] = await db.query(`
             SELECT GioiTinh, COUNT(MaDG) AS SoLuong
             FROM docgia
@@ -64,6 +88,7 @@ class DocGiaRepository {
 
         return {
             tongQuan: summaryRows[0],
+            theoKhoa: facultyRows,
             theoGioiTinh: genderRows
         };
     }
@@ -71,11 +96,13 @@ class DocGiaRepository {
     async create(docGia) {
         const sql = `
             INSERT INTO docgia
-            (MaDG, TenDG, NamSinh, GioiTinh, DiaChi, Email, Sdt)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            (MaDG, MaKhoa, MaLop, TenDG, NamSinh, GioiTinh, DiaChi, Email, Sdt)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const values = [
             docGia.getMaDG(),
+            docGia.getMaKhoa(),
+            docGia.getMaLop(),
             docGia.getTenDG(),
             docGia.getNamSinh(),
             docGia.getGioiTinh(),
@@ -96,10 +123,12 @@ class DocGiaRepository {
     async update(maDG, docGia) {
         const sql = `
             UPDATE docgia
-            SET TenDG = ?, NamSinh = ?, GioiTinh = ?, DiaChi = ?, Email = ?, Sdt = ?
+            SET MaKhoa = ?, MaLop = ?, TenDG = ?, NamSinh = ?, GioiTinh = ?, DiaChi = ?, Email = ?, Sdt = ?
             WHERE MaDG = ?
         `;
         const values = [
+            docGia.getMaKhoa(),
+            docGia.getMaLop(),
             docGia.getTenDG(),
             docGia.getNamSinh(),
             docGia.getGioiTinh(),
@@ -117,6 +146,8 @@ class DocGiaRepository {
 
         return {
             MaDG: maDG,
+            MaKhoa: docGia.getMaKhoa(),
+            MaLop: docGia.getMaLop(),
             TenDG: docGia.getTenDG(),
             NamSinh: docGia.getNamSinh(),
             GioiTinh: docGia.getGioiTinh(),

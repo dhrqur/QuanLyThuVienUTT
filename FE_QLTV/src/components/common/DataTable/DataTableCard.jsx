@@ -1,3 +1,5 @@
+import { ArrowDownAZ, ArrowDownZA, ChevronsUpDown } from "lucide-react";
+
 import {
   Table,
   TableBody,
@@ -18,16 +20,20 @@ import EntityFormDialog from "@/components/common/DataTable/EntityFormDialog";
 import TruncatedText from "@/components/common/DataTable/TruncatedText";
 
 function DataTableCard({
+  allowDelete,
   allColumns,
   buildExtraPayload,
   columns,
   entityName,
+  editLabel,
   onDelete,
   onEdit,
+  onSort,
   renderDetailExtra,
   renderFormExtra,
   rows,
   setRows,
+  sortConfig,
   visibleRows,
 }) {
   function updateRowInTable(row, updates) {
@@ -46,10 +52,19 @@ function DataTableCard({
           <TableRow>
             {columns.map((column) => (
               <TableHead className="font-bold text-white" key={column.key}>
-                {column.tableLabel ?? column.displayLabel ?? column.label}
+                <button
+                  className="inline-flex w-full items-center gap-1.5 text-left transition hover:text-orange-100 disabled:cursor-default"
+                  disabled={column.sortable === false}
+                  onClick={() => onSort(column)}
+                  title="Bấm để sắp xếp tăng dần, giảm dần hoặc trở về mặc định"
+                  type="button"
+                >
+                  <span>{column.tableLabel ?? column.displayLabel ?? column.label}</span>
+                  <SortIcon column={column} sortConfig={sortConfig} />
+                </button>
               </TableHead>
             ))}
-            <TableHead className="text-center font-bold text-white">Hành động</TableHead>
+            <TableHead className="sticky right-0 z-10 bg-orange-500 text-center font-bold text-white">Hành động</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -59,7 +74,7 @@ function DataTableCard({
               {columns.map((column) => (
                 <DataCell column={column} key={column.key} row={row} />
               ))}
-              <TableCell>
+              <TableCell className="sticky right-0 z-10 bg-white shadow-[-8px_0_12px_-12px_rgba(15,23,42,.35)]">
                 <div className="flex justify-center gap-2">
                   <EntityDetailDialog
                     columns={allColumns}
@@ -77,14 +92,14 @@ function DataTableCard({
                     renderFormExtra={renderFormExtra}
                     row={row}
                     rows={rows}
-                    title="Sửa"
+                    title={editLabel}
                   />
-                  <EntityDeleteDialog
+                  {allowDelete ? <EntityDeleteDialog
                     entityName={entityName}
                     onDelete={() => onDelete(row)}
                     primaryColumn={allColumns.find((column) => column.primaryKey) ?? allColumns[0]}
                     row={row}
-                  />
+                  /> : null}
                 </div>
               </TableCell>
             </TableRow>
@@ -101,6 +116,14 @@ function DataTableCard({
       </Table>
     </div>
   );
+}
+
+function SortIcon({ column, sortConfig }) {
+  if (column.sortable === false) return null;
+  if (sortConfig?.key !== column.key) return <ChevronsUpDown className="size-3.5 opacity-60" />;
+  return sortConfig.direction === "asc"
+    ? <ArrowDownAZ className="size-4" />
+    : <ArrowDownZA className="size-4" />;
 }
 
 function DataCell({ column, row }) {

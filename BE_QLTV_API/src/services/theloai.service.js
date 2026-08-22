@@ -1,11 +1,6 @@
 const TheLoai = require("../models/entities/theloai.entity");
 const TheLoaiRepository = require("../models/repositories/theloai.repository");
-
-function createError(message, statusCode) {
-    const error = new Error(message);
-    error.statusCode = statusCode;
-    return error;
-}
+const { createHttpError: createError } = require("../utils/http");
 
 class TheLoaiService {
     async getAll() {

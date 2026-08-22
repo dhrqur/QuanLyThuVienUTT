@@ -1,23 +1,19 @@
 const ThongKeService = require("../services/thongke.service");
+const { handleControllerError } = require("../utils/http");
 
 class ThongKeController {
     constructor() {
-        this.getTongQuan = this.getTongQuan.bind(this);
+        this.getDashboard = this.getDashboard.bind(this);
     }
 
-    async getTongQuan(req, res) {
+    async getDashboard(req, res) {
         try {
-            const data = await ThongKeService.getTongQuan();
-
+            const data = await ThongKeService.getDashboard(req.query);
             res.status(200).json({
-                message: "Thong ke tong quan thanh cong",
-                data: data
+                message: "Lay du lieu dashboard thanh cong",
+                data
             });
-        } catch (error) {
-            res.status(500).json({
-                message: error.message || "Loi he thong"
-            });
-        }
+        } catch (error) { handleControllerError(res, error); }
     }
 }
 

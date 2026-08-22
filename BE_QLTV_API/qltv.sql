@@ -492,6 +492,66 @@ INSERT INTO `thethuvien` (`MaThe`, `MaDG`, `NgayCap`, `NgayHetHan`, `TrangThai`)
 	('TTV024', 'DG024', '2026-05-15', '2027-05-15', 'Còn hiệu lực'),
 	('TTV025', 'DG025', '2026-06-01', '2027-06-01', 'Còn hiệu lực');
 
+-- Dumping structure for table dbqltv.xulyvipham
+CREATE TABLE IF NOT EXISTS `xulyvipham` (
+  `MaVP` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `MaMT` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `MaSach` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `LoaiViPham` enum('QUA_HAN','HU_HONG','LAM_MAT') COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `SoLuong` int NOT NULL DEFAULT 0,
+  `SoTien` decimal(15,2) NOT NULL DEFAULT 0,
+  `MoTa` varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `TrangThaiThu` enum('CHUA_THU','DA_THU','MIEN_PHAT') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'CHUA_THU',
+  `NgayLap` date NOT NULL,
+  `NgayThu` date DEFAULT NULL,
+  `MaNVThu` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  PRIMARY KEY (`MaVP`),
+  KEY `idx_xulyvipham_mamt` (`MaMT`),
+  KEY `idx_xulyvipham_trangthai` (`TrangThaiThu`),
+  CONSTRAINT `fk_xulyvipham_muontra` FOREIGN KEY (`MaMT`) REFERENCES `muontra` (`MaMT`),
+  CONSTRAINT `fk_xulyvipham_sach` FOREIGN KEY (`MaSach`) REFERENCES `sach` (`MaSach`),
+  CONSTRAINT `fk_xulyvipham_nhanvien` FOREIGN KEY (`MaNVThu`) REFERENCES `nhanvien` (`MaNV`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+
+-- Chuyển các khoản phạt quá hạn lịch sử từ dữ liệu mượn trả cũ sang module vi phạm.
+INSERT INTO xulyvipham
+    (MaMT, MaSach, LoaiViPham, SoLuong, SoTien, MoTa, TrangThaiThu, NgayLap, NgayThu, MaNVThu)
+SELECT mt.MaMT, NULL, 'QUA_HAN',
+    (SELECT COALESCE(SUM(ct.SoLuong), 0) FROM chitietmuontra ct WHERE ct.MaMT = mt.MaMT),
+    DATEDIFF(mt.NgayTra, mt.HanTra) * 2000,
+    CONCAT('Dữ liệu chuyển đổi: quá hạn ', DATEDIFF(mt.NgayTra, mt.HanTra), ' ngày'),
+    'DA_THU', mt.NgayTra, mt.NgayTra, mt.MaNV
+FROM muontra mt
+WHERE mt.NgayTra IS NOT NULL AND mt.NgayTra > mt.HanTra
+    AND NOT EXISTS (
+        SELECT 1 FROM xulyvipham vp
+        WHERE vp.MaMT = mt.MaMT AND vp.LoaiViPham = 'QUA_HAN'
+    );
+
+UPDATE xulyvipham vp
+INNER JOIN muontra mt ON mt.MaMT = vp.MaMT
+SET vp.SoLuong = (SELECT COALESCE(SUM(ct.SoLuong), 0) FROM chitietmuontra ct WHERE ct.MaMT = mt.MaMT),
+    vp.MaNVThu = COALESCE(vp.MaNVThu, mt.MaNV)
+WHERE vp.LoaiViPham = 'QUA_HAN' AND vp.TrangThaiThu = 'DA_THU'
+    AND (vp.SoLuong = 0 OR vp.MaNVThu IS NULL);
+
+-- Dumping structure and default data for table dbqltv.quydinhthuvien
+CREATE TABLE IF NOT EXISTS `quydinhthuvien` (
+  `MaQD` tinyint unsigned NOT NULL,
+  `PhiQuaHanMoiNgay` decimal(15,2) NOT NULL DEFAULT 2000,
+  `PhiHuHongMoiBan` decimal(15,2) NOT NULL DEFAULT 50000,
+  `PhiLamMatMoiBan` decimal(15,2) NOT NULL DEFAULT 200000,
+  `NgayCapNhat` datetime DEFAULT NULL,
+  `MaNVCapNhat` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  PRIMARY KEY (`MaQD`),
+  CONSTRAINT `fk_quydinh_nhanvien` FOREIGN KEY (`MaNVCapNhat`) REFERENCES `nhanvien` (`MaNV`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+
+INSERT INTO `quydinhthuvien`
+  (`MaQD`, `PhiQuaHanMoiNgay`, `PhiHuHongMoiBan`, `PhiLamMatMoiBan`)
+VALUES (1, 2000, 50000, 200000)
+ON DUPLICATE KEY UPDATE `MaQD` = VALUES(`MaQD`);
+
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;

@@ -80,9 +80,6 @@ function buildResourcePath(module, id) {
 }
 
 export const api = {
-  async request(method, path, data, config = {}) {
-    return unwrap(await apiClient.request({ method, url: path, data, ...config }));
-  },
   async getAll(module) {
     return unwrap(await apiClient.get(`/${module}`));
   },
@@ -107,23 +104,21 @@ export const api = {
     return unwrap(await apiClient.post("/nhanvien/dang-nhap", { User, Pass }));
   },
 
-  async logout() {
-    return unwrap(await apiClient.post("/nhanvien/dang-xuat"));
+  async getDashboardStatistics(params) {
+    return unwrap(await apiClient.get("/thongke/dashboard", { params }));
   },
 
-  async getStatistics(module) {
-    return unwrap(await apiClient.get(`/${module}/thong-ke`));
+  async getLibraryRules() {
+    return unwrap(await apiClient.get("/quydinhthuvien"));
   },
 
-  async getOverviewStatistics() {
-    return unwrap(await apiClient.get("/thongke/tong-quan"));
+  async updateLibraryRules(data) {
+    return unwrap(await apiClient.put("/quydinhthuvien", data));
   },
 
-  async returnBooks(maMT, NgayTra) {
+  async returnBooks(maMT, data) {
     return unwrap(
-      await apiClient.put(`/muontra/${encodeURIComponent(maMT)}/tra-sach`, {
-        NgayTra,
-      }),
+      await apiClient.put(`/muontra/${encodeURIComponent(maMT)}/tra-sach`, data),
     );
   },
 };

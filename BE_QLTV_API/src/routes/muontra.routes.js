@@ -4,6 +4,7 @@ const router = express.Router();
 const MuonTraController = require("../controllers/muontra.controller");
 const {
     useAuthenticatedEmployee,
+    useCurrentBorrowDate,
     validateMuonTra,
     validateSearchMuonTra,
     validateTraSach
@@ -161,7 +162,13 @@ router.get("/:maMT", MuonTraController.getById);
  *       409:
  *         description: Ma muon tra da ton tai
  */
-router.post("/", useAuthenticatedEmployee, validateMuonTra, MuonTraController.create);
+router.post(
+    "/",
+    useAuthenticatedEmployee,
+    useCurrentBorrowDate,
+    validateMuonTra,
+    MuonTraController.create
+);
 
 /**
  * @swagger

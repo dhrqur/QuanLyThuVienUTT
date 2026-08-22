@@ -1,11 +1,6 @@
 const Sach = require("../models/entities/sach.entity");
 const SachRepository = require("../models/repositories/sach.repository");
-
-function createError(message, statusCode) {
-    const error = new Error(message);
-    error.statusCode = statusCode;
-    return error;
-}
+const { createHttpError: createError } = require("../utils/http");
 
 class SachService {
     async getAll() {

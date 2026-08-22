@@ -17,12 +17,24 @@ function hasUnexpectedFields(data, allowedFields) {
 }
 
 function getTodayValue() {
-    const now = new Date();
-    return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+    const parts = new Intl.DateTimeFormat("en-US", {
+        day: "2-digit",
+        month: "2-digit",
+        timeZone: "Asia/Ho_Chi_Minh",
+        year: "numeric"
+    }).formatToParts(new Date());
+    const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+
+    return `${values.year}-${values.month}-${values.day}`;
 }
 
 function useAuthenticatedEmployee(req, res, next) {
     req.body.MaNV = req.user.id;
+    next();
+}
+
+function useCurrentBorrowDate(req, res, next) {
+    req.body.NgayMuon = getTodayValue();
     next();
 }
 
@@ -168,9 +180,9 @@ function validateSearchMuonTra(req, res, next) {
 }
 
 function validateTraSach(req, res, next) {
-    const { NgayTra } = req.body;
+    const { NgayTra, ChiTietTra = [] } = req.body;
 
-    if (hasUnexpectedFields(req.body, ["NgayTra"])) {
+    if (hasUnexpectedFields(req.body, ["NgayTra", "ChiTietTra"])) {
         return res.status(400).json({
             message: "Du lieu tra sach co truong khong hop le"
         });
@@ -189,11 +201,20 @@ function validateTraSach(req, res, next) {
         });
     }
 
+    if (!Array.isArray(ChiTietTra)) return res.status(400).json({ message: "Chi tiet tra sach khong hop le" });
+    for (const item of ChiTietTra) {
+        if (hasUnexpectedFields(item, ["MaSach", "SoLuongHong", "SoLuongMat", "MoTa"])) return res.status(400).json({ message: "Chi tiet tra sach co truong khong hop le" });
+        const values = [item.SoLuongHong, item.SoLuongMat];
+        if (isEmpty(item.MaSach) || values.some((value) => !Number.isFinite(Number(value)) || Number(value) < 0)) return res.status(400).json({ message: "So luong hoac tien phat khong hop le" });
+        if (![item.SoLuongHong, item.SoLuongMat].every(Number.isInteger)) return res.status(400).json({ message: "So luong sach vi pham phai la so nguyen" });
+    }
+
     next();
 }
 
 module.exports = {
     useAuthenticatedEmployee,
+    useCurrentBorrowDate,
     validateMuonTra,
     validateSearchMuonTra,
     validateTraSach

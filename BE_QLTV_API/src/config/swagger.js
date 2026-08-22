@@ -384,6 +384,14 @@ const options = {
                             type: "string",
                             example: "DG008"
                         },
+                        MaKhoa: {
+                            type: "string",
+                            example: "KH001"
+                        },
+                        MaLop: {
+                            type: "string",
+                            example: "L001"
+                        },
                         TenDG: {
                             type: "string",
                             example: "Nguyen Van C"
@@ -414,6 +422,8 @@ const options = {
                     type: "object",
                     required: [
                         "MaDG",
+                        "MaKhoa",
+                        "MaLop",
                         "TenDG",
                         "GioiTinh",
                         "DiaChi",
@@ -424,6 +434,14 @@ const options = {
                         MaDG: {
                             type: "string",
                             example: "DG008"
+                        },
+                        MaKhoa: {
+                            type: "string",
+                            example: "KH001"
+                        },
+                        MaLop: {
+                            type: "string",
+                            example: "L001"
                         },
                         TenDG: {
                             type: "string",

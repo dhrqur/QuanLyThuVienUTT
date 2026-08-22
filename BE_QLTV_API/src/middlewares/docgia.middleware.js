@@ -1,5 +1,7 @@
 const allowedDocGiaFields = [
     "MaDG",
+    "MaKhoa",
+    "MaLop",
     "TenDG",
     "NamSinh",
     "GioiTinh",
@@ -25,6 +27,8 @@ function validateDocGia(req, res, next) {
 
     const {
         MaDG,
+        MaKhoa,
+        MaLop,
         TenDG,
         NamSinh,
         GioiTinh,
@@ -35,6 +39,8 @@ function validateDocGia(req, res, next) {
 
     if (
         isEmpty(MaDG) ||
+        isEmpty(MaKhoa) ||
+        isEmpty(MaLop) ||
         isEmpty(TenDG) ||
         isEmpty(GioiTinh) ||
         isEmpty(DiaChi) ||
@@ -49,6 +55,18 @@ function validateDocGia(req, res, next) {
     if (String(MaDG).trim().length > 10) {
         return res.status(400).json({
             message: "Ma doc gia khong duoc vuot qua 10 ky tu"
+        });
+    }
+
+    if (String(MaKhoa).trim().length > 10) {
+        return res.status(400).json({
+            message: "Ma khoa khong duoc vuot qua 10 ky tu"
+        });
+    }
+
+    if (String(MaLop).trim().length > 10) {
+        return res.status(400).json({
+            message: "Ma lop khong duoc vuot qua 10 ky tu"
         });
     }
 

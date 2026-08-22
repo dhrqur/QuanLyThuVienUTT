@@ -1,8 +1,8 @@
 const ThongKeRepository = require("../models/repositories/thongke.repository");
 
 class ThongKeService {
-    async getTongQuan() {
-        return await ThongKeRepository.getTongQuan();
+    async getDashboard(params) {
+        return await ThongKeRepository.getDashboard(params);
     }
 }
 

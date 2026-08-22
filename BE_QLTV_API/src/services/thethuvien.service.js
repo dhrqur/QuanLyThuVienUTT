@@ -1,5 +1,6 @@
 const TheThuVien = require("../models/entities/thethuvien.entity");
 const TheThuVienRepository = require("../models/repositories/thethuvien.repository");
+const { createHttpError: createError } = require("../utils/http");
 
 function getCardStatus(expirationDate) {
     const today = new Date();
@@ -10,12 +11,6 @@ function getCardStatus(expirationDate) {
     return String(expirationDate).slice(0, 10) < localToday
         ? "Hết hạn"
         : "Còn hiệu lực";
-}
-
-function createError(message, statusCode) {
-    const error = new Error(message);
-    error.statusCode = statusCode;
-    return error;
 }
 
 class TheThuVienService {

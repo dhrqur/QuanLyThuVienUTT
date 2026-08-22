@@ -74,6 +74,21 @@ const BADGE_DEFINITIONS = {
     className: "border-slate-200 bg-slate-50 text-slate-700",
     aliases: ["da huy", "huy", "cancelled", "canceled"],
   },
+  unpaid: {
+    label: "Chưa thu",
+    className: "border-amber-200 bg-amber-50 text-amber-700",
+    aliases: ["chua thu", "unpaid"],
+  },
+  paid: {
+    label: "Đã thu",
+    className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    aliases: ["da thu", "paid"],
+  },
+  waived: {
+    label: "Miễn phạt",
+    className: "border-slate-200 bg-slate-50 text-slate-700",
+    aliases: ["mien phat", "waived"],
+  },
 };
 
 function normalizeBadgeStatus(status) {

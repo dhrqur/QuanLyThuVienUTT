@@ -8,10 +8,14 @@ const tacgia = require("./routes/tacgia.routes");
 const nhaxuatban = require("./routes/nhaxuatban.routes");
 const docgia = require("./routes/docgia.routes");
 const kesach = require("./routes/kesach.routes");
+const khoa = require("./routes/khoa.routes");
+const lop = require("./routes/lop.routes");
 const ngonngu = require("./routes/ngonngu.routes");
 const thethuvien = require("./routes/thethuvien.routes");
 const muontra = require("./routes/muontra.routes");
 const thongke = require("./routes/thongke.routes");
+const xulyvipham = require("./routes/xulyvipham.routes");
+const quydinhthuvien = require("./routes/quydinhthuvien.routes");
 const {
     authenticate,
     requireLibraryStaff,
@@ -54,9 +58,13 @@ app.use("/api/tacgia", tacgia);
 app.use("/api/nhaxuatban", nhaxuatban);
 app.use("/api/docgia", docgia);
 app.use("/api/kesach", kesach);
+app.use("/api/khoa", khoa);
+app.use("/api/lop", lop);
 app.use("/api/ngonngu", ngonngu);
 app.use("/api/thethuvien", thethuvien);
 app.use("/api/muontra", muontra);
+app.use("/api/xulyvipham", xulyvipham);
+app.use("/api/quydinhthuvien", quydinhthuvien);
 app.use("/api/thongke", requireManager, thongke);
 
 const PORT = process.env.PORT || 3000;

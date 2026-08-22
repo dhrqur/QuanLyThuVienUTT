@@ -1,11 +1,6 @@
 const TacGia = require("../models/entities/tacgia.entity");
 const TacGiaRepository = require("../models/repositories/tacgia.repository");
-
-function createError(message, statusCode) {
-    const error = new Error(message);
-    error.statusCode = statusCode;
-    return error;
-}
+const { createHttpError: createError } = require("../utils/http");
 
 class TacGiaService {
     async getAll() {

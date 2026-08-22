@@ -1,11 +1,6 @@
 const NhaXuatBan = require("../models/entities/nhaxuatban.entity");
 const NhaXuatBanRepository = require("../models/repositories/nhaxuatban.repository");
-
-function createError(message, statusCode) {
-    const error = new Error(message);
-    error.statusCode = statusCode;
-    return error;
-}
+const { createHttpError: createError } = require("../utils/http");
 
 class NhaXuatBanService {
     async getAll() {

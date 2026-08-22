@@ -1,11 +1,6 @@
 const KeSach = require("../models/entities/kesach.entity");
 const KeSachRepository = require("../models/repositories/kesach.repository");
-
-function createError(message, statusCode) {
-    const error = new Error(message);
-    error.statusCode = statusCode;
-    return error;
-}
+const { createHttpError: createError } = require("../utils/http");
 
 class KeSachService {
     async getAll() {

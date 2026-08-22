@@ -6,7 +6,9 @@ import { getDefaultRoute } from "@/utils/accessControl";
 import DashboardView from "@/views/DashboardView";
 import DocGiaView from "@/views/docgia/DocGiaView";
 import KeSachView from "@/views/kesach/KeSachView";
+import KhoaView from "@/views/khoa/KhoaView";
 import LoginView from "@/views/LoginView";
+import LopView from "@/views/lop/LopView";
 import MuonTraView from "@/views/muontra/MuonTraView";
 import NgonNguView from "@/views/ngonngu/NgonNguView";
 import NhanVienView from "@/views/nhanvien/NhanVienView";
@@ -15,6 +17,8 @@ import SachView from "@/views/sach/SachView";
 import TacGiaView from "@/views/tacgia/TacGiaView";
 import TheLoaiView from "@/views/theloai/TheLoaiView";
 import TheThuVienView from "@/views/thethuvien/TheThuVienView";
+import XuLyViPhamView from "@/views/xulyvipham/XuLyViPhamView";
+import QuyDinhThuVienView from "@/views/quydinh/QuyDinhThuVienView";
 
 function AppRoutes() {
   return (
@@ -26,6 +30,8 @@ function AppRoutes() {
         <Route path="/sach" element={<SachView />} />
         <Route path="/doc-gia" element={<DocGiaView />} />
         <Route path="/muon-tra" element={<MuonTraView />} />
+        <Route path="/xu-ly-vi-pham" element={<XuLyViPhamView />} />
+        <Route path="/quy-dinh-thu-vien" element={<QuyDinhThuVienView />} />
         <Route path="/tac-gia" element={<TacGiaView />} />
         <Route path="/the-loai" element={<TheLoaiView />} />
         <Route path="/the-thu-vien" element={<TheThuVienView />} />
@@ -33,6 +39,8 @@ function AppRoutes() {
         <Route path="/nha-xuat-ban" element={<NhaXuatBanView />} />
         <Route path="/ngon-ngu" element={<NgonNguView />} />
         <Route path="/ke-sach" element={<KeSachView />} />
+        <Route path="/khoa" element={<KhoaView />} />
+        <Route path="/lop" element={<LopView />} />
       </Route>
 
       <Route path="*" element={<Navigate to={getCurrentUser() ? getDefaultRoute(getCurrentUser()) : "/login"} replace />} />

@@ -1,15 +1,20 @@
 import DataTablePage from "@/components/common/DataTable/DataTablePage";
 import { useApiLists } from "@/hooks/useApiLists";
 import { api } from "@/lib/api";
-import { SachMuonDetail, SachMuonSelector } from "@/views/muontra/components/SachMuonContent";
-import { formatCurrency } from "@/views/muontra/muonTraUtils";
+import { formatDisplayDate, getLocalDateValue } from "@/utils/dateUtils";
 import { createLookup } from "@/utils/lookup";
+import { SachMuonDetail, SachMuonSelector } from "@/views/muontra/components/SachMuonContent";
+import { formatCurrency } from "@/utils/numberUtils";
 
 function MuonTraView() {
-  const { data } = useApiLists(["docgia", "sach"]);
+  const { data } = useApiLists(["docgia", "sach", "thethuvien", "muontra", "quydinhthuvien"]);
   const readers = data.docgia ?? [];
   const books = data.sach ?? [];
+  const libraryCards = data.thethuvien ?? [];
+  const loanTickets = data.muontra ?? [];
+  const rules = data.quydinhthuvien ?? { PhiQuaHanMoiNgay: 2000, PhiHuHongMoiBan: 50000, PhiLamMatMoiBan: 200000 };
   const readerNames = createLookup(readers, "MaDG", "TenDG");
+  const readerOptions = buildReaderOptions({ libraryCards, loanTickets, readers });
 
   return (
     <DataTablePage
@@ -20,7 +25,9 @@ function MuonTraView() {
         {
           key: "MaDG", label: "MaDG", displayLabel: "Độc giả",
           displayValue: (row) => row.TenDG ?? readerNames[row.MaDG] ?? row.MaDG,
-          options: readers.map((reader) => ({ label: `${reader.MaDG} - ${reader.TenDG}`, value: reader.MaDG })),
+          invalidOptionTitle: "Độc giả chưa đủ điều kiện mượn sách",
+          options: readerOptions,
+          readOnlyOnEdit: true,
           widthValue: 190,
         },
         {
@@ -29,7 +36,15 @@ function MuonTraView() {
           formHidden: true,
           widthValue: 160,
         },
-        { key: "NgayMuon", label: "NgayMuon", displayLabel: "Ngày mượn", inputType: "date", required: false, widthValue: 140 },
+        {
+          key: "NgayMuon",
+          label: "NgayMuon",
+          displayLabel: "Ngày mượn",
+          defaultValue: getLocalDateValue,
+          inputType: "date",
+          readOnly: true,
+          widthValue: 140,
+        },
         { key: "HanTra", label: "HanTra", displayLabel: "Hạn trả", inputType: "date", widthValue: 140 },
         {
           key: "NgayTra",
@@ -57,13 +72,14 @@ function MuonTraView() {
           widthValue: 140,
         },
       ]}
-      entityName="Mượn trả"
+      entityName="Phiếu mượn"
       renderDetailExtra={({ row, updateRow }) => (
         <SachMuonDetail
           books={books}
           details={row.ChiTiet ?? []}
-          onReturned={async ({ NgayTra }) => {
-            const response = await api.returnBooks(row.MaMT, NgayTra);
+          rules={rules}
+          onReturned={async (returnData) => {
+            const response = await api.returnBooks(row.MaMT, returnData);
             updateRow(response.data);
           }}
           row={row}
@@ -89,6 +105,60 @@ function buildLoanDetailsPayload({ formData }) {
         SoLuong: Number(value),
       })),
   };
+}
+
+function buildReaderOptions({ libraryCards, loanTickets, readers }) {
+  const today = getLocalDateValue();
+  const cardsByReader = new Map();
+  const openLoanByReader = new Map();
+
+  libraryCards.forEach((card) => {
+    const key = String(card.MaDG);
+    const cards = cardsByReader.get(key) ?? [];
+    cards.push(card);
+    cardsByReader.set(key, cards);
+  });
+
+  loanTickets.forEach((ticket) => {
+    if (!ticket.NgayTra) openLoanByReader.set(String(ticket.MaDG), ticket.MaMT);
+  });
+
+  return readers
+    .map((reader) => {
+      const cards = cardsByReader.get(String(reader.MaDG)) ?? [];
+      const hasActiveCard = cards.some((card) => {
+        const issuedDate = normalizeDate(card.NgayCap);
+        const expirationDate = normalizeDate(card.NgayHetHan);
+        return issuedDate && expirationDate && issuedDate <= today && expirationDate >= today;
+      });
+      const futureCard = cards.find((card) => normalizeDate(card.NgayCap) > today);
+      const latestCard = [...cards].sort(
+        (first, second) => normalizeDate(second.NgayHetHan).localeCompare(normalizeDate(first.NgayHetHan)),
+      )[0];
+      const openLoanId = openLoanByReader.get(String(reader.MaDG));
+      let errorMessage = "";
+
+      if (!cards.length) {
+        errorMessage = "Độc giả chưa có thẻ thư viện. Vui lòng cấp thẻ trước khi lập phiếu mượn.";
+      } else if (!hasActiveCard && futureCard) {
+        errorMessage = `Thẻ thư viện chưa có hiệu lực (ngày cấp ${formatDisplayDate(futureCard.NgayCap)}).`;
+      } else if (!hasActiveCard) {
+        errorMessage = `Thẻ thư viện đã hết hạn ngày ${formatDisplayDate(latestCard?.NgayHetHan)}. Vui lòng gia hạn thẻ trước khi mượn sách.`;
+      } else if (openLoanId) {
+        errorMessage = `Độc giả đang có phiếu ${openLoanId} chưa trả. Vui lòng hoàn tất phiếu hiện tại trước khi mượn tiếp.`;
+      }
+
+      return {
+        errorMessage,
+        label: `${reader.MaDG} - ${reader.TenDG}`,
+        value: reader.MaDG,
+      };
+    });
+}
+
+function normalizeDate(value) {
+  if (!value) return "";
+  return String(value).slice(0, 10);
 }
 
 export default MuonTraView;

@@ -1,4 +1,5 @@
-import { formatCurrency } from "@/views/muontra/muonTraUtils";
+import { formatCurrency } from "@/utils/numberUtils";
+import { formatDisplayDate } from "@/utils/dateUtils";
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -8,11 +9,7 @@ function escapeHtml(value) {
     .replace(/"/g, "&quot;");
 }
 
-function formatDate(value) {
-  if (!value) return "Chưa cập nhật";
-  const [year, month, day] = String(value).slice(0, 10).split("-");
-  return year && month && day ? `${day}/${month}/${year}` : "Chưa cập nhật";
-}
+const formatDate = (value) => formatDisplayDate(String(value ?? "").slice(0, 10)) || "Chưa cập nhật";
 
 export function printLoanReceipt({ books, details, row }) {
   const bookRows = details.map((detail) => {

@@ -19,7 +19,14 @@ function Header() {
   };
 
   return (
-    <header className="relative z-20 flex h-16 shrink-0 items-center justify-end bg-white px-4 md:px-7">
+    <header className="relative z-20 flex h-16 shrink-0 items-center justify-between border-b border-slate-100 bg-white px-4">
+      <div className="relative h-8 w-[160px] shrink-0 overflow-hidden sm:h-9 sm:w-[190px] md:w-[220px]">
+        <img
+          alt="Trường Đại học Công nghệ Giao thông Vận tải"
+          className="absolute left-0 top-1/2 w-full -translate-y-1/2"
+          src="/logo_utt_transparent.png"
+        />
+      </div>
       <div className="ml-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -28,8 +35,8 @@ function Header() {
                 {user?.name?.charAt(0).toUpperCase() || "U"}
               </div>
               <div className="hidden text-left leading-tight sm:block">
-                <p className="max-w-28 truncate text-sm font-bold text-slate-900">{user?.name}</p>
-                <p className="mt-0.5 text-xs text-slate-500">{user?.role}</p>
+                <p className="max-w-28 truncate text-sm font-bold text-[#25245A]">{user?.name}</p>
+                <p className="mt-0.5 text-xs text-[#59617F]">{user?.role}</p>
               </div>
               <ChevronDown className="hidden size-4 text-slate-500 sm:block" />
             </button>

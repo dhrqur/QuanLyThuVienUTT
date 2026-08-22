@@ -1,12 +1,5 @@
 const SachService = require("../services/sach.service");
-
-function handleError(res, error) {
-    const statusCode = error.statusCode || 500;
-
-    return res.status(statusCode).json({
-        message: error.message || "Loi he thong"
-    });
-}
+const { handleControllerError: handleError } = require("../utils/http");
 
 class SachController {
     constructor() {

@@ -12,7 +12,7 @@ Hệ thống hỗ trợ quản lý sách, độc giả, nhân viên, thẻ thư 
 - Đăng nhập và phân quyền `Quản lý` / `Thủ thư`.
 - Dashboard thống kê tổng quan dành cho quản lý.
 - Quản lý sách, tác giả, thể loại, nhà xuất bản, ngôn ngữ và kệ sách.
-- Quản lý độc giả và thẻ thư viện.
+- Quản lý độc giả, khoa, lớp và thẻ thư viện.
 - Quản lý nhân viên.
 - Lập phiếu mượn gồm nhiều đầu sách và số lượng tương ứng.
 - Tự động trừ tồn kho khi mượn và hoàn tồn kho khi trả.
@@ -123,6 +123,7 @@ Nếu nâng cấp một database đã có dữ liệu, hãy sao lưu rồi chạ
 
 ```bash
 mysql -u root -p qltv < BE_QLTV_API/migrations/20260803_security_and_remove_khoa_lop.sql
+mysql -u root -p qltv < BE_QLTV_API/migrations/20260820_restore_khoa_lop.sql
 ```
 
 Khởi động backend:
@@ -168,6 +169,8 @@ Quản lý được truy cập Dashboard và quản lý nhân viên. Thủ thư 
 sach
 nhanvien
 docgia
+khoa
+lop
 theloai
 tacgia
 nhaxuatban

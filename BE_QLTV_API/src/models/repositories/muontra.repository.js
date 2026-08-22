@@ -211,7 +211,7 @@ class MuonTraRepository {
         }
     }
 
-    async returnBooks(maMT, ngayTra) {
+    async returnBooks(maMT, ngayTra, chiTietTra = [], employeeId) {
         const connection = await db.getConnection();
 
         try {
@@ -240,12 +240,44 @@ class MuonTraRepository {
                 throw new Error("Phieu muon khong co chi tiet sach");
             }
 
+            const [ruleRows] = await connection.query(
+                "SELECT PhiQuaHanMoiNgay, PhiHuHongMoiBan, PhiLamMatMoiBan FROM quydinhthuvien WHERE MaQD = 1 FOR UPDATE"
+            );
+            if (!ruleRows[0]) throw new Error("Chua cau hinh quy dinh thu vien");
+            const rules = ruleRows[0];
+
+            const returnDetails = new Map(chiTietTra.map((item) => [String(item.MaSach), item]));
+
             for (const item of details) {
+                const condition = returnDetails.get(String(item.MaSach)) || {};
+                const damaged = Number(condition.SoLuongHong || 0);
+                const lost = Number(condition.SoLuongMat || 0);
+                if (!Number.isInteger(damaged) || !Number.isInteger(lost) || damaged + lost > Number(item.SoLuong)) {
+                    throw new Error(`So luong sach hong, mat cua ${item.MaSach} khong hop le`);
+                }
+                const goodQuantity = Number(item.SoLuong) - damaged - lost;
                 await connection.query(
                     "UPDATE sach SET SoLuong = COALESCE(SoLuong, 0) + ? WHERE MaSach = ?",
-                    [item.SoLuong, item.MaSach]
+                    [goodQuantity, item.MaSach]
                 );
+
+                if (damaged > 0) await this.#insertViolation(connection, {
+                    maMT, maSach: item.MaSach, type: "HU_HONG", quantity: damaged,
+                    amount: damaged * Number(rules.PhiHuHongMoiBan), description: condition.MoTa, date: ngayTra
+                });
+                if (lost > 0) await this.#insertViolation(connection, {
+                    maMT, maSach: item.MaSach, type: "LAM_MAT", quantity: lost,
+                    amount: lost * Number(rules.PhiLamMatMoiBan), description: condition.MoTa, date: ngayTra
+                });
             }
+
+            const overdueDays = Math.max(0, Math.ceil((new Date(ngayTra) - new Date(current.HanTra)) / 86400000));
+            if (overdueDays > 0) await this.#insertViolation(connection, {
+                maMT, maSach: null, type: "QUA_HAN",
+                quantity: details.reduce((total, item) => total + Number(item.SoLuong), 0),
+                amount: overdueDays * Number(rules.PhiQuaHanMoiNgay),
+                description: `Quá hạn ${overdueDays} ngày`, date: ngayTra
+            });
 
             await connection.query(
                 "UPDATE muontra SET NgayTra = ?, TrangThai = ? WHERE MaMT = ?",
@@ -260,6 +292,16 @@ class MuonTraRepository {
         } finally {
             connection.release();
         }
+    }
+
+    async #insertViolation(connection, { maMT, maSach, type, quantity, amount, description, date }) {
+        const fine = Math.max(Number(amount || 0), 0);
+        await connection.query(`INSERT INTO xulyvipham
+            (MaMT, MaSach, LoaiViPham, SoLuong, SoTien, MoTa, TrangThaiThu, NgayLap)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [
+            maMT, maSach, type, quantity, fine, description || null,
+            fine > 0 ? "CHUA_THU" : "MIEN_PHAT", date
+        ]);
     }
 
     async delete(maMT) {
@@ -304,18 +346,40 @@ class MuonTraRepository {
 
 
         const [cardRows] = await connection.query(`
-            SELECT MaThe
+            SELECT
+                MaThe,
+                DATE_FORMAT(NgayCap, '%d/%m/%Y') AS NgayCapHienThi,
+                DATE_FORMAT(NgayHetHan, '%d/%m/%Y') AS NgayHetHanHienThi,
+                (NgayCap > CURDATE()) AS ChuaCoHieuLuc,
+                (NgayHetHan < CURDATE()) AS DaHetHan
             FROM thethuvien
             WHERE MaDG = ?
-                AND NgayCap <= CURDATE()
-                AND NgayHetHan >= CURDATE()
-                AND TrangThai IN ('Còn hiệu lực', 'Con hieu luc')
-            LIMIT 1
+            ORDER BY NgayHetHan DESC
             FOR UPDATE
         `, [maDG]);
 
-        if (!cardRows[0]) {
-            throw new Error("The thu vien cua doc gia khong con hieu luc");
+        if (cardRows.length === 0) {
+            throw new Error(
+                "Độc giả chưa có thẻ thư viện. Vui lòng cấp thẻ trước khi lập phiếu mượn."
+            );
+        }
+
+        const activeCard = cardRows.find(
+            (card) => !card.ChuaCoHieuLuc && !card.DaHetHan
+        );
+
+        if (!activeCard) {
+            const latestCard = cardRows[0];
+
+            if (latestCard.ChuaCoHieuLuc) {
+                throw new Error(
+                    `Thẻ thư viện chưa có hiệu lực (ngày cấp ${latestCard.NgayCapHienThi}).`
+                );
+            }
+
+            throw new Error(
+                `Thẻ thư viện đã hết hạn ngày ${latestCard.NgayHetHanHienThi}. Vui lòng gia hạn thẻ trước khi mượn sách.`
+            );
         }
 
         const openLoanSql = excludedLoanId
@@ -325,7 +389,9 @@ class MuonTraRepository {
         const [openLoanRows] = await connection.query(openLoanSql, openLoanParams);
 
         if (openLoanRows[0]) {
-            throw new Error("Doc gia dang co phieu muon chua tra");
+            throw new Error(
+                `Độc giả đang có phiếu ${openLoanRows[0].MaMT} chưa trả. Vui lòng hoàn tất phiếu hiện tại trước khi mượn tiếp.`
+            );
         }
     }
 

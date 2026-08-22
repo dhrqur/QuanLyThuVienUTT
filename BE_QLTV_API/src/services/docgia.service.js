@@ -1,11 +1,6 @@
 const DocGia = require("../models/entities/docgia.entity");
 const DocGiaRepository = require("../models/repositories/docgia.repository");
-
-function createError(message, statusCode) {
-    const error = new Error(message);
-    error.statusCode = statusCode;
-    return error;
-}
+const { createHttpError: createError } = require("../utils/http");
 
 class DocGiaService {
     async getAll() {

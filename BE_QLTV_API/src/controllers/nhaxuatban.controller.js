@@ -1,12 +1,5 @@
 const NhaXuatBanService = require("../services/nhaxuatban.service");
-
-function handleError(res, error) {
-    const statusCode = error.statusCode || 500;
-
-    return res.status(statusCode).json({
-        message: error.message || "Loi he thong"
-    });
-}
+const { handleControllerError: handleError } = require("../utils/http");
 
 class NhaXuatBanController {
     constructor() {

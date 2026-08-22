@@ -6,7 +6,7 @@ function MainLayout({ children, compact = false }) {
   return (
     <div
       className={cn(
-        "bg-slate-50 text-slate-800",
+        "bg-slate-50 text-[#46506E]",
         compact ? "xl:h-screen xl:overflow-hidden" : "min-h-screen",
       )}
     >

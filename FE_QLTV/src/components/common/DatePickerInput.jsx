@@ -9,6 +9,7 @@ function DatePickerInput({
   min,
   name,
   onChange,
+  readOnly = false,
   required = false,
   value,
 }) {
@@ -28,6 +29,8 @@ function DatePickerInput({
   }
 
   function openPicker() {
+    if (readOnly) return;
+
     if (pickerRef.current?.showPicker) {
       pickerRef.current.showPicker();
     } else {
@@ -38,7 +41,11 @@ function DatePickerInput({
   return (
     <div className={`relative ${className}`}>
       <input
-        className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 pr-11 text-sm font-semibold text-slate-700 outline-none transition focus:border-orange-300 focus:ring-3 focus:ring-orange-100"
+        className={`h-10 w-full rounded-lg border border-slate-200 px-3 pr-11 text-sm font-semibold outline-none transition ${
+          readOnly
+            ? "cursor-not-allowed bg-slate-50 text-slate-500"
+            : "bg-white text-slate-700 focus:border-orange-300 focus:ring-3 focus:ring-orange-100"
+        }`}
         onClick={openPicker}
         placeholder="dd/mm/yyyy"
         readOnly
@@ -47,7 +54,12 @@ function DatePickerInput({
       />
       <button
         aria-label="Chọn ngày"
-        className="absolute right-1 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-slate-500 transition hover:bg-orange-50 hover:text-orange-600"
+        className={`absolute right-1 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md transition ${
+          readOnly
+            ? "cursor-not-allowed text-slate-300"
+            : "text-slate-500 hover:bg-orange-50 hover:text-orange-600"
+        }`}
+        disabled={readOnly}
         onClick={openPicker}
         type="button"
       >
@@ -58,6 +70,7 @@ function DatePickerInput({
         min={min}
         name={name}
         onChange={handleChange}
+        readOnly={readOnly}
         ref={pickerRef}
         required={required}
         type="date"

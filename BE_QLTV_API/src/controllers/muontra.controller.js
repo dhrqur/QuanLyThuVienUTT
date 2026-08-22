@@ -1,12 +1,5 @@
 const MuonTraService = require("../services/muontra.service");
-
-function handleError(res, error) {
-    const statusCode = error.statusCode || 500;
-
-    return res.status(statusCode).json({
-        message: error.message || "Loi he thong"
-    });
-}
+const { handleControllerError: handleError } = require("../utils/http");
 
 class MuonTraController {
     constructor() {
@@ -108,7 +101,9 @@ class MuonTraController {
         try {
             const data = await MuonTraService.returnBooks(
                 req.params.maMT,
-                req.body.NgayTra
+                req.body.NgayTra,
+                req.body.ChiTietTra || [],
+                req.user.id
             );
 
             res.status(200).json({

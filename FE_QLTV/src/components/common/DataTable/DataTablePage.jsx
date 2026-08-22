@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import MainLayout from "@/components/layout/MainLayout";
@@ -10,8 +10,11 @@ import { useEntityTable } from "@/hooks/useEntityTable";
 
 function DataTablePage({
   apiModule,
+  allowCreate = true,
+  allowDelete = true,
   title,
   entityName,
+  editLabel = "Sửa",
   buildExtraPayload,
   columns,
   pagination = false,
@@ -22,6 +25,7 @@ function DataTablePage({
 }) {
   const [searchInput, setSearchInput] = useState("");
   const [page, setPage] = useState(1);
+  const [sortConfig, setSortConfig] = useState(null);
 
   const {
     createRow,
@@ -39,11 +43,25 @@ function DataTablePage({
   });
 
   const tableColumns = columns.filter((column) => !column.tableHidden);
-  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  const processedRows = useMemo(() => {
+    if (!sortConfig) return rows;
+    const sortColumn = tableColumns.find((column) => column.key === sortConfig.key);
+    if (!sortColumn) return rows;
+
+    return [...rows].sort((firstRow, secondRow) => {
+      const comparison = compareValues(
+        getComparableValue(sortColumn, firstRow),
+        getComparableValue(sortColumn, secondRow),
+        sortColumn,
+      );
+      return sortConfig.direction === "asc" ? comparison : -comparison;
+    });
+  }, [rows, sortConfig, tableColumns]);
+  const totalPages = Math.max(1, Math.ceil(processedRows.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = currentPage * pageSize;
-  const visibleRows = pagination ? rows.slice(startIndex, endIndex) : rows;
+  const visibleRows = pagination ? processedRows.slice(startIndex, endIndex) : processedRows;
 
   function handleSearch() {
     setPage(1);
@@ -52,29 +70,42 @@ function DataTablePage({
 
   function handleResetSearch() {
     setSearchInput("");
+    setSortConfig(null);
     setPage(1);
     loadRows();
-    toast.info("Đã đặt lại tìm kiếm");
+    toast.info("Đã đặt lại tìm kiếm và sắp xếp");
+  }
+
+  function handleSort(column) {
+    if (column.sortable === false) return;
+    setPage(1);
+    setSortConfig((current) => {
+      if (!current || current.key !== column.key) return { key: column.key, direction: "asc" };
+      if (current.direction === "asc") return { key: column.key, direction: "desc" };
+      return null;
+    });
   }
 
   return (
     <MainLayout>
       <div className="space-y-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
-          <EntityFormDialog
+          <h1 className="text-2xl font-black text-[#25245A]">{title}</h1>
+          {allowCreate ? <EntityFormDialog
             buildExtraPayload={buildExtraPayload}
             columns={columns}
             entityName={entityName}
+            editLabel={editLabel}
             mode="create"
             onSave={createRow}
             renderFormExtra={renderFormExtra}
             rows={rows}
             title={`Thêm ${entityName.toLowerCase()}`}
-          />
+          /> : null}
         </div>
 
         <DataSearchCard
+          hasActiveConditions={Boolean(sortConfig)}
           onChange={setSearchInput}
           onReset={handleResetSearch}
           onSearch={handleSearch}
@@ -99,26 +130,46 @@ function DataTablePage({
             columns={tableColumns}
             entityName={entityName}
             onDelete={deleteRow}
+            allowDelete={allowDelete}
             onEdit={updateRow}
+            onSort={handleSort}
             renderDetailExtra={renderDetailExtra}
             renderFormExtra={renderFormExtra}
             rows={rows}
             setRows={setRows}
+            sortConfig={sortConfig}
             visibleRows={visibleRows}
           />
         )}
 
-        {!loading && pagination && rows.length > 0 ? (
+        {!loading && pagination && processedRows.length > 0 ? (
           <TablePagination
             currentPage={currentPage}
             onPageChange={setPage}
             pageSize={pageSize}
-            totalRows={rows.length}
+            totalRows={processedRows.length}
           />
         ) : null}
       </div>
     </MainLayout>
   );
+}
+
+const collator = new Intl.Collator("vi", { numeric: true, sensitivity: "base" });
+
+function getComparableValue(column, row) {
+  if (column.displayValue) return column.displayValue(row) ?? "";
+  return row[column.key] ?? "";
+}
+
+function compareValues(firstValue, secondValue, column) {
+  if (column.inputType === "number" || (typeof firstValue === "number" && typeof secondValue === "number")) {
+    return Number(firstValue ?? 0) - Number(secondValue ?? 0);
+  }
+  if (column.inputType === "date") {
+    return String(firstValue ?? "").localeCompare(String(secondValue ?? ""));
+  }
+  return collator.compare(String(firstValue ?? ""), String(secondValue ?? ""));
 }
 
 export default DataTablePage;

@@ -1,11 +1,6 @@
 const NgonNgu = require("../models/entities/ngonngu.entity");
 const NgonNguRepository = require("../models/repositories/ngonngu.repository");
-
-function createError(message, statusCode) {
-    const error = new Error(message);
-    error.statusCode = statusCode;
-    return error;
-}
+const { createHttpError: createError } = require("../utils/http");
 
 class NgonNguService {
     async getAll() {

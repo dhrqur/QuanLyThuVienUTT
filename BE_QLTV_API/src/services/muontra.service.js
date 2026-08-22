@@ -1,14 +1,13 @@
 const MuonTra = require("../models/entities/muontra.entity");
 const MuonTraRepository = require("../models/repositories/muontra.repository");
-
-function createError(message, statusCode) {
-    const error = new Error(message);
-    error.statusCode = statusCode;
-    return error;
-}
+const { createHttpError: createError } = require("../utils/http");
 
 function getBusinessStatusCode(message) {
-    const normalizedMessage = String(message).toLowerCase();
+    const normalizedMessage = String(message)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/đ/g, "d");
     const businessMessages = [
         "khong du so luong",
         "khong ton tai",
@@ -18,7 +17,11 @@ function getBusinessStatusCode(message) {
         "chi duoc xoa",
         "khong duoc",
         "khong con hieu luc",
-        "dang co phieu muon"
+        "dang co phieu muon",
+        "dang co phieu",
+        "chua co the thu vien",
+        "the thu vien chua co hieu luc",
+        "the thu vien da het han"
     ];
 
     return businessMessages.some((item) => normalizedMessage.includes(item)) ? 400 : 500;
@@ -68,6 +71,7 @@ class MuonTraService {
         }
 
         data.MaMT = maMT;
+        data.NgayMuon = tonTai.NgayMuon;
 
         const muonTra = new MuonTra({
             ...data,
@@ -81,7 +85,7 @@ class MuonTraService {
         }
     }
 
-    async returnBooks(maMT, ngayTra) {
+    async returnBooks(maMT, ngayTra, chiTietTra, employeeId) {
         const tonTai = await MuonTraRepository.getById(maMT);
 
         if (!tonTai) {
@@ -89,7 +93,7 @@ class MuonTraService {
         }
 
         try {
-            return await MuonTraRepository.returnBooks(maMT, ngayTra);
+            return await MuonTraRepository.returnBooks(maMT, ngayTra, chiTietTra, employeeId);
         } catch (error) {
             throw createError(error.message, getBusinessStatusCode(error.message));
         }

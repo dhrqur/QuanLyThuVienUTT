@@ -10,8 +10,8 @@ export function validateGenericEntityForm({ columns, formData, isEdit }) {
   const danhSachCotTrongForm = columns.filter((cot) => !cot.formHidden);
 
   danhSachCotTrongForm.forEach((cot) => {
-    const dangSuaKhoaChinh = cot.primaryKey && isEdit;
-    if (dangSuaKhoaChinh) return;
+    const truongBiKhoa = cot.readOnly || (isEdit && (cot.primaryKey || cot.readOnlyOnEdit)) || (!isEdit && cot.readOnlyOnCreate);
+    if (truongBiKhoa) return;
 
     const giaTriGoc = formData.get(cot.key);
     const giaTri = typeof giaTriGoc === "string" ? giaTriGoc.trim() : giaTriGoc;

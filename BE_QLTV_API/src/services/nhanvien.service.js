@@ -3,15 +3,10 @@ const NhanVienRepository = require("../models/repositories/nhanvien.repository")
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const { createAccessToken } = require("../middlewares/auth.middleware");
+const { createHttpError: createError } = require("../utils/http");
 
 const DEFAULT_EMPLOYEE_ROLE = "Thu thu";
 const BCRYPT_ROUNDS = 12;
-
-function createError(message, statusCode) {
-    const error = new Error(message);
-    error.statusCode = statusCode;
-    return error;
-}
 
 function hashPassword(password) {
     return bcrypt.hash(password, BCRYPT_ROUNDS);
