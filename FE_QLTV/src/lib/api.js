@@ -65,7 +65,10 @@ function unwrap(response) {
 }
 
 export function getApiErrorMessage(error, fallback = "Không thể kết nối đến máy chủ.") {
-  return error?.response?.data?.message || error?.message || fallback;
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.code === "ECONNABORTED") return "Máy chủ phản hồi quá lâu. Vui lòng thử lại.";
+  if (!error?.response) return fallback;
+  return "Yêu cầu không thể thực hiện. Vui lòng thử lại.";
 }
 
 function buildResourcePath(module, id) {

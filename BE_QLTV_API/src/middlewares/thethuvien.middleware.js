@@ -1,3 +1,5 @@
+const { hasUnexpectedFields, isEmpty } = require("../utils/validation");
+
 const allowedTheThuVienFields = [
     "MaThe",
     "MaDG",
@@ -5,14 +7,6 @@ const allowedTheThuVienFields = [
     "NgayHetHan",
     "TrangThai"
 ];
-
-function isEmpty(value) {
-    return value === undefined || value === null || String(value).trim() === "";
-}
-
-function hasUnexpectedFields(data, allowedFields) {
-    return Object.keys(data).some((field) => !allowedFields.includes(field));
-}
 
 function validateTheThuVien(req, res, next) {
     if (hasUnexpectedFields(req.body, allowedTheThuVienFields)) {
@@ -31,7 +25,6 @@ function validateTheThuVien(req, res, next) {
     if (
         isEmpty(MaThe) ||
         isEmpty(MaDG) ||
-        isEmpty(NgayCap) ||
         isEmpty(NgayHetHan)
     ) {
         return res.status(400).json({
@@ -51,7 +44,7 @@ function validateTheThuVien(req, res, next) {
         });
     }
 
-    if (isNaN(Date.parse(NgayCap))) {
+    if (!isEmpty(NgayCap) && isNaN(Date.parse(NgayCap))) {
         return res.status(400).json({
             message: "Ngay cap khong hop le"
         });

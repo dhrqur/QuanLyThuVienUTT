@@ -2,11 +2,13 @@ import DataTablePage from "@/components/common/DataTable/DataTablePage";
 import { useApiLists } from "@/hooks/useApiLists";
 import { getSachStatus } from "@/views/sach/sachUtils";
 import { createLookup } from "@/utils/lookup";
+import { api } from "@/lib/api";
+import { getNextGeneratedValue } from "@/components/common/dataTableUtils";
 
 const LOOKUP_MODULES = ["tacgia", "theloai", "nhaxuatban", "ngonngu", "kesach"];
 
 function SachView() {
-  const { data } = useApiLists(LOOKUP_MODULES);
+  const { appendItem, data } = useApiLists(LOOKUP_MODULES);
   const authors = data.tacgia ?? [];
   const categories = data.theloai ?? [];
   const publishers = data.nhaxuatban ?? [];
@@ -18,6 +20,33 @@ function SachView() {
   const publisherNames = createLookup(publishers, "MaNXB", "TenNXB");
   const languageNames = createLookup(languages, "MaNN", "TenNN");
   const shelfNames = createLookup(shelves, "MaViTri", "TenKe");
+
+  async function createRelatedItem({ collection, idKey, module, nameKey, prefix, values }) {
+    const payload = {
+      ...values,
+      [idKey]: getNextGeneratedValue(collection, { key: idKey, generatedPrefix: prefix, generatedWidth: 3 }),
+    };
+    const response = await api.create(module, payload);
+    const item = response.data ?? payload;
+    appendItem(module, item);
+    return { label: `${item[idKey]} - ${item[nameKey]}`, value: item[idKey] };
+  }
+
+  async function createAuthor(values) {
+    return createRelatedItem({
+      collection: authors,
+      idKey: "MaTG",
+      module: "tacgia",
+      nameKey: "TenTG",
+      prefix: "TG",
+      values: {
+      TenTG: values.TenTG.trim(),
+      NamSinh: values.NamSinh ? Number(values.NamSinh) : "",
+      GioiTinh: values.GioiTinh,
+      QuocTich: values.QuocTich.trim(),
+      },
+    });
+  }
 
   return (
     <DataTablePage
@@ -49,6 +78,22 @@ function SachView() {
             label: `${author.MaTG} - ${author.TenTG}`,
             value: author.MaTG,
           })),
+          quickCreate: {
+            entityName: "Tác giả",
+            fields: [
+              { key: "TenTG", label: "Tên tác giả", fullWidth: true },
+              { key: "NamSinh", label: "Năm sinh", inputType: "number", min: 1900, max: new Date().getFullYear(), required: false },
+              {
+                key: "GioiTinh", label: "Giới tính",
+                options: ["Nam", "Nữ", "Khác"].map((value) => ({ label: value, value })),
+              },
+              { key: "QuocTich", label: "Quốc tịch", defaultValue: "Việt Nam" },
+            ],
+            label: "Thêm nhanh tác giả",
+            nameField: "TenTG",
+            onCreate: createAuthor,
+          },
+          searchable: true,
           widthValue: 128,
         },
         {
@@ -61,6 +106,21 @@ function SachView() {
             label: `${category.MaTL} - ${category.TenTL}`,
             value: category.MaTL,
           })),
+          quickCreate: {
+            entityName: "Thể loại",
+            fields: [{ key: "TenTL", label: "Tên thể loại", fullWidth: true }],
+            label: "Thêm nhanh thể loại",
+            nameField: "TenTL",
+            onCreate: (values) => createRelatedItem({
+              collection: categories,
+              idKey: "MaTL",
+              module: "theloai",
+              nameKey: "TenTL",
+              prefix: "TL",
+              values: { TenTL: values.TenTL.trim() },
+            }),
+          },
+          searchable: true,
           widthValue: 120,
         },
         {
@@ -73,6 +133,31 @@ function SachView() {
             label: `${publisher.MaNXB} - ${publisher.TenNXB}`,
             value: publisher.MaNXB,
           })),
+          quickCreate: {
+            entityName: "Nhà xuất bản",
+            fields: [
+              { key: "TenNXB", label: "Tên nhà xuất bản", fullWidth: true },
+              { key: "DiaChi", label: "Địa chỉ", fullWidth: true },
+              { key: "Email", label: "Email", inputType: "email" },
+              { key: "Sdt", label: "Số điện thoại", inputType: "tel", required: false },
+            ],
+            label: "Thêm nhanh nhà xuất bản",
+            nameField: "TenNXB",
+            onCreate: (values) => createRelatedItem({
+              collection: publishers,
+              idKey: "MaNXB",
+              module: "nhaxuatban",
+              nameKey: "TenNXB",
+              prefix: "NXB",
+              values: {
+                TenNXB: values.TenNXB.trim(),
+                DiaChi: values.DiaChi.trim(),
+                Email: values.Email.trim(),
+                Sdt: values.Sdt.trim(),
+              },
+            }),
+          },
+          searchable: true,
           widthValue: 130,
         },
         {
@@ -93,6 +178,21 @@ function SachView() {
             label: `${language.MaNN} - ${language.TenNN}`,
             value: language.MaNN,
           })),
+          quickCreate: {
+            entityName: "Ngôn ngữ",
+            fields: [{ key: "TenNN", label: "Tên ngôn ngữ", fullWidth: true }],
+            label: "Thêm nhanh ngôn ngữ",
+            nameField: "TenNN",
+            onCreate: (values) => createRelatedItem({
+              collection: languages,
+              idKey: "MaNN",
+              module: "ngonngu",
+              nameKey: "TenNN",
+              prefix: "NN",
+              values: { TenNN: values.TenNN.trim() },
+            }),
+          },
+          searchable: true,
           widthValue: 100,
         },
         {
@@ -105,6 +205,24 @@ function SachView() {
             label: `${shelf.MaViTri} - ${shelf.TenKe}`,
             value: shelf.MaViTri,
           })),
+          quickCreate: {
+            entityName: "Kệ sách",
+            fields: [
+              { key: "TenKe", label: "Tên kệ", fullWidth: true },
+              { key: "MoTa", label: "Mô tả", fullWidth: true },
+            ],
+            label: "Thêm nhanh kệ sách",
+            nameField: "TenKe",
+            onCreate: (values) => createRelatedItem({
+              collection: shelves,
+              idKey: "MaViTri",
+              module: "kesach",
+              nameKey: "TenKe",
+              prefix: "KS",
+              values: { TenKe: values.TenKe.trim(), MoTa: values.MoTa.trim() },
+            }),
+          },
+          searchable: true,
           widthValue: 104,
         },
         {

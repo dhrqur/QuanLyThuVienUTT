@@ -28,6 +28,7 @@ function MuonTraView() {
           invalidOptionTitle: "Độc giả chưa đủ điều kiện mượn sách",
           options: readerOptions,
           readOnlyOnEdit: true,
+          searchable: true,
           widthValue: 190,
         },
         {

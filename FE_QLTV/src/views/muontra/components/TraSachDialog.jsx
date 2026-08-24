@@ -24,6 +24,8 @@ function TraSachDialog({ books, details, onReturned, row, rules }) {
   const [open, setOpen] = useState(false);
   const [returnDate, setReturnDate] = useState(getLocalDateValue);
   const [conditions, setConditions] = useState({});
+  const totalFine = getOverdueDays(row.HanTra, returnDate) * Number(rules.PhiQuaHanMoiNgay)
+    + getConditionFine(conditions, rules);
 
   function updateCondition(bookId, key, value) {
     setConditions((current) => ({
@@ -92,6 +94,8 @@ function TraSachDialog({ books, details, onReturned, row, rules }) {
               <span className="font-extrabold md:col-span-2">
                 Quá hạn dự kiến: {formatCurrency(getOverdueDays(row.HanTra, returnDate) * Number(rules.PhiQuaHanMoiNgay))} · Hỏng/mất: {formatCurrency(getConditionFine(conditions, rules))}
               </span>
+              <span className="font-extrabold text-emerald-800">Tổng tiền thu khi trả sách</span>
+              <strong className="text-right text-base text-emerald-800">{formatCurrency(totalFine)}</strong>
             </div>
           </div>
         </div>
@@ -119,7 +123,9 @@ function TraSachDialog({ books, details, onReturned, row, rules }) {
                 });
                 setOpen(false);
                 toast.success("Trả sách thành công", {
-                  description: `Phiếu ${row.MaMT} đã được cập nhật.`,
+                  description: totalFine > 0
+                    ? `Đã thu ${formatCurrency(totalFine)} và cập nhật xử lý vi phạm cho phiếu ${row.MaMT}.`
+                    : `Phiếu ${row.MaMT} đã được cập nhật, không phát sinh tiền phạt.`,
                 });
               } catch (error) {
                 toast.error("Trả sách thất bại", {
@@ -128,7 +134,7 @@ function TraSachDialog({ books, details, onReturned, row, rules }) {
               }
             }}
           >
-            Xác nhận trả sách
+            {totalFine > 0 ? `Trả sách & thu ${formatCurrency(totalFine)}` : "Xác nhận trả sách"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,15 +1,9 @@
+const { hasUnexpectedFields, isEmpty } = require("../utils/validation");
+
 const allowedNgonNguFields = [
     "MaNN",
     "TenNN"
 ];
-
-function isEmpty(value) {
-    return value === undefined || value === null || String(value).trim() === "";
-}
-
-function hasUnexpectedFields(data, allowedFields) {
-    return Object.keys(data).some((field) => !allowedFields.includes(field));
-}
 
 function validateNgonNgu(req, res, next) {
     if (hasUnexpectedFields(req.body, allowedNgonNguFields)) {

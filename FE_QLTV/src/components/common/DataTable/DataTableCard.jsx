@@ -21,6 +21,8 @@ import TruncatedText from "@/components/common/DataTable/TruncatedText";
 
 function DataTableCard({
   allowDelete,
+  allowEdit,
+  actionsLabel,
   allColumns,
   buildExtraPayload,
   columns,
@@ -64,7 +66,7 @@ function DataTableCard({
                 </button>
               </TableHead>
             ))}
-            <TableHead className="sticky right-0 z-10 bg-orange-500 text-center font-bold text-white">Hành động</TableHead>
+            <TableHead className="sticky right-0 z-10 bg-orange-500 text-center font-bold text-white">{actionsLabel}</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -83,7 +85,7 @@ function DataTableCard({
                     row={row}
                     updateRow={(updates) => updateRowInTable(row, updates)}
                   />
-                  <EntityFormDialog
+                  {allowEdit ? <EntityFormDialog
                     buildExtraPayload={buildExtraPayload}
                     columns={allColumns}
                     entityName={entityName}
@@ -93,7 +95,7 @@ function DataTableCard({
                     row={row}
                     rows={rows}
                     title={editLabel}
-                  />
+                  /> : null}
                   {allowDelete ? <EntityDeleteDialog
                     entityName={entityName}
                     onDelete={() => onDelete(row)}

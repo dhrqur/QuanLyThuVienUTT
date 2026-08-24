@@ -9,6 +9,9 @@ const db = mysql.createPool({
     password: process.env.DB_PASSWORD || "",
     database: process.env.DB_NAME || "qltv",
     port: Number(process.env.DB_PORT || 3306),
+    // DATE is a calendar value, not a point in time. Returning it as a string
+    // prevents JSON serialization from shifting it back one day in UTC.
+    dateStrings: ["DATE"],
     ssl: useSsl ? {
         ca: sslCa,
         rejectUnauthorized: Boolean(sslCa)

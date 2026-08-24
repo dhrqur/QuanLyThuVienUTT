@@ -1,4 +1,6 @@
-const LIBRARIAN_ONLY_RESTRICTED_PATHS = new Set(["/", "/nhan-vien", "/quy-dinh-thu-vien"]);
+const LIBRARIAN_ONLY_RESTRICTED_PATHS = new Set([
+  "/", "/nhan-vien", "/quy-dinh-thu-vien", "/nhat-ky-he-thong",
+]);
 
 function normalizeRole(role) {
   return String(role || "")

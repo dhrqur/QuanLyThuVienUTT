@@ -11,7 +11,7 @@ function XuLyViPhamView() {
       allowDelete={false}
       apiModule="xulyvipham"
       columns={[
-        { key: "MaVP", label: "Mã VP", primaryKey: true, formHidden: true, displayValue: (row) => `VP${String(row.MaVP).padStart(6, "0")}`, widthValue: 100 },
+        { key: "MaVP", label: "Mã VP", primaryKey: true, formHidden: true, displayValue: (row) => `VP${String(row.MaVP).padStart(3, "0")}`, widthValue: 100 },
         { key: "MaMT", label: "Phiếu mượn", formHidden: true, widthValue: 105 },
         { key: "MaDG", label: "Mã độc giả", tableHidden: true, formHidden: true },
         { key: "TenDG", label: "Độc giả", formHidden: true, widthValue: 170 },

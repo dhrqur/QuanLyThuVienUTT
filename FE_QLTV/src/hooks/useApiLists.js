@@ -27,5 +27,12 @@ export function useApiLists(modules) {
     };
   }, [moduleKey]);
 
-  return { data };
+  function appendItem(module, item) {
+    setData((current) => ({
+      ...current,
+      [module]: [...(current[module] ?? []).filter((existing) => existing !== item), item],
+    }));
+  }
+
+  return { appendItem, data };
 }

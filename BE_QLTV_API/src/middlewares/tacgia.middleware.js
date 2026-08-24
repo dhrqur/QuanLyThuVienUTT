@@ -1,3 +1,5 @@
+const { hasUnexpectedFields, isEmpty } = require("../utils/validation");
+
 const allowedTacGiaFields = [
     "MaTG",
     "TenTG",
@@ -5,14 +7,6 @@ const allowedTacGiaFields = [
     "GioiTinh",
     "QuocTich"
 ];
-
-function isEmpty(value) {
-    return value === undefined || value === null || String(value).trim() === "";
-}
-
-function hasUnexpectedFields(data, allowedFields) {
-    return Object.keys(data).some((field) => !allowedFields.includes(field));
-}
 
 function validateTacGia(req, res, next) {
     if (hasUnexpectedFields(req.body, allowedTacGiaFields)) {

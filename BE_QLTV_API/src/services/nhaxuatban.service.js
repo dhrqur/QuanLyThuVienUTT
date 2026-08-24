@@ -1,6 +1,7 @@
 const NhaXuatBan = require("../models/entities/nhaxuatban.entity");
 const NhaXuatBanRepository = require("../models/repositories/nhaxuatban.repository");
 const { createHttpError: createError } = require("../utils/http");
+const { normalizeEmail, normalizeOptionalText } = require("../utils/validation");
 
 class NhaXuatBanService {
     async getAll() {
@@ -20,6 +21,9 @@ class NhaXuatBanService {
     }
 
     async create(data) {
+        data.Email = normalizeEmail(data.Email);
+        data.Sdt = normalizeOptionalText(data.Sdt);
+
         const nhaXuatBanTonTai = await NhaXuatBanRepository.getById(data.MaNXB);
 
         if (nhaXuatBanTonTai) {
@@ -32,6 +36,9 @@ class NhaXuatBanService {
     }
 
     async update(maNXB, data) {
+        data.Email = normalizeEmail(data.Email);
+        data.Sdt = normalizeOptionalText(data.Sdt);
+
         const nhaXuatBanTonTai = await NhaXuatBanRepository.getById(maNXB);
 
         if (!nhaXuatBanTonTai) {

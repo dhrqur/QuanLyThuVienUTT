@@ -82,6 +82,8 @@ CREATE TABLE IF NOT EXISTS `docgia` (
   `Email` varchar(50) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `Sdt` varchar(13) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   PRIMARY KEY (`MaDG`),
+  UNIQUE KEY `uq_docgia_email` (`Email`),
+  UNIQUE KEY `uq_docgia_sdt` (`Sdt`),
   KEY `MaKhoa` (`MaKhoa`),
   KEY `MaLop` (`MaLop`),
   CONSTRAINT `docgia_ibfk_1` FOREIGN KEY (`MaKhoa`) REFERENCES `khoa` (`MaKhoa`),
@@ -281,7 +283,9 @@ CREATE TABLE IF NOT EXISTS `nhanvien` (
   `User` varchar(50) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `Pass` varchar(255) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   PRIMARY KEY (`MaNV`),
-  UNIQUE KEY `uq_nhanvien_user` (`User`)
+  UNIQUE KEY `uq_nhanvien_user` (`User`),
+  UNIQUE KEY `uq_nhanvien_email` (`Email`),
+  UNIQUE KEY `uq_nhanvien_sdt` (`Sdt`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 -- Dumping data for table dbqltv.nhanvien: ~4 rows (approximately)
@@ -298,7 +302,9 @@ CREATE TABLE IF NOT EXISTS `nhaxuatban` (
   `DiaChi` varchar(100) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `Email` varchar(50) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `Sdt` varchar(13) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  PRIMARY KEY (`MaNXB`)
+  PRIMARY KEY (`MaNXB`),
+  UNIQUE KEY `uq_nhaxuatban_email` (`Email`),
+  UNIQUE KEY `uq_nhaxuatban_sdt` (`Sdt`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 -- Dumping data for table dbqltv.nhaxuatban: ~16 rows (approximately)
@@ -534,6 +540,30 @@ SET vp.SoLuong = (SELECT COALESCE(SUM(ct.SoLuong), 0) FROM chitietmuontra ct WHE
     vp.MaNVThu = COALESCE(vp.MaNVThu, mt.MaNV)
 WHERE vp.LoaiViPham = 'QUA_HAN' AND vp.TrangThaiThu = 'DA_THU'
     AND (vp.SoLuong = 0 OR vp.MaNVThu IS NULL);
+
+-- Dumping structure for table dbqltv.nhatkyhethong
+CREATE TABLE IF NOT EXISTS `nhatkyhethong` (
+  `MaNK` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `MaNV` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `TenDangNhap` varchar(100) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `VaiTro` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `HanhDong` varchar(30) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `DoiTuong` varchar(100) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `MaDoiTuong` varchar(100) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `MoTa` varchar(255) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `PhuongThuc` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `DuongDan` varchar(255) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `DuLieuYeuCau` json DEFAULT NULL,
+  `DuLieuKetQua` json DEFAULT NULL,
+  `DiaChiIP` varchar(64) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `UserAgent` varchar(500) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `ThoiGian` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`MaNK`),
+  KEY `idx_nhatky_manv` (`MaNV`),
+  KEY `idx_nhatky_hanhdong` (`HanhDong`),
+  KEY `idx_nhatky_doituong` (`DoiTuong`, `MaDoiTuong`),
+  KEY `idx_nhatky_thoigian` (`ThoiGian`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 -- Dumping structure and default data for table dbqltv.quydinhthuvien
 CREATE TABLE IF NOT EXISTS `quydinhthuvien` (

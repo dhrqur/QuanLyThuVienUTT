@@ -1,12 +1,10 @@
 const TheThuVien = require("../models/entities/thethuvien.entity");
 const TheThuVienRepository = require("../models/repositories/thethuvien.repository");
 const { createHttpError: createError } = require("../utils/http");
+const { getCurrentDate } = require("../utils/date");
 
 function getCardStatus(expirationDate) {
-    const today = new Date();
-    const localToday = new Date(today.getTime() - today.getTimezoneOffset() * 60_000)
-        .toISOString()
-        .slice(0, 10);
+    const localToday = getCurrentDate();
 
     return String(expirationDate).slice(0, 10) < localToday
         ? "Hết hạn"
@@ -39,6 +37,7 @@ class TheThuVienService {
 
         const theThuVien = new TheThuVien({
             ...data,
+            NgayCap: getCurrentDate(),
             TrangThai: getCardStatus(data.NgayHetHan)
         });
 
@@ -55,6 +54,7 @@ class TheThuVienService {
         const theThuVien = new TheThuVien({
             ...data,
             MaThe: maThe,
+            NgayCap: tonTai.NgayCap,
             TrangThai: getCardStatus(data.NgayHetHan)
         });
 

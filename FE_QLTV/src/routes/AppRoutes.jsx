@@ -19,6 +19,7 @@ import TheLoaiView from "@/views/theloai/TheLoaiView";
 import TheThuVienView from "@/views/thethuvien/TheThuVienView";
 import XuLyViPhamView from "@/views/xulyvipham/XuLyViPhamView";
 import QuyDinhThuVienView from "@/views/quydinh/QuyDinhThuVienView";
+import NhatKyHeThongView from "@/views/nhatkyhethong/NhatKyHeThongView";
 
 function AppRoutes() {
   return (
@@ -32,6 +33,7 @@ function AppRoutes() {
         <Route path="/muon-tra" element={<MuonTraView />} />
         <Route path="/xu-ly-vi-pham" element={<XuLyViPhamView />} />
         <Route path="/quy-dinh-thu-vien" element={<QuyDinhThuVienView />} />
+        <Route path="/nhat-ky-he-thong" element={<NhatKyHeThongView />} />
         <Route path="/tac-gia" element={<TacGiaView />} />
         <Route path="/the-loai" element={<TheLoaiView />} />
         <Route path="/the-thu-vien" element={<TheThuVienView />} />

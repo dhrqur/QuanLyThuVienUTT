@@ -1,5 +1,4 @@
 const db = require("../../config/db");
-const { OVERDUE_FINE_PER_DAY } = require("../../config/library");
 
 const PHIEU_MUON_COLUMNS = `
     mt.MaMT,
@@ -17,11 +16,11 @@ const PHIEU_MUON_COLUMNS = `
     END AS TrangThai,
     COUNT(ct.MaSach) AS SoDauSach,
     COALESCE(SUM(ct.SoLuong), 0) AS TongSoLuong,
-    CASE
-        WHEN mt.NgayTra IS NOT NULL AND mt.NgayTra > mt.HanTra
-        THEN DATEDIFF(mt.NgayTra, mt.HanTra) * ${OVERDUE_FINE_PER_DAY}
-        ELSE 0
-    END AS TienPhat
+    COALESCE((
+        SELECT SUM(vp.SoTien)
+        FROM xulyvipham vp
+        WHERE vp.MaMT = mt.MaMT
+    ), 0) AS TienPhat
 `;
 
 class MuonTraRepository {
@@ -88,8 +87,10 @@ class MuonTraRepository {
                 SUM(CASE WHEN mt.NgayTra IS NULL THEN 1 ELSE 0 END) AS PhieuDangMuon,
                 SUM(CASE WHEN mt.NgayTra IS NOT NULL THEN 1 ELSE 0 END) AS PhieuDaTra,
                 SUM(CASE WHEN mt.HanTra < CURDATE() AND mt.NgayTra IS NULL THEN 1 ELSE 0 END) AS PhieuQuaHan,
-                COALESCE(SUM(
-                    GREATEST(DATEDIFF(mt.NgayTra, mt.HanTra), 0) * ${OVERDUE_FINE_PER_DAY}
+                COALESCE((
+                    SELECT SUM(vp.SoTien)
+                    FROM xulyvipham vp
+                    WHERE vp.TrangThaiThu = 'DA_THU'
                 ), 0) AS TongTienPhatDaThu
             FROM muontra mt
         `);
@@ -227,9 +228,14 @@ class MuonTraRepository {
                 throw new Error("Phieu muon da duoc tra");
             }
 
-            if (new Date(`${String(ngayTra).slice(0, 10)}T00:00:00`) < new Date(current.NgayMuon)) {
+            const returnDateValue = String(ngayTra).slice(0, 10);
+            const borrowDateValue = String(current.NgayMuon).slice(0, 10);
+
+            if (returnDateValue < borrowDateValue) {
                 throw new Error("Ngay tra khong duoc nho hon ngay muon");
             }
+
+            await this.#assertNhanVienExists(connection, employeeId);
 
             const [details] = await connection.query(
                 "SELECT MaSach, SoLuong FROM chitietmuontra WHERE MaMT = ?",
@@ -263,20 +269,25 @@ class MuonTraRepository {
 
                 if (damaged > 0) await this.#insertViolation(connection, {
                     maMT, maSach: item.MaSach, type: "HU_HONG", quantity: damaged,
-                    amount: damaged * Number(rules.PhiHuHongMoiBan), description: condition.MoTa, date: ngayTra
+                    amount: damaged * Number(rules.PhiHuHongMoiBan), description: condition.MoTa,
+                    date: ngayTra, employeeId
                 });
                 if (lost > 0) await this.#insertViolation(connection, {
                     maMT, maSach: item.MaSach, type: "LAM_MAT", quantity: lost,
-                    amount: lost * Number(rules.PhiLamMatMoiBan), description: condition.MoTa, date: ngayTra
+                    amount: lost * Number(rules.PhiLamMatMoiBan), description: condition.MoTa,
+                    date: ngayTra, employeeId
                 });
             }
 
-            const overdueDays = Math.max(0, Math.ceil((new Date(ngayTra) - new Date(current.HanTra)) / 86400000));
+            const dueDateValue = String(current.HanTra).slice(0, 10);
+            const overdueDays = Math.max(0, Math.ceil(
+                (new Date(`${returnDateValue}T00:00:00`) - new Date(`${dueDateValue}T00:00:00`)) / 86400000
+            ));
             if (overdueDays > 0) await this.#insertViolation(connection, {
                 maMT, maSach: null, type: "QUA_HAN",
                 quantity: details.reduce((total, item) => total + Number(item.SoLuong), 0),
                 amount: overdueDays * Number(rules.PhiQuaHanMoiNgay),
-                description: `Quá hạn ${overdueDays} ngày`, date: ngayTra
+                description: `Quá hạn ${overdueDays} ngày`, date: ngayTra, employeeId
             });
 
             await connection.query(
@@ -294,13 +305,17 @@ class MuonTraRepository {
         }
     }
 
-    async #insertViolation(connection, { maMT, maSach, type, quantity, amount, description, date }) {
+    async #insertViolation(connection, {
+        maMT, maSach, type, quantity, amount, description, date, employeeId
+    }) {
         const fine = Math.max(Number(amount || 0), 0);
+        const collected = fine > 0;
         await connection.query(`INSERT INTO xulyvipham
-            (MaMT, MaSach, LoaiViPham, SoLuong, SoTien, MoTa, TrangThaiThu, NgayLap)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [
+            (MaMT, MaSach, LoaiViPham, SoLuong, SoTien, MoTa, TrangThaiThu, NgayLap, NgayThu, MaNVThu)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
             maMT, maSach, type, quantity, fine, description || null,
-            fine > 0 ? "CHUA_THU" : "MIEN_PHAT", date
+            collected ? "DA_THU" : "MIEN_PHAT", date,
+            collected ? date : null, collected ? employeeId : null
         ]);
     }
 
@@ -318,6 +333,16 @@ class MuonTraRepository {
 
             if (!current.NgayTra) {
                 throw new Error("Chi duoc xoa phieu muon da tra");
+            }
+
+            const [violationRows] = await connection.query(
+                "SELECT MaVP FROM xulyvipham WHERE MaMT = ? LIMIT 1 FOR UPDATE",
+                [maMT]
+            );
+            if (violationRows[0]) {
+                throw new Error(
+                    "Không thể xóa phiếu mượn đã phát sinh vi phạm. Phiếu cần được giữ lại để bảo toàn lịch sử thu tiền."
+                );
             }
 
             await connection.query("DELETE FROM chitietmuontra WHERE MaMT = ?", [maMT]);
@@ -477,21 +502,11 @@ class MuonTraRepository {
                 (total, detail) => total + Number(detail.SoLuong || 0),
                 0
             );
-            const soNgayTre = row.NgayTra && row.NgayTra > row.HanTra
-                ? Math.max(
-                    0,
-                    Math.ceil(
-                        (new Date(row.NgayTra) - new Date(row.HanTra))
-                        / 86400000
-                    )
-                )
-                : 0;
-
             return {
                 ...row,
                 SoDauSach: chiTiet.length,
                 TongSoLuong: tongSoLuong,
-                TienPhat: soNgayTre * OVERDUE_FINE_PER_DAY,
+                TienPhat: Number(row.TienPhat || 0),
                 ChiTiet: chiTiet
             };
         });

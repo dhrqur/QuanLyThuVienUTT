@@ -89,6 +89,31 @@ const BADGE_DEFINITIONS = {
     className: "border-slate-200 bg-slate-50 text-slate-700",
     aliases: ["mien phat", "waived"],
   },
+  auditCreate: {
+    label: "Thêm",
+    className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    aliases: ["them", "create"],
+  },
+  auditUpdate: {
+    label: "Cập nhật",
+    className: "border-blue-200 bg-blue-50 text-blue-700",
+    aliases: ["cap nhat", "cap nhat quy dinh", "update"],
+  },
+  auditDelete: {
+    label: "Xóa",
+    className: "border-rose-200 bg-rose-50 text-rose-700",
+    aliases: ["xoa", "delete"],
+  },
+  auditReturn: {
+    label: "Trả sách & thu tiền",
+    className: "border-violet-200 bg-violet-50 text-violet-700",
+    aliases: ["tra sach & thu tien", "tra sach va thu tien"],
+  },
+  auditViolation: {
+    label: "Xử lý vi phạm",
+    className: "border-amber-200 bg-amber-50 text-amber-700",
+    aliases: ["xu ly vi pham"],
+  },
 };
 
 function normalizeBadgeStatus(status) {

@@ -21,9 +21,7 @@ class SachController {
                 data: data
             });
         } catch (error) {
-            res.status(500).json({
-                message: error.message
-            });
+            handleError(res, error);
         }
     }
 
@@ -42,9 +40,7 @@ class SachController {
                 data: data
             });
         } catch (error) {
-            res.status(500).json({
-                message: error.message
-            });
+            handleError(res, error);
         }
     }
 

@@ -1,3 +1,5 @@
+const { hasUnexpectedFields, isEmpty, normalizeText } = require("../utils/validation");
+
 const allowedNhanVienFields = [
     "MaNV",
     "TenNV",
@@ -10,18 +12,6 @@ const allowedNhanVienFields = [
     "User",
     "Pass"
 ];
-
-function isEmpty(value) {
-    return value === undefined || value === null || String(value).trim() === "";
-}
-
-function hasUnexpectedFields(data, allowedFields) {
-    return Object.keys(data).some((field) => !allowedFields.includes(field));
-}
-
-function normalizeRole(role) {
-    return String(role || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-}
 
 function validateNhanVien(req, res, next) {
     if (hasUnexpectedFields(req.body, allowedNhanVienFields)) {
@@ -98,7 +88,7 @@ function validateNhanVien(req, res, next) {
         });
     }
 
-    if (!["quan ly", "thu thu"].includes(normalizeRole(VaiTro))) {
+    if (!["quan ly", "thu thu"].includes(normalizeText(VaiTro))) {
         return res.status(400).json({
             message: "Vai tro chi duoc la Quan ly hoac Thu thu"
         });

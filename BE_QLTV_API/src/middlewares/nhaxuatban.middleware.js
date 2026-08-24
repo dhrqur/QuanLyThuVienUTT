@@ -1,3 +1,5 @@
+const { hasUnexpectedFields, isEmpty } = require("../utils/validation");
+
 const allowedNhaXuatBanFields = [
     "MaNXB",
     "TenNXB",
@@ -5,14 +7,6 @@ const allowedNhaXuatBanFields = [
     "Email",
     "Sdt"
 ];
-
-function isEmpty(value) {
-    return value === undefined || value === null || String(value).trim() === "";
-}
-
-function hasUnexpectedFields(data, allowedFields) {
-    return Object.keys(data).some((field) => !allowedFields.includes(field));
-}
 
 function validateNhaXuatBan(req, res, next) {
     if (hasUnexpectedFields(req.body, allowedNhaXuatBanFields)) {

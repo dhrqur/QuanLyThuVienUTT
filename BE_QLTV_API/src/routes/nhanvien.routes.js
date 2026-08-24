@@ -8,6 +8,7 @@ const {
     validateSearch
 } = require("../middlewares/nhanvien.middleware");
 const { authenticate, requireManager } = require("../middlewares/auth.middleware");
+const { auditActivity } = require("../middlewares/audit.middleware");
 
 /**
  * @swagger
@@ -74,7 +75,7 @@ router.post("/dang-nhap", validateLogin, NhanVienController.login);
  *                   example: Dang xuat thanh cong
  */
 router.post("/dang-xuat", authenticate, NhanVienController.logout);
-router.use(authenticate, requireManager);
+router.use(authenticate, requireManager, auditActivity);
 
 /**
  * @swagger

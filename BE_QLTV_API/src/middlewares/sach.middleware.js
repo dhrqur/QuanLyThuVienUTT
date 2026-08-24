@@ -1,3 +1,5 @@
+const { isEmpty } = require("../utils/validation");
+
 function validateSach(req, res, next) {
     const {
         MaSach,
@@ -11,35 +13,44 @@ function validateSach(req, res, next) {
         MaViTri
     } = req.body;
 
-    if (!MaSach || !MaTG || !MaNXB || !MaTL || !TenSach || !NamXB || !MaNN || !MaViTri || SoLuong === undefined || SoLuong === null|| SoLuong === "") {
+    const requiredValues = [MaSach, MaTG, MaNXB, MaTL, TenSach, NamXB, SoLuong, MaNN, MaViTri];
+
+    if (requiredValues.some(isEmpty)) {
         return res.status(400).json({
             message: "Vui lòng nhập đầy đủ thông tin sách"
         });
     }
 
-    if (SoLuong < 0) {
-        return res.status(400).json({
-            message: "Số lượng không được nhỏ hơn 0"
-        });
-    } 
-    if(isNaN(SoLuong)){
+    const normalizedQuantity = Number(SoLuong);
+    const normalizedYear = Number(NamXB);
+
+    if (!Number.isFinite(normalizedQuantity)) {
         return res.status(400).json({
             message: "Số lượng phải là một số"
         });
     }
-    if(SoLuong % 1 !== 0){
+
+    if (normalizedQuantity < 0) {
+        return res.status(400).json({
+            message: "Số lượng không được nhỏ hơn 0"
+        });
+    }
+
+    if (!Number.isInteger(normalizedQuantity)) {
         return res.status(400).json({
             message: "Số lượng phải là một số nguyên"
         });
     }
-    if (NamXB < 0) {
-        return res.status(400).json({
-            message: "Năm xuất bản không hợp lệ"
-        });
-    }
-    if(isNaN(NamXB)){
+
+    if (!Number.isFinite(normalizedYear)) {
         return res.status(400).json({
             message: "Năm xuất bản phải là một số"
+        });
+    }
+
+    if (normalizedYear < 0) {
+        return res.status(400).json({
+            message: "Năm xuất bản không hợp lệ"
         });
     }
 
@@ -49,9 +60,9 @@ function validateSach(req, res, next) {
 function validateSearchSach(req, res, next) {
     const { keyword } = req.query;
 
-    if (keyword === undefined || keyword === null || String(keyword).trim() === "") {
+    if (isEmpty(keyword)) {
         return res.status(400).json({
-            message: "Vui long nhap tu khoa tim kiem sach"
+            message: "Vui lòng nhập từ khóa tìm kiếm sách"
         });
     }
 

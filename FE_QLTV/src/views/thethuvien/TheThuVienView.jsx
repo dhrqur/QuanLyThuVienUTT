@@ -3,6 +3,7 @@ import { useApiLists } from "@/hooks/useApiLists";
 import { api } from "@/lib/api";
 import GiaHanTheDialog from "@/views/thethuvien/components/GiaHanTheDialog";
 import { createLookup } from "@/utils/lookup";
+import { getLocalDateValue } from "@/utils/dateUtils";
 
 function TheThuVienView() {
   const { data } = useApiLists(["docgia"]);
@@ -20,7 +21,15 @@ function TheThuVienView() {
           options: readers.map((reader) => ({ label: `${reader.MaDG} - ${reader.TenDG}`, value: reader.MaDG })),
           widthValue: 190,
         },
-        { key: "NgayCap", label: "NgayCap", displayLabel: "Ngày cấp", inputType: "date", widthValue: 140 },
+        {
+          key: "NgayCap",
+          label: "NgayCap",
+          displayLabel: "Ngày cấp",
+          defaultValue: getLocalDateValue,
+          inputType: "date",
+          readOnly: true,
+          widthValue: 140,
+        },
         { key: "NgayHetHan", label: "NgayHetHan", displayLabel: "Ngày hết hạn", inputType: "date", widthValue: 160 },
         {
           key: "TrangThai", label: "TrangThai", displayLabel: "Trạng thái", badge: true,

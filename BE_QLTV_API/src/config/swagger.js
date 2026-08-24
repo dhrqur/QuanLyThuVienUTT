@@ -10,7 +10,7 @@ const options = {
         },
         servers: [
           {
-            url: "https://quanlythuvienutt-production.up.railway.app",
+            url: "https://quanlythuvienutt.onrender.com",
           },
           {
             url: "http://localhost:3000",

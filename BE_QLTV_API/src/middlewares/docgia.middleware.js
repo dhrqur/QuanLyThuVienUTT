@@ -1,3 +1,5 @@
+const { hasUnexpectedFields, isEmpty } = require("../utils/validation");
+
 const allowedDocGiaFields = [
     "MaDG",
     "MaKhoa",
@@ -9,14 +11,6 @@ const allowedDocGiaFields = [
     "Email",
     "Sdt"
 ];
-
-function isEmpty(value) {
-    return value === undefined || value === null || String(value).trim() === "";
-}
-
-function hasUnexpectedFields(data, allowedFields) {
-    return Object.keys(data).some((field) => !allowedFields.includes(field));
-}
 
 function validateDocGia(req, res, next) {
     if (hasUnexpectedFields(req.body, allowedDocGiaFields)) {

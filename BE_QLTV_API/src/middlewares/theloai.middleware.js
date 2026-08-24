@@ -1,15 +1,9 @@
+const { hasUnexpectedFields, isEmpty } = require("../utils/validation");
+
 const allowedTheLoaiFields = [
     "MaTL",
     "TenTL"
 ];
-
-function isEmpty(value) {
-    return value === undefined || value === null || String(value).trim() === "";
-}
-
-function hasUnexpectedFields(data, allowedFields) {
-    return Object.keys(data).some((field) => !allowedFields.includes(field));
-}
 
 function validateTheLoai(req, res, next) {
     if (hasUnexpectedFields(req.body, allowedTheLoaiFields)) {

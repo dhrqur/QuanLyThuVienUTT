@@ -110,7 +110,7 @@ export function SachMuonSelector({ books, details, ticketId }) {
   }
 
   return (
-    <fieldset className="space-y-3 rounded-xl border bg-slate-50/60 p-4 md:col-span-3">
+    <fieldset className="space-y-3 rounded-xl border bg-slate-50/60 p-4 md:col-span-2">
       <legend className="px-1 text-sm font-extrabold">Sách mượn</legend>
 
       {selectedEntries.map(([bookId, quantity]) => (

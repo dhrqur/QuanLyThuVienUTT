@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { normalizeText } = require("../utils/validation");
 
 const TOKEN_TTL = "8h";
 const JWT_ISSUER = "quan-ly-thu-vien-utt";
@@ -7,10 +8,6 @@ const SECRET = process.env.AUTH_SECRET || "development-only-change-this-auth-sec
 
 if (process.env.NODE_ENV === "production" && !process.env.AUTH_SECRET) {
     throw new Error("AUTH_SECRET is required in production");
-}
-
-function normalizeRole(role) {
-    return String(role || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 }
 
 function createAccessToken(employee) {
@@ -49,10 +46,10 @@ function authenticate(req, res, next) {
 }
 
 function authorizeRoles(...roles) {
-    const allowedRoles = new Set(roles.map(normalizeRole));
+    const allowedRoles = new Set(roles.map(normalizeText));
 
     return (req, res, next) => {
-        if (!allowedRoles.has(normalizeRole(req.user?.role))) {
+        if (!allowedRoles.has(normalizeText(req.user?.role))) {
             return res.status(403).json({ message: "Ban khong co quyen truy cap chuc nang nay" });
         }
         next();

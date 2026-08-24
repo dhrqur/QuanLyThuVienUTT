@@ -1,16 +1,10 @@
+const { hasUnexpectedFields, isEmpty } = require("../utils/validation");
+
 const allowedKeSachFields = [
     "MaViTri",
     "TenKe",
     "MoTa"
 ];
-
-function isEmpty(value) {
-    return value === undefined || value === null || String(value).trim() === "";
-}
-
-function hasUnexpectedFields(data, allowedFields) {
-    return Object.keys(data).some((field) => !allowedFields.includes(field));
-}
 
 function validateKeSach(req, res, next) {
     if (hasUnexpectedFields(req.body, allowedKeSachFields)) {

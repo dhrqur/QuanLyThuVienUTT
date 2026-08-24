@@ -117,7 +117,10 @@ class MuonTraService {
                 throw error;
             }
 
-            throw createError(error.message, 400);
+            const message = error.code === "ER_ROW_IS_REFERENCED_2"
+                ? "Không thể xóa phiếu mượn vì đang có dữ liệu liên quan."
+                : error.message;
+            throw createError(message, 400);
         }
 
         return true;

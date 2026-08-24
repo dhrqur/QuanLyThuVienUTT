@@ -16,6 +16,8 @@ const muontra = require("./routes/muontra.routes");
 const thongke = require("./routes/thongke.routes");
 const xulyvipham = require("./routes/xulyvipham.routes");
 const quydinhthuvien = require("./routes/quydinhthuvien.routes");
+const nhatkyhethong = require("./routes/nhatkyhethong.routes");
+const { auditActivity } = require("./middlewares/audit.middleware");
 const {
     authenticate,
     requireLibraryStaff,
@@ -28,7 +30,7 @@ const swaggerSpec = require("./config/swagger");
 
 const allowedOrigins = new Set([
     "http://localhost:5173",
-    "https://quan-ly-thu-vien-utt-4b2b.vercel.app",
+    "https://quan-ly-thu-vien-utt.vercel.app",
     ...(process.env.CLIENT_URL || "")
         .split(",")
         .map((origin) => origin.trim())
@@ -51,7 +53,7 @@ app.use(cors({
 app.use(express.json());
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api/nhanvien", nhanvien);
-app.use("/api", authenticate, requireLibraryStaff);
+app.use("/api", authenticate, requireLibraryStaff, auditActivity);
 app.use("/api/sach", sach);
 app.use("/api/theloai", theloai);
 app.use("/api/tacgia", tacgia);
@@ -66,6 +68,7 @@ app.use("/api/muontra", muontra);
 app.use("/api/xulyvipham", xulyvipham);
 app.use("/api/quydinhthuvien", quydinhthuvien);
 app.use("/api/thongke", requireManager, thongke);
+app.use("/api/nhatkyhethong", requireManager, nhatkyhethong);
 
 const PORT = process.env.PORT || 3000;
 

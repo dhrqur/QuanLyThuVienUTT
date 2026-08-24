@@ -1,6 +1,7 @@
 const DocGia = require("../models/entities/docgia.entity");
 const DocGiaRepository = require("../models/repositories/docgia.repository");
 const { createHttpError: createError } = require("../utils/http");
+const { normalizeEmail, trimText } = require("../utils/validation");
 
 class DocGiaService {
     async getAll() {
@@ -20,6 +21,9 @@ class DocGiaService {
     }
 
     async create(data) {
+        data.Email = normalizeEmail(data.Email);
+        data.Sdt = trimText(data.Sdt);
+
         const docGiaTonTai = await DocGiaRepository.getById(data.MaDG);
 
         if (docGiaTonTai) {
@@ -32,6 +36,9 @@ class DocGiaService {
     }
 
     async update(maDG, data) {
+        data.Email = normalizeEmail(data.Email);
+        data.Sdt = trimText(data.Sdt);
+
         const docGiaTonTai = await DocGiaRepository.getById(maDG);
 
         if (!docGiaTonTai) {

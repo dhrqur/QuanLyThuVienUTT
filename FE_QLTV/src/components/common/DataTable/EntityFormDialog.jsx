@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { getNextGeneratedValue } from "@/components/common/dataTableUtils";
 import { hasErrors, validateGenericEntityForm } from "@/utils/formValidation";
+import SearchableSelect from "@/components/common/SearchableSelect";
 
 function EntityFormDialog({
   buildExtraPayload,
@@ -228,6 +229,31 @@ function renderInput({
       ? column.options(formValues)
       : column.options;
     const isWaitingForDependency = column.dependsOn && !formValues[column.dependsOn];
+
+    if (column.searchable) {
+      return (
+        <SearchableSelect
+          disabled={isLockedField || isWaitingForDependency}
+          name={column.key}
+          onChange={(nextValue) => {
+            const selectedOption = options.find((option) => String(option.value) === String(nextValue));
+            if (selectedOption?.errorMessage) {
+              toast.error(column.invalidOptionTitle ?? "Không thể chọn dữ liệu này", {
+                description: selectedOption.errorMessage,
+              });
+              onFieldChange(column.key, "");
+              return false;
+            }
+            onFieldChange(column.key, nextValue);
+            return true;
+          }}
+          options={options}
+          placeholder={isWaitingForDependency ? column.dependencyPlaceholder : "-- Chọn --"}
+          quickCreate={column.quickCreate}
+          value={formValues[column.key] ?? defaultValue}
+        />
+      );
+    }
 
     const select = (
       <select

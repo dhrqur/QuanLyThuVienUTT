@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const { createAccessToken } = require("../middlewares/auth.middleware");
 const { createHttpError: createError } = require("../utils/http");
+const { normalizeEmail, trimText } = require("../utils/validation");
 
 const DEFAULT_EMPLOYEE_ROLE = "Thu thu";
 const BCRYPT_ROUNDS = 12;
@@ -82,6 +83,10 @@ class NhanVienService {
     }
 
     async create(data) {
+        data.Email = normalizeEmail(data.Email);
+        data.Sdt = trimText(data.Sdt);
+        data.User = trimText(data.User);
+
         const maNVTonTai = await NhanVienRepository.getById(data.MaNV);
 
         if (maNVTonTai) {
@@ -104,6 +109,10 @@ class NhanVienService {
     }
 
     async update(maNV, data) {
+        data.Email = normalizeEmail(data.Email);
+        data.Sdt = trimText(data.Sdt);
+        data.User = trimText(data.User);
+
         const nhanVienTonTai = await NhanVienRepository.getByIdWithPassword(maNV);
 
         if (!nhanVienTonTai) {

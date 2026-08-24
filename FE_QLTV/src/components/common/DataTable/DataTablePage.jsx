@@ -12,6 +12,8 @@ function DataTablePage({
   apiModule,
   allowCreate = true,
   allowDelete = true,
+  allowEdit = true,
+  actionsLabel = "Hành động",
   title,
   entityName,
   editLabel = "Sửa",
@@ -126,6 +128,8 @@ function DataTablePage({
         ) : (
           <DataTableCard
             allColumns={columns}
+            allowEdit={allowEdit}
+            actionsLabel={actionsLabel}
             buildExtraPayload={buildExtraPayload}
             columns={tableColumns}
             entityName={entityName}
@@ -158,6 +162,7 @@ function DataTablePage({
 const collator = new Intl.Collator("vi", { numeric: true, sensitivity: "base" });
 
 function getComparableValue(column, row) {
+  if (column.sortValue) return column.sortValue(row) ?? "";
   if (column.displayValue) return column.displayValue(row) ?? "";
   return row[column.key] ?? "";
 }

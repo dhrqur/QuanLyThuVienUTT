@@ -1,3 +1,6 @@
+const { hasUnexpectedFields, isEmpty } = require("../utils/validation");
+const { getCurrentDate } = require("../utils/date");
+
 const allowedMuonTraFields = [
     "MaMT",
     "MaDG",
@@ -8,33 +11,13 @@ const allowedMuonTraFields = [
     "ChiTiet"
 ];
 
-function isEmpty(value) {
-    return value === undefined || value === null || String(value).trim() === "";
-}
-
-function hasUnexpectedFields(data, allowedFields) {
-    return Object.keys(data).some((field) => !allowedFields.includes(field));
-}
-
-function getTodayValue() {
-    const parts = new Intl.DateTimeFormat("en-US", {
-        day: "2-digit",
-        month: "2-digit",
-        timeZone: "Asia/Ho_Chi_Minh",
-        year: "numeric"
-    }).formatToParts(new Date());
-    const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-
-    return `${values.year}-${values.month}-${values.day}`;
-}
-
 function useAuthenticatedEmployee(req, res, next) {
     req.body.MaNV = req.user.id;
     next();
 }
 
 function useCurrentBorrowDate(req, res, next) {
-    req.body.NgayMuon = getTodayValue();
+    req.body.NgayMuon = getCurrentDate();
     next();
 }
 

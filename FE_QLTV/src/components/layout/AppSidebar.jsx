@@ -7,6 +7,7 @@ import {
   ClipboardList,
   CreditCard,
   GraduationCap,
+  History,
   Languages,
   LayoutDashboard,
   Library,
@@ -51,6 +52,7 @@ const navGroups = [
       { label: "Mượn trả", href: "/muon-tra", icon: ClipboardList },
       { label: "Xử lý vi phạm", href: "/xu-ly-vi-pham", icon: ShieldAlert },
       { label: "Quy định thư viện", href: "/quy-dinh-thu-vien", icon: Settings2, managerOnly: true },
+      { label: "Nhật ký hệ thống", href: "/nhat-ky-he-thong", icon: History, managerOnly: true },
     ],
   },
 ];
