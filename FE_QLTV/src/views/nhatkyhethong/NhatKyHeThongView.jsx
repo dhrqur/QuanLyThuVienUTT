@@ -32,15 +32,13 @@ function NhatKyHeThongView() {
           sortValue: (row) => row.ThoiGian,
           widthValue: 165,
         },
-        { key: "MaNV", label: "Mã NV", tableHidden: true },
-        { key: "TenDangNhap", label: "Tài khoản", tableHidden: true },
+        { key: "MaNV", label: "Mã NV", tableHidden: true, detailHidden: true },
         {
           key: "TenNguoiThucHien",
           label: "Người thực hiện",
           displayValue: (row) => row.TenNguoiThucHien || "Không xác định",
           widthValue: 190,
         },
-        { key: "VaiTro", label: "Vai trò", tableHidden: true },
         {
           key: "HanhDong",
           label: "Hoạt động",
@@ -56,12 +54,7 @@ function NhatKyHeThongView() {
           widthValue: 190,
         },
         { key: "MoTa", label: "Nội dung", displayValue: getAuditDescription, widthValue: 280 },
-        { key: "PhuongThuc", label: "HTTP", tableHidden: true },
-        { key: "DuongDan", label: "Đường dẫn", tableHidden: true },
-        { key: "DiaChiIP", label: "Địa chỉ IP", tableHidden: true },
-        { key: "UserAgent", label: "Thiết bị", tableHidden: true },
-        { key: "DuLieuYeuCau", label: "Dữ liệu yêu cầu", tableHidden: true, detailHidden: true },
-        { key: "DuLieuKetQua", label: "Dữ liệu kết quả", tableHidden: true, detailHidden: true },
+        { key: "UserAgent", label: "Thiết bị", tableHidden: true, detailHidden: true },
       ]}
       entityName="Nhật ký hệ thống"
       pagination
@@ -89,29 +82,7 @@ function AuditMeta({ label, value }) {
 }
 
 function getAuditDescription(row) {
-  const requestData = parsePayload(row.DuLieuYeuCau);
-  const resultData = parsePayload(row.DuLieuKetQua);
-  const nameFields = [
-    "TenSach", "TenTL", "TenTG", "TenNXB", "TenDG", "TenKe",
-    "TenKhoa", "TenLop", "TenNN", "TenNV",
-  ];
-  const entityName = nameFields
-    .map((key) => resultData?.[key] ?? requestData?.[key])
-    .find((value) => value !== undefined && value !== null && String(value).trim());
-
-  if (!entityName) return row.MoTa;
-  const action = ACTION_LABELS[row.HanhDong] ?? row.HanhDong;
-  return `${action} ${String(row.DoiTuong || "đối tượng").toLowerCase()} ${entityName}`;
-}
-
-function parsePayload(value) {
-  if (!value) return null;
-  if (typeof value === "object") return value;
-  try {
-    return JSON.parse(value);
-  } catch {
-    return null;
-  }
+  return row.MoTa;
 }
 
 function formatTimestamp(value) {

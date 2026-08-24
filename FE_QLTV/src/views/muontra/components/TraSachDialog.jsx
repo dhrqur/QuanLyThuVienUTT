@@ -18,6 +18,7 @@ import {
 import { formatDisplayDate, getLocalDateValue } from "@/utils/dateUtils";
 import { formatCurrency } from "@/utils/numberUtils";
 import { getOverdueDays } from "@/views/muontra/muonTraUtils";
+import { getApiErrorMessage } from "@/lib/api";
 
 function TraSachDialog({ books, details, onReturned, row, rules }) {
   const canReturn = !row.NgayTra;
@@ -129,7 +130,10 @@ function TraSachDialog({ books, details, onReturned, row, rules }) {
                 });
               } catch (error) {
                 toast.error("Trả sách thất bại", {
-                  description: error?.response?.data?.message || error.message,
+                  description: getApiErrorMessage(
+                    error,
+                    "Không thể trả sách. Vui lòng thử lại sau.",
+                  ),
                 });
               }
             }}

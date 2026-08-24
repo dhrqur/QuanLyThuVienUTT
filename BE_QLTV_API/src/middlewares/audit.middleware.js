@@ -1,9 +1,6 @@
 const NhatKyHeThongService = require("../services/nhatkyhethong.service");
 
 const MUTATION_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
-const SENSITIVE_FIELDS = new Set([
-    "pass", "password", "matkhau", "token", "authorization", "authsecret"
-]);
 const ENTITY_CONFIG = {
     sach: { label: "Sách", idKey: "MaSach", nameKeys: ["TenSach"] },
     theloai: { label: "Thể loại", idKey: "MaTL", nameKeys: ["TenTL"] },
@@ -49,25 +46,18 @@ function auditActivity(req, res, next) {
         if (!config) return;
 
         const action = getAction(req.method, moduleName, pathParts);
-        const requestData = sanitize(req.body);
-        const resultData = sanitize(responseBody?.data);
+        const requestData = req.body;
+        const resultData = responseBody?.data;
         const entityId = getEntityId({ config, pathParts, apiIndex, requestData, resultData });
         const entityName = getEntityName(config, requestData, resultData);
         const description = `${ACTION_LABELS[action]} ${config.label.toLowerCase()}${entityName || entityId ? ` ${entityName || entityId}` : ""}`;
 
         void NhatKyHeThongService.create({
             MaNV: req.user?.id || null,
-            TenDangNhap: req.user?.username || null,
-            VaiTro: req.user?.role || null,
             HanhDong: action,
             DoiTuong: config.label,
             MaDoiTuong: entityId,
             MoTa: description,
-            PhuongThuc: req.method,
-            DuongDan: req.originalUrl.split("?")[0],
-            DuLieuYeuCau: requestData,
-            DuLieuKetQua: resultData,
-            DiaChiIP: req.ip || req.socket?.remoteAddress || null,
             UserAgent: req.get("user-agent") || null
         }).catch((error) => {
             console.error("Khong the ghi nhat ky he thong:", error.message);
@@ -105,24 +95,6 @@ function getEntityId({ config, pathParts, apiIndex, requestData, resultData }) {
     }
 
     return resultData?.[config.idKey] ?? requestData?.[config.idKey] ?? null;
-}
-
-function sanitize(value, seen = new WeakSet()) {
-    if (value === null || value === undefined) return null;
-    if (typeof value !== "object") return value;
-    if (seen.has(value)) return "[Circular]";
-    seen.add(value);
-
-    if (Array.isArray(value)) return value.map((item) => sanitize(item, seen));
-
-    return Object.fromEntries(Object.entries(value).map(([key, item]) => [
-        key,
-        SENSITIVE_FIELDS.has(normalizeKey(key)) ? "[ĐÃ ẨN]" : sanitize(item, seen)
-    ]));
-}
-
-function normalizeKey(value) {
-    return String(value).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
 
 module.exports = { auditActivity };
