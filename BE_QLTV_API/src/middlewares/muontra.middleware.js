@@ -69,7 +69,7 @@ function validateMuonTra(req, res, next) {
     }
 
     if (isEmpty(req.body.NgayMuon)) {
-        req.body.NgayMuon = getTodayValue();
+        req.body.NgayMuon = getCurrentDate();
     }
 
     const {
@@ -123,7 +123,7 @@ function validateMuonTra(req, res, next) {
         });
     }
 
-    if (String(NgayMuon).slice(0, 10) > getTodayValue()) {
+    if (String(NgayMuon).slice(0, 10) > getCurrentDate()) {
         return res.status(400).json({
             message: "Ngay muon khong duoc lon hon ngay hien tai"
         });
@@ -178,7 +178,7 @@ function validateTraSach(req, res, next) {
     }
 
 
-    if (String(NgayTra).slice(0, 10) > getTodayValue()) {
+    if (String(NgayTra).slice(0, 10) > getCurrentDate()) {
         return res.status(400).json({
             message: "Ngay tra khong duoc lon hon ngay hien tai"
         });
