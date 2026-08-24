@@ -69,6 +69,26 @@ export function useEntityTable({ apiModule, columns, entityName }) {
     }
   }
 
+  async function importRows(newRows) {
+    let importedCount = 0;
+
+    try {
+      for (const newRow of newRows) {
+        await api.create(apiModule, newRow);
+        importedCount += 1;
+      }
+      await loadRows();
+      return importedCount;
+    } catch (requestError) {
+      await loadRows();
+      const detail = getApiErrorMessage(requestError);
+      const prefix = importedCount
+        ? `Đã nhập ${importedCount}/${newRows.length} dòng trước khi gặp lỗi. `
+        : "";
+      throw new Error(`${prefix}Dòng ${importedCount + 2}: ${detail}`, { cause: requestError });
+    }
+  }
+
   async function updateRow(targetRow, updatedRow) {
     try {
       const response = await api.update(apiModule, getRowId(targetRow, columns), updatedRow);
@@ -102,6 +122,7 @@ export function useEntityTable({ apiModule, columns, entityName }) {
     createRow,
     deleteRow,
     error,
+    importRows,
     loadRows,
     loading,
     rows,

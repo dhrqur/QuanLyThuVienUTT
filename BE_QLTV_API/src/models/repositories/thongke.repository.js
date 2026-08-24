@@ -1,8 +1,7 @@
 const db = require("../../config/db");
 
 class ThongKeRepository {
-    async getDashboard({ days, year, month }) {
-        const periodDays = [7, 30, 90].includes(Number(days)) ? Number(days) : 30;
+    async getDashboard({ year, month }) {
         const selectedYear = Number(year);
         const selectedMonth = Number(month);
         const now = new Date();
@@ -12,6 +11,9 @@ class ThongKeRepository {
         const safeMonth = Number.isInteger(selectedMonth) && selectedMonth >= 1 && selectedMonth <= 12
             ? selectedMonth
             : now.getMonth() + 1;
+        const selectedStart = `${safeYear}-${String(safeMonth).padStart(2, "0")}-01`;
+        const nextMonthStart = toDateValue(new Date(Date.UTC(safeYear, safeMonth, 1)));
+        const previousMonthStart = toDateValue(new Date(Date.UTC(safeYear, safeMonth - 2, 1)));
 
         const [snapshotRows] = await db.query(`
             SELECT
@@ -36,35 +38,32 @@ class ThongKeRepository {
         const [trendRows] = await db.query(`
             SELECT
                 COALESCE(SUM(CASE
-                    WHEN mt.NgayMuon BETWEEN DATE_SUB(CURDATE(), INTERVAL ? DAY) AND CURDATE()
+                    WHEN mt.NgayMuon >= ? AND mt.NgayMuon < ?
                     THEN ct.SoLuong ELSE 0 END), 0) AS MuonKyNay,
                 COALESCE(SUM(CASE
-                    WHEN mt.NgayMuon BETWEEN DATE_SUB(CURDATE(), INTERVAL ? DAY)
-                        AND DATE_SUB(CURDATE(), INTERVAL ? DAY)
+                    WHEN mt.NgayMuon >= ? AND mt.NgayMuon < ?
                     THEN ct.SoLuong ELSE 0 END), 0) AS MuonKyTruoc,
                 COUNT(DISTINCT CASE
-                    WHEN mt.HanTra BETWEEN DATE_SUB(CURDATE(), INTERVAL ? DAY) AND CURDATE()
+                    WHEN mt.HanTra >= ? AND mt.HanTra < ?
                         AND mt.NgayTra IS NULL AND mt.HanTra < CURDATE()
                     THEN mt.MaMT END) AS QuaHanKyNay,
                 COUNT(DISTINCT CASE
-                    WHEN mt.HanTra BETWEEN DATE_SUB(CURDATE(), INTERVAL ? DAY)
-                        AND DATE_SUB(CURDATE(), INTERVAL ? DAY)
+                    WHEN mt.HanTra >= ? AND mt.HanTra < ?
                         AND mt.NgayTra IS NULL
                     THEN mt.MaMT END) AS QuaHanKyTruoc,
                 (SELECT COALESCE(SUM(SoTien), 0) FROM xulyvipham
-                    WHERE TrangThaiThu = 'DA_THU' AND NgayThu BETWEEN DATE_SUB(CURDATE(), INTERVAL ? DAY) AND CURDATE()) AS TienPhatKyNay,
+                    WHERE TrangThaiThu = 'DA_THU' AND NgayThu >= ? AND NgayThu < ?) AS TienPhatKyNay,
                 (SELECT COALESCE(SUM(SoTien), 0) FROM xulyvipham
-                    WHERE TrangThaiThu = 'DA_THU' AND NgayThu BETWEEN DATE_SUB(CURDATE(), INTERVAL ? DAY)
-                        AND DATE_SUB(CURDATE(), INTERVAL ? DAY)) AS TienPhatKyTruoc
+                    WHERE TrangThaiThu = 'DA_THU' AND NgayThu >= ? AND NgayThu < ?) AS TienPhatKyTruoc
             FROM muontra mt
             LEFT JOIN chitietmuontra ct ON ct.MaMT = mt.MaMT
         `, [
-            periodDays - 1,
-            periodDays * 2 - 1, periodDays,
-            periodDays - 1,
-            periodDays * 2 - 1, periodDays,
-            periodDays - 1,
-            periodDays * 2 - 1, periodDays
+            selectedStart, nextMonthStart,
+            previousMonthStart, selectedStart,
+            selectedStart, nextMonthStart,
+            previousMonthStart, selectedStart,
+            selectedStart, nextMonthStart,
+            previousMonthStart, selectedStart
         ]);
 
         const [stockRows] = await db.query(`
@@ -88,10 +87,12 @@ class ThongKeRepository {
             SELECT s.MaSach, s.TenSach, COALESCE(SUM(ct.SoLuong), 0) AS TongLuotMuon
             FROM sach s
             INNER JOIN chitietmuontra ct ON ct.MaSach = s.MaSach
+            INNER JOIN muontra mt ON mt.MaMT = ct.MaMT
+            WHERE mt.NgayMuon >= ? AND mt.NgayMuon < ?
             GROUP BY s.MaSach, s.TenSach
             ORDER BY TongLuotMuon DESC, s.TenSach
             LIMIT 5
-        `);
+        `, [selectedStart, nextMonthStart]);
 
         const [overdueRows] = await db.query(`
             SELECT mt.MaMT, mt.MaDG, dg.TenDG, dg.Sdt, dg.Email,
@@ -125,33 +126,6 @@ class ThongKeRepository {
             ORDER BY Ngay
         `, [safeYear, safeMonth, safeYear, safeMonth, safeYear, safeMonth, safeYear, safeMonth]);
 
-        const [periodActivityRows] = await db.query(`
-            SELECT Ngay, SUM(SoLuotMuon) AS SoLuotMuon, SUM(SoLuotTra) AS SoLuotTra
-            FROM (
-                SELECT DATE(NgayMuon) AS Ngay, COUNT(*) AS SoLuotMuon, 0 AS SoLuotTra
-                FROM muontra
-                WHERE NgayMuon BETWEEN DATE_SUB(CURDATE(), INTERVAL ? DAY) AND CURDATE()
-                GROUP BY DATE(NgayMuon)
-                UNION ALL
-                SELECT DATE(NgayTra) AS Ngay, 0 AS SoLuotMuon, COUNT(*) AS SoLuotTra
-                FROM muontra
-                WHERE NgayTra BETWEEN DATE_SUB(CURDATE(), INTERVAL ? DAY) AND CURDATE()
-                GROUP BY DATE(NgayTra)
-            ) activity
-            GROUP BY Ngay
-            ORDER BY Ngay
-        `, [periodDays - 1, periodDays - 1]);
-
-        const [monthRows] = await db.query(`
-            SELECT Nam, Thang FROM (
-                SELECT YEAR(NgayMuon) AS Nam, MONTH(NgayMuon) AS Thang FROM muontra WHERE NgayMuon IS NOT NULL
-                UNION
-                SELECT YEAR(NgayTra) AS Nam, MONTH(NgayTra) AS Thang FROM muontra WHERE NgayTra IS NOT NULL
-            ) months
-            ORDER BY Nam DESC, Thang DESC
-            LIMIT 12
-        `);
-
         const snapshot = snapshotRows[0];
         snapshot.TongSoBan = Number(snapshot.SoBanTrongKho) + Number(snapshot.SoBanDangMuon);
 
@@ -163,12 +137,16 @@ class ThongKeRepository {
             sachMuonNhieu: popularRows,
             phieuQuaHan: overdueRows,
             hoatDongTheoNgay: activityRows,
-            hoatDongTheoKy: periodActivityRows,
-            thangCoDuLieu: monthRows,
-            kyThongKe: { days: periodDays, year: safeYear, month: safeMonth }
+            hoatDongTheoKy: activityRows,
+            thangCoDuLieu: [],
+            kyThongKe: { year: safeYear, month: safeMonth }
         };
     }
 
+}
+
+function toDateValue(date) {
+    return date.toISOString().slice(0, 10);
 }
 
 module.exports = new ThongKeRepository();

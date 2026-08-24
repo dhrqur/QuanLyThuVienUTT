@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, ArrowDownRight, ArrowRight, ArrowUpRight, BookCopy, BookOpen, Boxes, CalendarDays, Download, FileText, LibraryBig, PackagePlus, Phone, ReceiptText, RotateCcw } from "lucide-react";
+import { AlertTriangle, ArrowDownRight, ArrowRight, ArrowUpRight, BookCopy, BookOpen, Boxes, CalendarDays, Download, FileText, LibraryBig, PackagePlus, Phone, RotateCcw } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Link } from "react-router";
 import { toast } from "sonner";
@@ -11,12 +11,6 @@ import { formatDisplayDate } from "@/utils/dateUtils";
 import { formatCurrency, formatNumber, toNumber } from "@/utils/numberUtils";
 import { exportDashboardExcel, printDashboardPdf } from "@/utils/dashboardExport";
 
-const PERIODS = [
-  { value: 7, label: "7 ngày" },
-  { value: 30, label: "30 ngày" },
-  { value: 90, label: "90 ngày" },
-];
-
 const EMPTY_DASHBOARD = {
   hoatDongTheoKy: [], hoatDongTheoNgay: [], kyThongKe: {}, phieuQuaHan: [], sachCanBoSung: [],
   sachMuonNhieu: [], thangCoDuLieu: [], tinhTrangKho: {}, tongQuan: {}, xuHuong: {},
@@ -26,7 +20,6 @@ function DashboardView() {
   const currentMonth = getMonthKey(new Date());
   const [dashboard, setDashboard] = useState(EMPTY_DASHBOARD);
   const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState(30);
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
 
   useEffect(() => {
@@ -35,7 +28,7 @@ function DashboardView() {
     async function loadDashboard() {
       setLoading(true);
       try {
-        const response = await api.getDashboardStatistics({ days: period, year, month });
+        const response = await api.getDashboardStatistics({ year, month });
         if (active) setDashboard({ ...EMPTY_DASHBOARD, ...(response.data ?? {}) });
       } catch (error) {
         if (!active) return;
@@ -46,7 +39,7 @@ function DashboardView() {
     }
     loadDashboard();
     return () => { active = false; };
-  }, [period, selectedMonth]);
+  }, [selectedMonth]);
 
   const { tongQuan, xuHuong, tinhTrangKho } = dashboard;
   const totalCopies = number(tongQuan.TongSoBan);
@@ -54,27 +47,17 @@ function DashboardView() {
   const overdueCopies = number(tongQuan.SoBanQuaHan);
   const rotationRate = percent(circulatingCopies, totalCopies);
   const overdueRate = percent(overdueCopies, circulatingCopies);
-  const currentPeriodLabel = `${period} ngày`;
+  const selectedMonthLabel = formatMonth(selectedMonth);
 
-  const monthOptions = useMemo(() => {
-    const values = dashboard.thangCoDuLieu.map((item) => `${item.Nam}-${String(item.Thang).padStart(2, "0")}`);
-    return [...new Set([currentMonth, ...values])].sort().reverse();
-  }, [currentMonth, dashboard.thangCoDuLieu]);
   const timeline = useMemo(() => buildMonthTimeline(selectedMonth, dashboard.hoatDongTheoNgay), [dashboard.hoatDongTheoNgay, selectedMonth]);
   const timelineTotals = useMemo(() => timeline.reduce((totals, item) => ({
     loans: totals.loans + item.loans,
     returns: totals.returns + item.returns,
   }), { loans: 0, returns: 0 }), [timeline]);
-  const periodRange = getPeriodRange(period);
-  const reportTimeline = useMemo(
-    () => buildRangeTimeline(periodRange.dateFrom, periodRange.dateTo, dashboard.hoatDongTheoKy),
-    [dashboard.hoatDongTheoKy, periodRange.dateFrom, periodRange.dateTo],
-  );
-
   const kpis = [
     { icon: BookCopy, label: "Kho sách", value: totalCopies, unit: "bản", note: `${formatNumber(tongQuan.TongDauSach)} đầu sách trong danh mục`, tone: "blue" },
-    { icon: RotateCcw, label: "Đang lưu thông", value: circulatingCopies, unit: "bản", note: `${formatNumber(tongQuan.PhieuChuaHoanTat)} phiếu chưa hoàn tất · Vòng quay ${formatPercent(rotationRate)}`, tone: "orange", trend: getTrend(xuHuong.MuonKyNay, xuHuong.MuonKyTruoc, currentPeriodLabel) },
-    { icon: AlertTriangle, label: "Quá hạn", value: tongQuan.PhieuQuaHan, unit: "phiếu", note: `${formatNumber(overdueCopies)} bản chưa trả · ${formatPercent(overdueRate)} sách đang mượn`, tone: overdueRate >= 15 ? "red" : "amber", trend: getTrend(xuHuong.QuaHanKyNay, xuHuong.QuaHanKyTruoc, currentPeriodLabel) },
+    { icon: RotateCcw, label: "Đang lưu thông", value: circulatingCopies, unit: "bản", note: `${formatNumber(tongQuan.PhieuChuaHoanTat)} phiếu chưa hoàn tất · Vòng quay ${formatPercent(rotationRate)}`, tone: "orange", trend: getTrend(xuHuong.MuonKyNay, xuHuong.MuonKyTruoc) },
+    { icon: AlertTriangle, label: "Quá hạn", value: tongQuan.PhieuQuaHan, unit: "phiếu", note: `${formatNumber(overdueCopies)} bản chưa trả · ${formatPercent(overdueRate)} sách đang mượn`, tone: overdueRate >= 15 ? "red" : "amber", trend: getTrend(xuHuong.QuaHanKyNay, xuHuong.QuaHanKyTruoc) },
     { icon: PackagePlus, label: "Cần bổ sung", value: tongQuan.DauSachCanBoSung, unit: "đầu sách", note: `${formatNumber(tinhTrangKho.HetSach)} hết sách · ${formatNumber(tinhTrangKho.SapHet)} sắp hết`, tone: "violet" },
   ];
 
@@ -89,15 +72,14 @@ function DashboardView() {
       BanMuonKyTruoc: xuHuong.MuonKyTruoc,
       PhieuQuaHanTrongKy: xuHuong.QuaHanKyNay,
       TongTienPhatDaThu: tongQuan.TongTienPhatDaThu,
-      SoViPhamChuaThu: tongQuan.SoViPhamChuaThu,
-      TienPhatChuaThu: tongQuan.TienPhatChuaThu,
       TienPhatTrongKy: xuHuong.TienPhatKyNay,
       TienPhatKyTruoc: xuHuong.TienPhatKyTruoc,
     },
     overdueTickets: dashboard.phieuQuaHan.map((item) => ({ ...item, overdueDays: item.SoNgayQuaHan })),
-    timeline: reportTimeline,
-    title: `Kỳ KPI ${formatDisplayDate(periodRange.dateFrom)} – ${formatDisplayDate(periodRange.dateTo)}`,
-    activityTitle: `Hoạt động mượn – trả trong ${currentPeriodLabel}`,
+    timeline,
+    reportKey: selectedMonth,
+    title: `Báo cáo ${selectedMonthLabel.toLowerCase()}`,
+    activityTitle: `Hoạt động mượn – trả trong ${selectedMonthLabel.toLowerCase()}`,
     topBooks: dashboard.sachMuonNhieu,
     attentionBooks: dashboard.sachCanBoSung,
   };
@@ -106,13 +88,13 @@ function DashboardView() {
     <MainLayout>
       <div className="min-h-[calc(100vh-4rem)] bg-white pb-8">
         <div className="flex flex-col gap-4">
-          <DashboardHeader onExportExcel={() => exportDashboardExcel(reportData)} onExportPdf={() => printDashboardPdf(reportData)} onPeriodChange={setPeriod} period={period} />
+          <DashboardHeader maxMonth={currentMonth} onExportExcel={() => exportDashboardExcel(reportData)} onExportPdf={() => printDashboardPdf(reportData)} onMonthChange={setSelectedMonth} selectedMonth={selectedMonth} />
           {loading ? <DashboardSkeleton /> : (
             <>
               <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{kpis.map((kpi) => <KpiCard key={kpi.label} {...kpi} />)}</section>
-              <FineCollectionSummary current={xuHuong.TienPhatKyNay} outstandingAmount={tongQuan.TienPhatChuaThu} outstandingCount={tongQuan.SoViPhamChuaThu} period={period} previous={xuHuong.TienPhatKyTruoc} total={tongQuan.TongTienPhatDaThu} />
+              <FineCollectionSummary current={xuHuong.TienPhatKyNay} previous={xuHuong.TienPhatKyTruoc} total={tongQuan.TongTienPhatDaThu} />
               <section className="grid gap-4 xl:grid-cols-[minmax(0,1.75fr)_minmax(320px,0.75fr)]">
-                <CirculationChart monthOptions={monthOptions} onMonthChange={setSelectedMonth} selectedMonth={selectedMonth} timeline={timeline} totals={timelineTotals} />
+                <CirculationChart selectedMonth={selectedMonth} timeline={timeline} totals={timelineTotals} />
                 <InventoryDonut stock={tinhTrangKho} total={tongQuan.TongDauSach} />
               </section>
               <section className="grid gap-4 xl:grid-cols-2">
@@ -128,7 +110,7 @@ function DashboardView() {
   );
 }
 
-function DashboardHeader({ onExportExcel, onExportPdf, onPeriodChange, period }) {
+function DashboardHeader({ maxMonth, onExportExcel, onExportPdf, onMonthChange, selectedMonth }) {
   const handleExcel = async () => {
     try {
       await onExportExcel();
@@ -145,14 +127,14 @@ function DashboardHeader({ onExportExcel, onExportPdf, onPeriodChange, period })
       <div>
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F1663D]">Thư viện UTT</p>
         <h1 className="mt-1 text-2xl font-black tracking-tight text-[#25245A] md:text-[28px]">Tổng quan vận hành</h1>
-        <p className="mt-1 text-sm text-[#59617F]">{formatLongDate(new Date())} · KPI hiện tại, xu hướng theo kỳ đã chọn</p>
+        <p className="mt-1 text-sm text-[#59617F]">{formatLongDate(new Date())} · Báo cáo và xu hướng theo tháng đã chọn</p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex rounded-xl border border-slate-200 bg-white p-1">
-          {PERIODS.map((item) => (
-            <button className={cn("h-8 rounded-lg px-3 text-xs font-bold transition", period === item.value ? "bg-slate-900 text-white" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")} key={item.value} onClick={() => onPeriodChange(item.value)} type="button">{item.label}</button>
-          ))}
-        </div>
+        <label className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3">
+          <CalendarDays className="size-4 text-[#F1663D]" />
+          <span className="text-xs font-bold text-slate-500">Tháng báo cáo</span>
+          <input className="bg-transparent text-xs font-extrabold text-slate-900 outline-none" max={maxMonth} onChange={(event) => event.target.value && onMonthChange(event.target.value)} type="month" value={selectedMonth} />
+        </label>
         <button aria-label="Xuất Excel" className="flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-orange-200 hover:text-[#F1663D]" onClick={handleExcel} title="Xuất Excel (.xlsx)" type="button"><Download className="size-4" /></button>
         <button className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#F1663D] px-3.5 text-xs font-bold text-white transition hover:bg-[#dc5732]" onClick={handlePrint} type="button"><FileText className="size-4" />Xuất báo cáo</button>
       </div>
@@ -190,7 +172,7 @@ function TrendBadge({ direction, label, title }) {
   return <span className={cn("mb-0.5 ml-auto inline-flex items-center gap-0.5 rounded-full px-2 py-1 text-[10px] font-extrabold", up ? "bg-rose-50 text-rose-600" : "bg-emerald-50 text-emerald-600")} title={title}><Icon className="size-3" />{label}</span>;
 }
 
-function FineCollectionSummary({ current, outstandingAmount, outstandingCount, period, previous, total }) {
+function FineCollectionSummary({ current, previous, total }) {
   const currentValue = number(current);
   const previousValue = number(previous);
   const change = previousValue
@@ -200,15 +182,8 @@ function FineCollectionSummary({ current, outstandingAmount, outstandingCount, p
 
   return (
     <DashboardCard>
-      <div className="grid md:grid-cols-[1.25fr_1fr_1fr_auto] md:items-stretch">
-        <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-4 md:border-b-0 md:border-r md:px-5">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600"><ReceiptText className="size-5" /></span>
-          <div className="min-w-0">
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Cần thu</p>
-            <div className="mt-1 flex flex-wrap items-baseline gap-x-2"><strong className="text-xl font-black text-rose-600">{formatCurrency(outstandingAmount)}</strong><span className="text-xs font-semibold text-slate-500">{formatNumber(outstandingCount)} vi phạm</span></div>
-          </div>
-        </div>
-        <FineMetric label={`Đã thu trong ${period} ngày`} value={formatCurrency(currentValue)}>
+      <div className="grid md:grid-cols-[1fr_1fr_auto] md:items-stretch">
+        <FineMetric label="Đã thu trong tháng" value={formatCurrency(currentValue)}>
           {change > 0 && <span className={cn("text-[10px] font-bold", improved ? "text-emerald-600" : "text-amber-600")}>{improved ? "+" : "−"}{change}% so với kỳ trước</span>}
         </FineMetric>
         <FineMetric label="Tổng đã thu" value={formatCurrency(total)}><span className="text-[10px] font-medium text-slate-400">Lũy kế toàn bộ dữ liệu</span></FineMetric>
@@ -222,17 +197,11 @@ function FineMetric({ children, label, value }) {
   return <div className="border-b border-slate-100 px-4 py-3 md:border-b-0 md:px-5"><p className="text-xs font-semibold text-slate-500">{label}</p><strong className="mt-1 block text-lg font-black text-[#25245A]">{value}</strong>{children}</div>;
 }
 
-function CirculationChart({ monthOptions, onMonthChange, selectedMonth, timeline, totals }) {
+function CirculationChart({ selectedMonth, timeline, totals }) {
   const monthLabel = formatMonth(selectedMonth);
   return (
     <DashboardCard className="min-h-[390px]">
-      <CardHeader action={(
-        <label className="relative"><span className="sr-only">Chọn tháng thống kê</span>
-          <select className="h-9 appearance-none rounded-lg border border-slate-200 bg-white py-0 pl-3 pr-8 text-xs font-bold text-slate-700 outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100" onChange={(event) => onMonthChange(event.target.value)} value={selectedMonth}>
-            {monthOptions.map((value) => <option key={value} value={value}>{formatMonth(value)}</option>)}
-          </select><CalendarDays className="pointer-events-none absolute right-2.5 top-2.5 size-4 text-slate-400" />
-        </label>
-      )} icon={BookOpen} subtitle="Số lượt phát sinh theo từng ngày" title="Hoạt động mượn – trả" />
+      <CardHeader icon={BookOpen} subtitle={`Số lượt phát sinh theo từng ngày trong ${monthLabel.toLowerCase()}`} title="Hoạt động mượn – trả" />
       <div className="h-[255px] px-1 pr-4">
         <ResponsiveContainer height="100%" width="100%">
           <BarChart data={timeline} barCategoryGap="20%" margin={{ left: -20, right: 4, top: 12 }}>
@@ -371,36 +340,15 @@ function buildMonthTimeline(monthKey, rows) {
   });
 }
 
-function buildRangeTimeline(dateFrom, dateTo, rows) {
-  const start = new Date(`${dateFrom}T00:00:00`);
-  const end = new Date(`${dateTo}T00:00:00`);
-  const byDate = new Map(rows.map((item) => [String(item.Ngay).slice(0, 10), item]));
-  const days = Math.round((end - start) / 86_400_000) + 1;
-  return Array.from({ length: days }, (_, index) => {
-    const date = new Date(start);
-    date.setDate(start.getDate() + index);
-    const key = toDateKey(date);
-    const activity = byDate.get(key) ?? {};
-    return { date: key, label: formatDisplayDate(key), loans: number(activity.SoLuotMuon), returns: number(activity.SoLuotTra) };
-  });
-}
-
-function getTrend(currentValue, previousValue, periodLabel) {
+function getTrend(currentValue, previousValue) {
   const current = number(currentValue); const previous = number(previousValue);
   if (current === previous) return null;
   const change = previous ? Math.round(Math.abs((current - previous) / previous) * 100) : 100;
-  return { direction: current > previous ? "up" : "down", label: `${change}%`, title: `So với ${periodLabel} liền trước` };
+  return { direction: current > previous ? "up" : "down", label: `${change}%`, title: "So với tháng liền trước" };
 }
 
 function getInitials(name) { const words = String(name ?? "DG").trim().split(/\s+/); return words.slice(-2).map((word) => word.charAt(0).toUpperCase()).join(""); }
 function getMonthKey(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`; }
-function getPeriodRange(days) {
-  const end = new Date();
-  const start = new Date(end);
-  start.setDate(start.getDate() - days + 1);
-  return { dateFrom: toDateKey(start), dateTo: toDateKey(end) };
-}
-function toDateKey(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`; }
 function formatMonth(value) { const [year, month] = value.split("-"); return `Tháng ${Number(month)}/${year}`; }
 function formatLongDate(date) { return new Intl.DateTimeFormat("vi-VN", { weekday: "long", day: "2-digit", month: "long", year: "numeric" }).format(date); }
 const number = toNumber;

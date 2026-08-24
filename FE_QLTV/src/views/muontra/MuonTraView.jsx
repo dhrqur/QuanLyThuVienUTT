@@ -72,6 +72,17 @@ function MuonTraView() {
           displayValue: (row) => row.TrangThai,
           widthValue: 140,
         },
+        {
+          key: "DanhSachSach",
+          label: "Sách mượn",
+          detailHidden: true,
+          displayValue: (row) => (row.ChiTiet ?? [])
+            .map((item) => `${item.TenSach ?? item.MaSach} × ${item.SoLuong}`)
+            .join("; "),
+          excelOnly: true,
+          formHidden: true,
+          tableHidden: true,
+        },
       ]}
       entityName="Phiếu mượn"
       renderDetailExtra={({ row, updateRow }) => (

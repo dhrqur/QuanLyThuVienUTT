@@ -5,6 +5,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import DataSearchCard from "@/components/common/DataTable/DataSearchCard";
 import DataTableCard from "@/components/common/DataTable/DataTableCard";
 import EntityFormDialog from "@/components/common/DataTable/EntityFormDialog";
+import ExcelActions from "@/components/common/DataTable/ExcelActions";
 import TablePagination from "@/components/common/DataTable/TablePagination";
 import { useEntityTable } from "@/hooks/useEntityTable";
 
@@ -17,6 +18,7 @@ function DataTablePage({
   title,
   entityName,
   editLabel = "Sửa",
+  enableExcel,
   buildExtraPayload,
   columns,
   pagination = false,
@@ -33,6 +35,7 @@ function DataTablePage({
     createRow,
     deleteRow,
     error,
+    importRows,
     loadRows,
     loading,
     rows,
@@ -43,6 +46,12 @@ function DataTablePage({
     columns,
     entityName,
   });
+
+  const excelEnabled = enableExcel ?? ![
+    "nhatkyhethong",
+    "quydinhthuvien",
+  ].includes(apiModule);
+  const excelImportEnabled = allowCreate && !["muontra", "xulyvipham"].includes(apiModule);
 
   const tableColumns = columns.filter((column) => !column.tableHidden);
   const processedRows = useMemo(() => {
@@ -93,17 +102,30 @@ function DataTablePage({
       <div className="space-y-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <h1 className="text-2xl font-black text-[#25245A]">{title}</h1>
-          {allowCreate ? <EntityFormDialog
-            buildExtraPayload={buildExtraPayload}
-            columns={columns}
-            entityName={entityName}
-            editLabel={editLabel}
-            mode="create"
-            onSave={createRow}
-            renderFormExtra={renderFormExtra}
-            rows={rows}
-            title={`Thêm ${entityName.toLowerCase()}`}
-          /> : null}
+          <div className="flex flex-wrap items-center gap-2">
+            {excelEnabled ? (
+              <ExcelActions
+                allowImport={excelImportEnabled}
+                apiModule={apiModule}
+                buildExtraPayload={buildExtraPayload}
+                columns={columns}
+                entityName={entityName}
+                onImport={importRows}
+                rows={rows}
+              />
+            ) : null}
+            {allowCreate ? <EntityFormDialog
+              buildExtraPayload={buildExtraPayload}
+              columns={columns}
+              entityName={entityName}
+              editLabel={editLabel}
+              mode="create"
+              onSave={createRow}
+              renderFormExtra={renderFormExtra}
+              rows={rows}
+              title={`Thêm ${entityName.toLowerCase()}`}
+            /> : null}
+          </div>
         </div>
 
         <DataSearchCard

@@ -53,7 +53,7 @@ function reportHtml({ activityTitle, attentionBooks = [], overview, overdueTicke
     @page{size:A4;margin:14mm}body{font-family:Arial,sans-serif;color:#172033;font-size:11px}header{border-bottom:3px solid #f1663d;padding-bottom:11px}h1{margin:0;color:#c2410c;font-size:22px}h2{margin:22px 0 8px;color:#9a3412;font-size:14px}.muted{color:#64748b}.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:14px}.stat{border:1px solid #fed7aa;border-radius:7px;padding:8px}.stat b{display:block;margin-top:5px;font-size:15px;color:#0f172a}.fine{display:flex;justify-content:space-between;gap:12px;margin-top:9px;border:1px solid #a7f3d0;border-radius:7px;background:#ecfdf5;padding:9px;color:#047857}.fine b{color:#065f46}.chart{margin-top:18px}.chart svg{display:block;width:100%;height:auto}.note{margin:6px 0 0;color:#64748b;font-style:italic}table{border-collapse:collapse;width:100%;page-break-inside:auto}th,td{border:1px solid #cbd5e1;padding:6px;text-align:left;vertical-align:top}th{background:#fff7ed;color:#9a3412;font-weight:700}tr{page-break-inside:avoid}tr:nth-child(even){background:#f8fafc}.empty{text-align:center;color:#64748b}@media print{section{break-inside:avoid}.stats{grid-template-columns:repeat(5,1fr)}}</style></head><body>
     <header><h1>BÁO CÁO DASHBOARD THƯ VIỆN UTT</h1><p class="muted">${esc(title)} · Ngày xuất: ${esc(generatedAt)}</p></header>
     <div class="stats"><div class="stat">Đầu sách<b>${esc(overview.TongSach)}</b></div><div class="stat">Tổng bản sách<b>${esc(overview.TongSoLuongSach)}</b></div><div class="stat">Đang lưu thông<b>${esc(overview.SoBanDangMuon)}</b></div><div class="stat">Phiếu quá hạn<b>${esc(overview.PhieuQuaHan)}</b></div><div class="stat">Cần bổ sung<b>${esc(overview.DauSachCanBoSung)}</b></div></div>
-    <div class="fine"><span>Chưa thu (${esc(overview.SoViPhamChuaThu ?? 0)} vi phạm): <b>${esc(formatCurrency(overview.TienPhatChuaThu))}</b></span><span>Đã thu trong kỳ: <b>${esc(formatCurrency(overview.TienPhatTrongKy))}</b></span><span>Lũy kế đã thu: <b>${esc(formatCurrency(overview.TongTienPhatDaThu))}</b></span></div>
+    <div class="fine"><span>Đã thu trong kỳ: <b>${esc(formatCurrency(overview.TienPhatTrongKy))}</b></span><span>Lũy kế đã thu: <b>${esc(formatCurrency(overview.TongTienPhatDaThu))}</b></span></div>
     ${table("Chỉ số phát sinh trong kỳ", ["Chỉ số", "Kỳ hiện tại", "Kỳ liền trước"], [["Số bản được mượn", overview.BanMuonTrongKy, overview.BanMuonKyTruoc], ["Tiền phạt đã thu", formatCurrency(overview.TienPhatTrongKy), formatCurrency(overview.TienPhatKyTruoc)], ["Phiếu phát sinh quá hạn", overview.PhieuQuaHanTrongKy, "—"]])}
     <section class="chart">${chartSvg(timeline, activityTitle)}</section>
     ${table("Chi tiết ngày có phát sinh", ["Ngày", "Lượt mượn", "Lượt trả"], activeTimeline.map((item) => [formatDate(item.date), item.loans, item.returns]))}
@@ -112,7 +112,7 @@ async function svgToPng(svg) {
 
 export async function exportDashboardExcel(data) {
   const { default: ExcelJS } = await import("exceljs");
-  const { activityTitle, attentionBooks = [], overview, overdueTickets, timeline, title, topBooks } = data;
+  const { activityTitle, attentionBooks = [], overview, overdueTickets, reportKey, timeline, title, topBooks } = data;
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "Thư viện UTT";
   workbook.created = new Date();
@@ -122,7 +122,6 @@ export async function exportDashboardExcel(data) {
     ["Đầu sách cần bổ sung", overview.DauSachCanBoSung], ["Bản được mượn trong kỳ", overview.BanMuonTrongKy],
     ["Bản được mượn kỳ liền trước", overview.BanMuonKyTruoc], ["Phiếu phát sinh quá hạn trong kỳ", overview.PhieuQuaHanTrongKy],
     ["Tiền phạt đã thu trong kỳ", overview.TienPhatTrongKy], ["Tiền phạt kỳ liền trước", overview.TienPhatKyTruoc],
-    ["Số vi phạm chưa thu", overview.SoViPhamChuaThu], ["Tiền phạt chưa thu", overview.TienPhatChuaThu],
     ["Tổng tiền phạt đã thu lũy kế", overview.TongTienPhatDaThu],
   ];
   const summarySheet = addTableSheet(workbook, "Tổng quan", ["Chỉ số", "Giá trị"], summaryRows, [34, 30]);
@@ -133,8 +132,8 @@ export async function exportDashboardExcel(data) {
   addTableSheet(workbook, "Top sách", ["Mã sách", "Tên sách", "Lượt mượn"], topBooks.map((item) => [item.MaSach, item.TenSach, item.TongLuotMuon ?? 0]), [14, 42, 16]);
   addTableSheet(workbook, "Sách cần bổ sung", ["Mã sách", "Tên sách", "Số bản còn", "Trạng thái"], attentionBooks.map((item) => [item.MaSach, item.TenSach, item.SoLuong, item.TrangThai]), [14, 42, 16, 18]);
   const buffer = await workbook.xlsx.writeBuffer();
-  const date = new Date().toISOString().slice(0, 10).replaceAll("-", "");
-  download(new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), `dashboard-thu-vien-${date}.xlsx`);
+  const filePeriod = reportKey || new Date().toISOString().slice(0, 10);
+  download(new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), `bao-cao-thu-vien-${filePeriod}.xlsx`);
 }
 
 export function printDashboardPdf(data) {
