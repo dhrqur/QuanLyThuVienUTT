@@ -1,6 +1,7 @@
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 const db = require("./config/db");
+const { ensureRuntimeSchema } = require("./config/schema");
 const sach = require("./routes/sach.routes");
 const nhanvien = require("./routes/nhanvien.routes");
 const theloai = require("./routes/theloai.routes");
@@ -72,8 +73,19 @@ app.use("/api/nhatkyhethong", requireManager, nhatkyhethong);
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-    console.log(`Server dang chay tai http://localhost:${PORT}`);
-    console.log(`Swagger Docs: http://localhost:${PORT}/api-docs`);
-    db.testConnection();
-});
+async function startServer() {
+    try {
+        await db.testConnection();
+        await ensureRuntimeSchema();
+
+        app.listen(PORT, () => {
+            console.log(`Server dang chay tai http://localhost:${PORT}`);
+            console.log(`Swagger Docs: http://localhost:${PORT}/api-docs`);
+        });
+    } catch (error) {
+        console.error("Khong the khoi dong server:", error.message);
+        process.exitCode = 1;
+    }
+}
+
+void startServer();

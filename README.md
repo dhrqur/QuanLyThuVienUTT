@@ -245,6 +245,8 @@ VITE_PUBLIC_API_URL=https://your-backend.example.com
 
 Backend cần một dịch vụ chạy Node.js và một MySQL database. Cấu hình các biến trong phần cài đặt backend, đặt `NODE_ENV=production`, dùng `AUTH_SECRET` riêng và thêm domain Vercel vào `CLIENT_URL`.
 
+Khi khởi động, backend tự tạo các bảng runtime còn thiếu bằng câu lệnh idempotent; thao tác này không xóa hoặc ghi đè dữ liệu hiện có.
+
 Nếu MySQL yêu cầu SSL, đặt `DB_SSL=true` và truyền CA certificate qua `DB_SSL_CA`.
 
 ## Quy ước bảo mật

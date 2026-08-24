@@ -28,6 +28,7 @@ async function testConnection() {
         connection.release();
     } catch (error) {
         console.log("Ket noi MySQL that bai:", error.message);
+        throw error;
     }
 }
 
