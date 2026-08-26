@@ -1,14 +1,24 @@
 const db = require("../../config/db");
 
-const cardStatusSql = `
-    CASE
-        WHEN NgayHetHan < CURDATE() THEN 'Hết hạn'
-        ELSE 'Còn hiệu lực'
-    END
-`;
+const cardStatusSql = "TrangThai";
 
 class TheThuVienRepository {
+    async syncStatuses() {
+        await db.query(`
+            UPDATE thethuvien
+            SET TrangThai = CASE
+                WHEN NgayHetHan < CURDATE() THEN 'Hết hạn'
+                ELSE 'Còn hiệu lực'
+            END
+            WHERE TrangThai <> CASE
+                WHEN NgayHetHan < CURDATE() THEN 'Hết hạn'
+                ELSE 'Còn hiệu lực'
+            END
+        `);
+    }
+
     async getAll() {
+        await this.syncStatuses();
         const sql = `
             SELECT MaThe, MaDG, NgayCap, NgayHetHan, ${cardStatusSql} AS TrangThai
             FROM thethuvien
@@ -20,6 +30,7 @@ class TheThuVienRepository {
     }
 
     async getById(maThe) {
+        await this.syncStatuses();
         const sql = `
             SELECT MaThe, MaDG, NgayCap, NgayHetHan, ${cardStatusSql} AS TrangThai
             FROM thethuvien
@@ -31,6 +42,7 @@ class TheThuVienRepository {
     }
 
     async search(keyword) {
+        await this.syncStatuses();
         const sql = `
             SELECT MaThe, MaDG, NgayCap, NgayHetHan, ${cardStatusSql} AS TrangThai
             FROM thethuvien
@@ -49,6 +61,7 @@ class TheThuVienRepository {
     }
 
     async getStatistics() {
+        await this.syncStatuses();
         const [summaryRows] = await db.query("SELECT COUNT(MaThe) AS TongTheThuVien FROM thethuvien");
         const [statusRows] = await db.query(`
             SELECT ${cardStatusSql} AS TrangThai, COUNT(MaThe) AS SoLuong
@@ -91,6 +104,23 @@ class TheThuVienRepository {
         }
 
         return theThuVien.toObject();
+    }
+
+    async findOverlappingCard(maDG, ngayCap, ngayHetHan, excludedCardId = null) {
+        const sql = `
+            SELECT MaThe
+            FROM thethuvien
+            WHERE MaDG = ?
+              AND NgayCap <= ?
+              AND NgayHetHan >= ?
+              ${excludedCardId ? "AND MaThe <> ?" : ""}
+            LIMIT 1
+        `;
+        const params = excludedCardId
+            ? [maDG, ngayHetHan, ngayCap, excludedCardId]
+            : [maDG, ngayHetHan, ngayCap];
+        const [rows] = await db.query(sql, params);
+        return rows[0] || null;
     }
 
     async update(maThe, theThuVien) {

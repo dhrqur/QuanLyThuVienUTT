@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "migrate:unique-contacts": "node scripts/migrations/add-unique-contact-constraints.js"
+    "migrate:unique-contacts": "node scripts/migrations/add-unique-contact-constraints.js",
+    "migrate:finalize-schema": "node scripts/migrations/finalize-database-schema.js"
   },
   "keywords": [],
   "author": "",

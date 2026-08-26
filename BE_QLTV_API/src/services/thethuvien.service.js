@@ -35,9 +35,19 @@ class TheThuVienService {
             throw createError("Ma the thu vien da ton tai", 409);
         }
 
+        const ngayCap = getCurrentDate();
+        const overlappingCard = await TheThuVienRepository.findOverlappingCard(
+            data.MaDG,
+            ngayCap,
+            data.NgayHetHan
+        );
+        if (overlappingCard) {
+            throw createError(`Độc giả đã có thẻ ${overlappingCard.MaThe} còn hiệu lực`, 409);
+        }
+
         const theThuVien = new TheThuVien({
             ...data,
-            NgayCap: getCurrentDate(),
+            NgayCap: ngayCap,
             TrangThai: getCardStatus(data.NgayHetHan)
         });
 
@@ -49,6 +59,16 @@ class TheThuVienService {
 
         if (!tonTai) {
             throw createError("Khong tim thay the thu vien", 404);
+        }
+
+        const overlappingCard = await TheThuVienRepository.findOverlappingCard(
+            data.MaDG,
+            tonTai.NgayCap,
+            data.NgayHetHan,
+            maThe
+        );
+        if (overlappingCard) {
+            throw createError(`Độc giả đã có thẻ ${overlappingCard.MaThe} trùng thời gian hiệu lực`, 409);
         }
 
         const theThuVien = new TheThuVien({

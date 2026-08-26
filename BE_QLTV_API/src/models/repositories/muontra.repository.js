@@ -9,11 +9,7 @@ const PHIEU_MUON_COLUMNS = `
     mt.NgayMuon,
     mt.HanTra,
     mt.NgayTra,
-    CASE
-        WHEN mt.NgayTra IS NOT NULL THEN 'Đã trả'
-        WHEN mt.HanTra < CURDATE() THEN 'Quá hạn'
-        ELSE 'Đang mượn'
-    END AS TrangThai,
+    mt.TrangThai,
     COUNT(ct.MaSach) AS SoDauSach,
     COALESCE(SUM(ct.SoLuong), 0) AS TongSoLuong,
     COALESCE((
@@ -24,7 +20,24 @@ const PHIEU_MUON_COLUMNS = `
 `;
 
 class MuonTraRepository {
+    async syncStatuses() {
+        await db.query(`
+            UPDATE muontra
+            SET TrangThai = CASE
+                WHEN NgayTra IS NOT NULL THEN 'Đã trả'
+                WHEN HanTra < CURDATE() THEN 'Quá hạn'
+                ELSE 'Đang mượn'
+            END
+            WHERE TrangThai <> CASE
+                WHEN NgayTra IS NOT NULL THEN 'Đã trả'
+                WHEN HanTra < CURDATE() THEN 'Quá hạn'
+                ELSE 'Đang mượn'
+            END
+        `);
+    }
+
     async getAll() {
+        await this.syncStatuses();
         const sql = `
             SELECT ${PHIEU_MUON_COLUMNS}
             FROM muontra mt
@@ -40,6 +53,7 @@ class MuonTraRepository {
     }
 
     async getById(maMT) {
+        await this.syncStatuses();
         const sql = `
             SELECT ${PHIEU_MUON_COLUMNS}
             FROM muontra mt
@@ -60,6 +74,7 @@ class MuonTraRepository {
     }
 
     async search(keyword) {
+        await this.syncStatuses();
         const sql = `
             SELECT ${PHIEU_MUON_COLUMNS}
             FROM muontra mt
@@ -81,6 +96,7 @@ class MuonTraRepository {
     }
 
     async getStatistics() {
+        await this.syncStatuses();
         const [summaryRows] = await db.query(`
             SELECT
                 COUNT(mt.MaMT) AS TongPhieuMuon,
@@ -269,11 +285,13 @@ class MuonTraRepository {
 
                 if (damaged > 0) await this.#insertViolation(connection, {
                     maMT, maSach: item.MaSach, type: "HU_HONG", quantity: damaged,
+                    overdueDays: null, rate: Number(rules.PhiHuHongMoiBan),
                     amount: damaged * Number(rules.PhiHuHongMoiBan), description: condition.MoTa,
                     date: ngayTra, employeeId
                 });
                 if (lost > 0) await this.#insertViolation(connection, {
                     maMT, maSach: item.MaSach, type: "LAM_MAT", quantity: lost,
+                    overdueDays: null, rate: Number(rules.PhiLamMatMoiBan),
                     amount: lost * Number(rules.PhiLamMatMoiBan), description: condition.MoTa,
                     date: ngayTra, employeeId
                 });
@@ -286,13 +304,14 @@ class MuonTraRepository {
             if (overdueDays > 0) await this.#insertViolation(connection, {
                 maMT, maSach: null, type: "QUA_HAN",
                 quantity: details.reduce((total, item) => total + Number(item.SoLuong), 0),
+                overdueDays, rate: Number(rules.PhiQuaHanMoiNgay),
                 amount: overdueDays * Number(rules.PhiQuaHanMoiNgay),
                 description: `Quá hạn ${overdueDays} ngày`, date: ngayTra, employeeId
             });
 
             await connection.query(
                 "UPDATE muontra SET NgayTra = ?, TrangThai = ? WHERE MaMT = ?",
-                [ngayTra, "Da tra", maMT]
+                [ngayTra, "Đã trả", maMT]
             );
 
             await connection.commit();
@@ -306,14 +325,15 @@ class MuonTraRepository {
     }
 
     async #insertViolation(connection, {
-        maMT, maSach, type, quantity, amount, description, date, employeeId
+        maMT, maSach, type, quantity, overdueDays, rate, amount, description, date, employeeId
     }) {
         const fine = Math.max(Number(amount || 0), 0);
         const collected = fine > 0;
         await connection.query(`INSERT INTO xulyvipham
-            (MaMT, MaSach, LoaiViPham, SoLuong, SoTien, MoTa, TrangThaiThu, NgayLap, NgayThu, MaNVThu)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
-            maMT, maSach, type, quantity, fine, description || null,
+            (MaMT, MaSach, LoaiViPham, SoLuong, SoNgayQuaHan, MucPhiApDung,
+             SoTien, MoTa, TrangThaiThu, NgayLap, NgayThu, MaNVThu)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+            maMT, maSach, type, quantity, overdueDays, rate, fine, description || null,
             collected ? "DA_THU" : "MIEN_PHAT", date,
             collected ? date : null, collected ? employeeId : null
         ]);

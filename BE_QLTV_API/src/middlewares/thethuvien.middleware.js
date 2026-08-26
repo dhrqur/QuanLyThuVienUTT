@@ -1,4 +1,5 @@
 const { hasUnexpectedFields, isEmpty } = require("../utils/validation");
+const { getCurrentDate } = require("../utils/date");
 
 const allowedTheThuVienFields = [
     "MaThe",
@@ -53,6 +54,12 @@ function validateTheThuVien(req, res, next) {
     if (isNaN(Date.parse(NgayHetHan))) {
         return res.status(400).json({
             message: "Ngay het han khong hop le"
+        });
+    }
+
+    if (String(NgayHetHan).slice(0, 10) <= getCurrentDate()) {
+        return res.status(400).json({
+            message: "Ngày hết hạn phải lớn hơn ngày cấp hiện tại"
         });
     }
 

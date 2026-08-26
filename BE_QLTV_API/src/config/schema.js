@@ -18,6 +18,12 @@ async function ensureLibraryRulesTable() {
             PRIMARY KEY (MaQD),
             CONSTRAINT fk_quydinh_nhanvien
                 FOREIGN KEY (MaNVCapNhat) REFERENCES nhanvien (MaNV)
+                ON UPDATE CASCADE ON DELETE SET NULL,
+            CONSTRAINT chk_quydinh_phi CHECK (
+                PhiQuaHanMoiNgay >= 0
+                AND PhiHuHongMoiBan >= 0
+                AND PhiLamMatMoiBan >= 0
+            )
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci
     `);
 
@@ -38,6 +44,8 @@ async function ensureViolationsTable() {
             LoaiViPham enum('QUA_HAN','HU_HONG','LAM_MAT')
                 COLLATE utf8mb4_unicode_520_ci NOT NULL,
             SoLuong int NOT NULL DEFAULT 0,
+            SoNgayQuaHan int DEFAULT NULL,
+            MucPhiApDung decimal(15,2) NOT NULL DEFAULT 0,
             SoTien decimal(15,2) NOT NULL DEFAULT 0,
             MoTa varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
             TrangThaiThu enum('CHUA_THU','DA_THU','MIEN_PHAT')
@@ -47,10 +55,28 @@ async function ensureViolationsTable() {
             MaNVThu varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
             PRIMARY KEY (MaVP),
             KEY idx_xulyvipham_mamt (MaMT),
+            KEY idx_xulyvipham_mamt_masach (MaMT, MaSach),
             KEY idx_xulyvipham_trangthai (TrangThaiThu),
+            KEY idx_xulyvipham_trangthai_ngaylap (TrangThaiThu, NgayLap),
             CONSTRAINT fk_xulyvipham_muontra FOREIGN KEY (MaMT) REFERENCES muontra (MaMT),
-            CONSTRAINT fk_xulyvipham_sach FOREIGN KEY (MaSach) REFERENCES sach (MaSach),
-            CONSTRAINT fk_xulyvipham_nhanvien FOREIGN KEY (MaNVThu) REFERENCES nhanvien (MaNV)
+            CONSTRAINT fk_xulyvipham_chitietmuon
+                FOREIGN KEY (MaMT, MaSach) REFERENCES chitietmuontra (MaMT, MaSach),
+            CONSTRAINT fk_xulyvipham_nhanvien FOREIGN KEY (MaNVThu) REFERENCES nhanvien (MaNV),
+            CONSTRAINT chk_xulyvipham_soluong CHECK (SoLuong >= 0),
+            CONSTRAINT chk_xulyvipham_songay CHECK (SoNgayQuaHan IS NULL OR SoNgayQuaHan > 0),
+            CONSTRAINT chk_xulyvipham_mucphi CHECK (MucPhiApDung >= 0),
+            CONSTRAINT chk_xulyvipham_sotien CHECK (SoTien >= 0),
+            CONSTRAINT chk_xulyvipham_ngaythu CHECK (NgayThu IS NULL OR NgayThu >= NgayLap),
+            CONSTRAINT chk_xulyvipham_sach CHECK (
+                (LoaiViPham = 'QUA_HAN' AND MaSach IS NULL AND SoNgayQuaHan IS NOT NULL)
+                OR
+                (LoaiViPham IN ('HU_HONG','LAM_MAT') AND MaSach IS NOT NULL AND SoNgayQuaHan IS NULL)
+            ),
+            CONSTRAINT chk_xulyvipham_thutien CHECK (
+                (TrangThaiThu = 'DA_THU' AND NgayThu IS NOT NULL AND MaNVThu IS NOT NULL)
+                OR
+                (TrangThaiThu IN ('CHUA_THU','MIEN_PHAT') AND NgayThu IS NULL AND MaNVThu IS NULL)
+            )
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci
     `);
 }
@@ -70,7 +96,10 @@ async function ensureAuditLogTable() {
             KEY idx_nhatky_manv (MaNV),
             KEY idx_nhatky_hanhdong (HanhDong),
             KEY idx_nhatky_doituong (DoiTuong, MaDoiTuong),
-            KEY idx_nhatky_thoigian (ThoiGian)
+            KEY idx_nhatky_thoigian (ThoiGian),
+            CONSTRAINT fk_nhatky_nhanvien
+                FOREIGN KEY (MaNV) REFERENCES nhanvien (MaNV)
+                ON UPDATE CASCADE ON DELETE SET NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci
     `);
 

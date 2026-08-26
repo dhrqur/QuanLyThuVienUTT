@@ -14,3 +14,8 @@ FE_QLTV/dist/
 *.log
 .vite/
 .vercel/
+
+# Local generated requirement documents
+YEU_CAU_CHUC_NANG_DAY_DU.docx
+YEU_CAU_CHUC_NANG_DAY_DU_A4_DE_CHINH_SUA.docx
+YEU_CAU_CHUC_NANG_DAY_DU_A4_DOC.docx

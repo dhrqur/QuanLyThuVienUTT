@@ -7,7 +7,7 @@ const COLUMNS = `vp.MaVP, vp.MaMT, mt.MaDG, dg.TenDG, vp.MaSach, s.TenSach,
         THEN (SELECT COALESCE(SUM(ct.SoLuong), 0) FROM chitietmuontra ct WHERE ct.MaMT = vp.MaMT)
         ELSE vp.SoLuong
     END AS SoLuong,
-    vp.SoTien, vp.MoTa, vp.TrangThaiThu,
+    vp.SoNgayQuaHan, vp.MucPhiApDung, vp.SoTien, vp.MoTa, vp.TrangThaiThu,
     vp.NgayLap, vp.NgayThu, vp.MaNVThu,
     COALESCE(nv.TenNV, CASE WHEN vp.TrangThaiThu = 'DA_THU' THEN nvPhieu.TenNV END) AS TenNVThu`;
 

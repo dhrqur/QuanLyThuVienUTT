@@ -4,7 +4,7 @@ function validateSearch(req, res, next) {
     next();
 }
 function validateUpdate(req, res, next) {
-    const allowed = ["MaVP", "MaMT", "MaDG", "TenDG", "MaSach", "TenSach", "LoaiViPham", "SoLuong", "SoTien", "MoTa", "TrangThaiThu", "NgayLap", "NgayThu", "MaNVThu", "TenNVThu"];
+    const allowed = ["MaVP", "MaMT", "MaDG", "TenDG", "MaSach", "TenSach", "LoaiViPham", "SoLuong", "SoNgayQuaHan", "MucPhiApDung", "SoTien", "MoTa", "TrangThaiThu", "NgayLap", "NgayThu", "MaNVThu", "TenNVThu"];
     if (Object.keys(req.body).some((key) => !allowed.includes(key))) return res.status(400).json({ message: "Du lieu vi pham co truong khong hop le" });
     if (!STATUSES.has(req.body.TrangThaiThu)) return res.status(400).json({ message: "Trang thai thu khong hop le" });
     next();

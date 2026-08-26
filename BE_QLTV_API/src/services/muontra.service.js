@@ -53,7 +53,7 @@ class MuonTraService {
 
         const muonTra = new MuonTra({
             ...data,
-            TrangThai: "Dang muon"
+            TrangThai: "Đang mượn"
         });
 
         try {
@@ -75,7 +75,7 @@ class MuonTraService {
 
         const muonTra = new MuonTra({
             ...data,
-            TrangThai: "Dang muon"
+            TrangThai: "Đang mượn"
         });
 
         try {

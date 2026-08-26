@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS `chitietmuontra` (
   PRIMARY KEY (`MaMT`, `MaSach`),
   KEY `MaSach` (`MaSach`),
   CONSTRAINT `chitietmuontra_ibfk_1` FOREIGN KEY (`MaMT`) REFERENCES `muontra` (`MaMT`),
-  CONSTRAINT `chitietmuontra_ibfk_2` FOREIGN KEY (`MaSach`) REFERENCES `sach` (`MaSach`)
+  CONSTRAINT `chitietmuontra_ibfk_2` FOREIGN KEY (`MaSach`) REFERENCES `sach` (`MaSach`),
+  CONSTRAINT `chk_chitietmuontra_soluong` CHECK (`SoLuong` > 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 -- Dumping data for table dbqltv.chitietmuontra: ~3 rows (approximately)
@@ -73,8 +74,8 @@ INSERT INTO `chitietmuontra` (`MaMT`, `MaSach`, `SoLuong`) VALUES
 -- Dumping structure for table dbqltv.docgia
 CREATE TABLE IF NOT EXISTS `docgia` (
   `MaDG` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `MaKhoa` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `MaLop` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `MaKhoa` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `MaLop` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `TenDG` varchar(50) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `NamSinh` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `GioiTinh` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
@@ -87,7 +88,8 @@ CREATE TABLE IF NOT EXISTS `docgia` (
   KEY `MaKhoa` (`MaKhoa`),
   KEY `MaLop` (`MaLop`),
   CONSTRAINT `docgia_ibfk_1` FOREIGN KEY (`MaKhoa`) REFERENCES `khoa` (`MaKhoa`),
-  CONSTRAINT `docgia_ibfk_2` FOREIGN KEY (`MaLop`) REFERENCES `lop` (`MaLop`)
+  CONSTRAINT `docgia_ibfk_2` FOREIGN KEY (`MaLop`) REFERENCES `lop` (`MaLop`),
+  CONSTRAINT `fk_docgia_lop_khoa` FOREIGN KEY (`MaLop`, `MaKhoa`) REFERENCES `lop` (`MaLop`, `MaKhoa`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 -- Dumping data for table dbqltv.docgia: ~7 rows (approximately)
@@ -122,7 +124,7 @@ INSERT INTO `docgia` (`MaDG`, `MaKhoa`, `MaLop`, `TenDG`, `NamSinh`, `GioiTinh`,
 CREATE TABLE IF NOT EXISTS `kesach` (
   `MaViTri` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `TenKe` varchar(50) COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `MoTa` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `MoTa` varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   PRIMARY KEY (`MaViTri`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
@@ -164,6 +166,7 @@ CREATE TABLE IF NOT EXISTS `lop` (
   `TenLop` varchar(100) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `MaKhoa` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   PRIMARY KEY (`MaLop`),
+  UNIQUE KEY `uq_lop_malop_makhoa` (`MaLop`, `MaKhoa`),
   KEY `MaKhoa` (`MaKhoa`),
   CONSTRAINT `lop_ibfk_1` FOREIGN KEY (`MaKhoa`) REFERENCES `khoa` (`MaKhoa`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
@@ -212,15 +215,22 @@ CREATE TABLE IF NOT EXISTS `muontra` (
   `MaMT` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `MaDG` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `MaNV` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `NgayMuon` date DEFAULT NULL,
+  `NgayMuon` date NOT NULL,
   `HanTra` date NOT NULL,
   `NgayTra` date DEFAULT NULL,
-  `TrangThai` varchar(20) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `TrangThai` enum('Đang mượn','Quá hạn','Đã trả') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'Đang mượn',
   PRIMARY KEY (`MaMT`),
   KEY `MaDG` (`MaDG`),
   KEY `MaNV` (`MaNV`),
+  KEY `idx_muontra_docgia_ngaytra` (`MaDG`, `NgayTra`),
+  KEY `idx_muontra_ngaymuon` (`NgayMuon`),
+  KEY `idx_muontra_ngaytra` (`NgayTra`),
+  KEY `idx_muontra_trangthai` (`TrangThai`),
   CONSTRAINT `muontra_ibfk_1` FOREIGN KEY (`MaDG`) REFERENCES `docgia` (`MaDG`),
-  CONSTRAINT `muontra_ibfk_2` FOREIGN KEY (`MaNV`) REFERENCES `nhanvien` (`MaNV`)
+  CONSTRAINT `muontra_ibfk_2` FOREIGN KEY (`MaNV`) REFERENCES `nhanvien` (`MaNV`),
+  CONSTRAINT `chk_muontra_hantra` CHECK (`HanTra` > `NgayMuon`),
+  CONSTRAINT `chk_muontra_ngaytra` CHECK (`NgayTra` IS NULL OR `NgayTra` >= `NgayMuon`),
+  CONSTRAINT `chk_muontra_trangthai` CHECK ((`NgayTra` IS NOT NULL AND `TrangThai` = 'Đã trả') OR (`NgayTra` IS NULL AND `TrangThai` IN ('Đang mượn','Quá hạn')))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 -- Dumping data for table dbqltv.muontra: ~3 rows (approximately)
@@ -334,7 +344,7 @@ CREATE TABLE IF NOT EXISTS `sach` (
   `MaTL` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `TenSach` varchar(100) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `NamXB` int NOT NULL,
-  `SoLuong` int DEFAULT NULL,
+  `SoLuong` int NOT NULL DEFAULT 0,
   `MaNN` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `MaViTri` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   PRIMARY KEY (`MaSach`),
@@ -347,7 +357,8 @@ CREATE TABLE IF NOT EXISTS `sach` (
   CONSTRAINT `sach_ibfk_2` FOREIGN KEY (`MaNXB`) REFERENCES `nhaxuatban` (`MaNXB`),
   CONSTRAINT `sach_ibfk_3` FOREIGN KEY (`MaTL`) REFERENCES `theloai` (`MaTL`),
   CONSTRAINT `sach_ibfk_4` FOREIGN KEY (`MaNN`) REFERENCES `ngonngu` (`MaNN`),
-  CONSTRAINT `sach_ibfk_5` FOREIGN KEY (`MaViTri`) REFERENCES `kesach` (`MaViTri`)
+  CONSTRAINT `sach_ibfk_5` FOREIGN KEY (`MaViTri`) REFERENCES `kesach` (`MaViTri`),
+  CONSTRAINT `chk_sach_soluong` CHECK (`SoLuong` >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 -- Dumping data for table dbqltv.sach: ~14 rows (approximately)
@@ -462,12 +473,15 @@ INSERT INTO `theloai` (`MaTL`, `TenTL`) VALUES
 CREATE TABLE IF NOT EXISTS `thethuvien` (
   `MaThe` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `MaDG` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `NgayCap` date NOT NULL,
+  `NgayCap` date NOT NULL DEFAULT (CURRENT_DATE),
   `NgayHetHan` date NOT NULL,
-  `TrangThai` varchar(20) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `TrangThai` enum('Còn hiệu lực','Hết hạn') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'Còn hiệu lực',
   PRIMARY KEY (`MaThe`),
   KEY `MaDG` (`MaDG`),
-  CONSTRAINT `thethuvien_ibfk_1` FOREIGN KEY (`MaDG`) REFERENCES `docgia` (`MaDG`)
+  KEY `idx_thethuvien_docgia_hethan` (`MaDG`, `NgayHetHan`),
+  KEY `idx_thethuvien_trangthai` (`TrangThai`),
+  CONSTRAINT `thethuvien_ibfk_1` FOREIGN KEY (`MaDG`) REFERENCES `docgia` (`MaDG`),
+  CONSTRAINT `chk_thethuvien_ngay` CHECK (`NgayHetHan` > `NgayCap`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 -- Dumping data for table dbqltv.thethuvien: ~3 rows (approximately)
@@ -505,6 +519,8 @@ CREATE TABLE IF NOT EXISTS `xulyvipham` (
   `MaSach` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `LoaiViPham` enum('QUA_HAN','HU_HONG','LAM_MAT') COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `SoLuong` int NOT NULL DEFAULT 0,
+  `SoNgayQuaHan` int DEFAULT NULL,
+  `MucPhiApDung` decimal(15,2) NOT NULL DEFAULT 0,
   `SoTien` decimal(15,2) NOT NULL DEFAULT 0,
   `MoTa` varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `TrangThaiThu` enum('CHUA_THU','DA_THU','MIEN_PHAT') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'CHUA_THU',
@@ -513,17 +529,27 @@ CREATE TABLE IF NOT EXISTS `xulyvipham` (
   `MaNVThu` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   PRIMARY KEY (`MaVP`),
   KEY `idx_xulyvipham_mamt` (`MaMT`),
+  KEY `idx_xulyvipham_mamt_masach` (`MaMT`, `MaSach`),
   KEY `idx_xulyvipham_trangthai` (`TrangThaiThu`),
+  KEY `idx_xulyvipham_trangthai_ngaylap` (`TrangThaiThu`, `NgayLap`),
   CONSTRAINT `fk_xulyvipham_muontra` FOREIGN KEY (`MaMT`) REFERENCES `muontra` (`MaMT`),
-  CONSTRAINT `fk_xulyvipham_sach` FOREIGN KEY (`MaSach`) REFERENCES `sach` (`MaSach`),
-  CONSTRAINT `fk_xulyvipham_nhanvien` FOREIGN KEY (`MaNVThu`) REFERENCES `nhanvien` (`MaNV`)
+  CONSTRAINT `fk_xulyvipham_chitietmuon` FOREIGN KEY (`MaMT`, `MaSach`) REFERENCES `chitietmuontra` (`MaMT`, `MaSach`),
+  CONSTRAINT `fk_xulyvipham_nhanvien` FOREIGN KEY (`MaNVThu`) REFERENCES `nhanvien` (`MaNV`),
+  CONSTRAINT `chk_xulyvipham_soluong` CHECK (`SoLuong` >= 0),
+  CONSTRAINT `chk_xulyvipham_songay` CHECK (`SoNgayQuaHan` IS NULL OR `SoNgayQuaHan` > 0),
+  CONSTRAINT `chk_xulyvipham_mucphi` CHECK (`MucPhiApDung` >= 0),
+  CONSTRAINT `chk_xulyvipham_sotien` CHECK (`SoTien` >= 0),
+  CONSTRAINT `chk_xulyvipham_ngaythu` CHECK (`NgayThu` IS NULL OR `NgayThu` >= `NgayLap`),
+  CONSTRAINT `chk_xulyvipham_sach` CHECK ((`LoaiViPham` = 'QUA_HAN' AND `MaSach` IS NULL AND `SoNgayQuaHan` IS NOT NULL) OR (`LoaiViPham` IN ('HU_HONG','LAM_MAT') AND `MaSach` IS NOT NULL AND `SoNgayQuaHan` IS NULL)),
+  CONSTRAINT `chk_xulyvipham_thutien` CHECK ((`TrangThaiThu` = 'DA_THU' AND `NgayThu` IS NOT NULL AND `MaNVThu` IS NOT NULL) OR (`TrangThaiThu` IN ('CHUA_THU','MIEN_PHAT') AND `NgayThu` IS NULL AND `MaNVThu` IS NULL))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 -- Chuyển các khoản phạt quá hạn lịch sử từ dữ liệu mượn trả cũ sang module vi phạm.
 INSERT INTO xulyvipham
-    (MaMT, MaSach, LoaiViPham, SoLuong, SoTien, MoTa, TrangThaiThu, NgayLap, NgayThu, MaNVThu)
+    (MaMT, MaSach, LoaiViPham, SoLuong, SoNgayQuaHan, MucPhiApDung, SoTien, MoTa, TrangThaiThu, NgayLap, NgayThu, MaNVThu)
 SELECT mt.MaMT, NULL, 'QUA_HAN',
     (SELECT COALESCE(SUM(ct.SoLuong), 0) FROM chitietmuontra ct WHERE ct.MaMT = mt.MaMT),
+    DATEDIFF(mt.NgayTra, mt.HanTra), 2000,
     DATEDIFF(mt.NgayTra, mt.HanTra) * 2000,
     CONCAT('Dữ liệu chuyển đổi: quá hạn ', DATEDIFF(mt.NgayTra, mt.HanTra), ' ngày'),
     'DA_THU', mt.NgayTra, mt.NgayTra, mt.MaNV
@@ -555,7 +581,8 @@ CREATE TABLE IF NOT EXISTS `nhatkyhethong` (
   KEY `idx_nhatky_manv` (`MaNV`),
   KEY `idx_nhatky_hanhdong` (`HanhDong`),
   KEY `idx_nhatky_doituong` (`DoiTuong`, `MaDoiTuong`),
-  KEY `idx_nhatky_thoigian` (`ThoiGian`)
+  KEY `idx_nhatky_thoigian` (`ThoiGian`),
+  CONSTRAINT `fk_nhatky_nhanvien` FOREIGN KEY (`MaNV`) REFERENCES `nhanvien` (`MaNV`) ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 -- Dumping structure and default data for table dbqltv.quydinhthuvien
@@ -567,13 +594,28 @@ CREATE TABLE IF NOT EXISTS `quydinhthuvien` (
   `NgayCapNhat` datetime DEFAULT NULL,
   `MaNVCapNhat` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   PRIMARY KEY (`MaQD`),
-  CONSTRAINT `fk_quydinh_nhanvien` FOREIGN KEY (`MaNVCapNhat`) REFERENCES `nhanvien` (`MaNV`)
+  CONSTRAINT `fk_quydinh_nhanvien` FOREIGN KEY (`MaNVCapNhat`) REFERENCES `nhanvien` (`MaNV`) ON UPDATE CASCADE ON DELETE SET NULL,
+  CONSTRAINT `chk_quydinh_phi` CHECK (`PhiQuaHanMoiNgay` >= 0 AND `PhiHuHongMoiBan` >= 0 AND `PhiLamMatMoiBan` >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 INSERT INTO `quydinhthuvien`
   (`MaQD`, `PhiQuaHanMoiNgay`, `PhiHuHongMoiBan`, `PhiLamMatMoiBan`)
 VALUES (1, 2000, 50000, 200000)
 ON DUPLICATE KEY UPDATE `MaQD` = VALUES(`MaQD`);
+
+-- Đồng bộ các trạng thái phụ thuộc thời gian sau khi nạp dữ liệu mẫu.
+UPDATE `muontra`
+SET `TrangThai` = CASE
+  WHEN `NgayTra` IS NOT NULL THEN 'Đã trả'
+  WHEN `HanTra` < CURDATE() THEN 'Quá hạn'
+  ELSE 'Đang mượn'
+END;
+
+UPDATE `thethuvien`
+SET `TrangThai` = CASE
+  WHEN `NgayHetHan` < CURDATE() THEN 'Hết hạn'
+  ELSE 'Còn hiệu lực'
+END;
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
