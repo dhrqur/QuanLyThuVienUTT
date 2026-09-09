@@ -328,12 +328,40 @@ function normalizeUniqueValue(value) {
 }
 
 export async function parseEntityExcel({ buildExtraPayload, columns, existingRows, file }) {
+  validateExcelFile(file);
+  const workbook = await loadWorkbook(file);
+  const sheet = getDataSheet(workbook);
+  const importColumns = getImportColumns(columns);
+  validateHeaders(sheet, importColumns);
+
+  const sourceRows = readImportRows(sheet, importColumns);
+  validateImportRowCount(sourceRows);
+
+  const acceptedRows = prepareImportRows({
+    buildExtraPayload,
+    columns,
+    existingRows,
+    importColumns,
+    sourceRows,
+  });
+  validateDuplicates(
+    acceptedRows.map((data, index) => ({ data, rowNumber: sourceRows[index].rowNumber })),
+    existingRows,
+    columns,
+  );
+  return acceptedRows;
+}
+
+function validateExcelFile(file) {
   if (!file?.name?.toLowerCase().endsWith(".xlsx")) {
     throw new Error("Chỉ chấp nhận file Excel định dạng .xlsx.");
   }
   if (file.size > MAX_FILE_SIZE) {
     throw new Error("File Excel không được vượt quá 10 MB.");
   }
+}
+
+async function loadWorkbook(file) {
   const { default: ExcelJS } = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
   try {
@@ -341,11 +369,18 @@ export async function parseEntityExcel({ buildExtraPayload, columns, existingRow
   } catch {
     throw new Error("Không đọc được file Excel. File có thể bị lỗi hoặc không đúng định dạng .xlsx.");
   }
+
+  return workbook;
+}
+
+function getDataSheet(workbook) {
   const sheet = workbook.getWorksheet(DATA_SHEET);
   if (!sheet) throw new Error(`Không tìm thấy sheet ${DATA_SHEET}. Hãy tải và dùng đúng file mẫu.`);
 
-  const importColumns = getImportColumns(columns);
-  validateHeaders(sheet, importColumns);
+  return sheet;
+}
+
+function readImportRows(sheet, importColumns) {
   const sourceRows = [];
   sheet.eachRow({ includeEmpty: false }, (excelRow, rowNumber) => {
     if (rowNumber === 1) return;
@@ -357,11 +392,17 @@ export async function parseEntityExcel({ buildExtraPayload, columns, existingRow
     sourceRows.push({ data, rowNumber });
   });
 
+  return sourceRows;
+}
+
+function validateImportRowCount(sourceRows) {
   if (!sourceRows.length) throw new Error("File chưa có dòng dữ liệu nào để nhập.");
   if (sourceRows.length > MAX_IMPORT_ROWS) {
     throw new Error(`Mỗi lần chỉ được nhập tối đa ${MAX_IMPORT_ROWS} dòng.`);
   }
+}
 
+function prepareImportRows({ buildExtraPayload, columns, existingRows, importColumns, sourceRows }) {
   const acceptedRows = [];
   sourceRows.forEach(({ data, rowNumber }) => {
     applyDefaults(data, columns, acceptedRows, existingRows);
@@ -374,10 +415,6 @@ export async function parseEntityExcel({ buildExtraPayload, columns, existingRow
     }
     acceptedRows.push(data);
   });
-  validateDuplicates(
-    acceptedRows.map((data, index) => ({ data, rowNumber: sourceRows[index].rowNumber })),
-    existingRows,
-    columns,
-  );
+
   return acceptedRows;
 }

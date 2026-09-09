@@ -138,34 +138,49 @@ function buildReaderOptions({ libraryCards, loanTickets, readers }) {
   return readers
     .map((reader) => {
       const cards = cardsByReader.get(String(reader.MaDG)) ?? [];
-      const hasActiveCard = cards.some((card) => {
-        const issuedDate = normalizeDate(card.NgayCap);
-        const expirationDate = normalizeDate(card.NgayHetHan);
-        return issuedDate && expirationDate && issuedDate <= today && expirationDate >= today;
-      });
-      const futureCard = cards.find((card) => normalizeDate(card.NgayCap) > today);
-      const latestCard = [...cards].sort(
-        (first, second) => normalizeDate(second.NgayHetHan).localeCompare(normalizeDate(first.NgayHetHan)),
-      )[0];
       const openLoanId = openLoanByReader.get(String(reader.MaDG));
-      let errorMessage = "";
-
-      if (!cards.length) {
-        errorMessage = "Độc giả chưa có thẻ thư viện. Vui lòng cấp thẻ trước khi lập phiếu mượn.";
-      } else if (!hasActiveCard && futureCard) {
-        errorMessage = `Thẻ thư viện chưa có hiệu lực (ngày cấp ${formatDisplayDate(futureCard.NgayCap)}).`;
-      } else if (!hasActiveCard) {
-        errorMessage = `Thẻ thư viện đã hết hạn ngày ${formatDisplayDate(latestCard?.NgayHetHan)}. Vui lòng gia hạn thẻ trước khi mượn sách.`;
-      } else if (openLoanId) {
-        errorMessage = `Độc giả đang có phiếu ${openLoanId} chưa trả. Vui lòng hoàn tất phiếu hiện tại trước khi mượn tiếp.`;
-      }
 
       return {
-        errorMessage,
+        errorMessage: getReaderBorrowError({ cards, openLoanId, today }),
         label: `${reader.MaDG} - ${reader.TenDG}`,
         value: reader.MaDG,
       };
     });
+}
+
+function getReaderBorrowError({ cards, openLoanId, today }) {
+  if (!cards.length) {
+    return "Độc giả chưa có thẻ thư viện. Vui lòng cấp thẻ trước khi lập phiếu mượn.";
+  }
+
+  const activeCard = cards.find((card) => isCardActive(card, today));
+  if (!activeCard) {
+    const futureCard = cards.find((card) => normalizeDate(card.NgayCap) > today);
+    if (futureCard) {
+      return `Thẻ thư viện chưa có hiệu lực (ngày cấp ${formatDisplayDate(futureCard.NgayCap)}).`;
+    }
+
+    const latestCard = getLatestCard(cards);
+    return `Thẻ thư viện đã hết hạn ngày ${formatDisplayDate(latestCard?.NgayHetHan)}. Vui lòng gia hạn thẻ trước khi mượn sách.`;
+  }
+
+  if (openLoanId) {
+    return `Độc giả đang có phiếu ${openLoanId} chưa trả. Vui lòng hoàn tất phiếu hiện tại trước khi mượn tiếp.`;
+  }
+
+  return "";
+}
+
+function isCardActive(card, today) {
+  const issuedDate = normalizeDate(card.NgayCap);
+  const expirationDate = normalizeDate(card.NgayHetHan);
+  return issuedDate && expirationDate && issuedDate <= today && expirationDate >= today;
+}
+
+function getLatestCard(cards) {
+  return [...cards].sort(
+    (first, second) => normalizeDate(second.NgayHetHan).localeCompare(normalizeDate(first.NgayHetHan)),
+  )[0];
 }
 
 function normalizeDate(value) {

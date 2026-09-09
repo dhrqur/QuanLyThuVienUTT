@@ -29,17 +29,11 @@ function YeuCauDocGiaView() {
     setLoading(true);
     setError("");
     try {
-      const params = Object.fromEntries(Object.entries(filters).filter(([, value]) => value));
-      const [requestResponse, loanResponse, bookResponse, ruleResponse] = await Promise.all([
-        api.getReaderRequests(params),
-        api.getAll("muontra"),
-        api.getAll("sach"),
-        api.getLibraryRules(),
-      ]);
-      setRequests(requestResponse.data ?? []);
-      setLoans(loanResponse.data ?? []);
-      setBooks(bookResponse.data ?? []);
-      setRules(ruleResponse.data ?? EMPTY_RULES);
+      const data = await loadRequestPageData(filters);
+      setRequests(data.requests);
+      setLoans(data.loans);
+      setBooks(data.books);
+      setRules(data.rules);
     } catch (loadError) {
       setError(getApiErrorMessage(loadError));
     } finally {
@@ -137,9 +131,7 @@ function YeuCauDocGiaView() {
 
 function RequestRow({ books, loan, onAction, request, rules }) {
   const pending = request.TrangThai === "CHO_DUYET";
-  const description = request.LoaiYeuCau === "MUON"
-    ? request.ChiTiet.map((item) => `${item.TenSach || item.MaSach} × ${item.SoLuong}`).join(", ")
-    : `Trả phiếu ${request.MaMT}`;
+  const description = getRequestDescription(request);
   return (
     <tr className="align-top">
       <td className="px-4 py-3"><strong>#{request.MaYC}</strong><p className="mt-1 text-xs text-slate-500">{request.LoaiYeuCau === "MUON" ? "Mượn sách" : "Trả sách"}</p></td>
@@ -154,6 +146,35 @@ function RequestRow({ books, loan, onAction, request, rules }) {
       </div></td>
     </tr>
   );
+}
+
+async function loadRequestPageData(filters) {
+  const params = Object.fromEntries(
+    Object.entries(filters).filter(([, value]) => value),
+  );
+  const [requestResponse, loanResponse, bookResponse, ruleResponse] = await Promise.all([
+    api.getReaderRequests(params),
+    api.getAll("muontra"),
+    api.getAll("sach"),
+    api.getLibraryRules(),
+  ]);
+
+  return {
+    books: bookResponse.data ?? [],
+    loans: loanResponse.data ?? [],
+    requests: requestResponse.data ?? [],
+    rules: ruleResponse.data ?? EMPTY_RULES,
+  };
+}
+
+function getRequestDescription(request) {
+  if (request.LoaiYeuCau === "MUON") {
+    return request.ChiTiet
+      .map((item) => `${item.TenSach || item.MaSach} × ${item.SoLuong}`)
+      .join(", ");
+  }
+
+  return `Trả phiếu ${request.MaMT}`;
 }
 
 function FilterSelect({ label, onChange, options, value }) {

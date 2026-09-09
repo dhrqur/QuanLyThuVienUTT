@@ -9,6 +9,9 @@ import ExcelActions from "@/components/common/DataTable/ExcelActions";
 import TablePagination from "@/components/common/DataTable/TablePagination";
 import { useEntityTable } from "@/hooks/useEntityTable";
 
+const MODULES_WITHOUT_EXCEL = new Set(["nhatkyhethong", "quydinhthuvien"]);
+const MODULES_WITHOUT_EXCEL_IMPORT = new Set(["muontra", "xulyvipham"]);
+
 function DataTablePage({
   apiModule,
   allowCreate = true,
@@ -47,32 +50,17 @@ function DataTablePage({
     entityName,
   });
 
-  const excelEnabled = enableExcel ?? ![
-    "nhatkyhethong",
-    "quydinhthuvien",
-  ].includes(apiModule);
-  const excelImportEnabled = allowCreate && !["muontra", "xulyvipham"].includes(apiModule);
+  const excelEnabled = enableExcel ?? !MODULES_WITHOUT_EXCEL.has(apiModule);
+  const excelImportEnabled = allowCreate && !MODULES_WITHOUT_EXCEL_IMPORT.has(apiModule);
 
   const tableColumns = columns.filter((column) => !column.tableHidden);
-  const processedRows = useMemo(() => {
-    if (!sortConfig) return rows;
-    const sortColumn = tableColumns.find((column) => column.key === sortConfig.key);
-    if (!sortColumn) return rows;
-
-    return [...rows].sort((firstRow, secondRow) => {
-      const comparison = compareValues(
-        getComparableValue(sortColumn, firstRow),
-        getComparableValue(sortColumn, secondRow),
-        sortColumn,
-      );
-      return sortConfig.direction === "asc" ? comparison : -comparison;
-    });
-  }, [rows, sortConfig, tableColumns]);
+  const processedRows = useMemo(
+    () => sortRows(rows, tableColumns, sortConfig),
+    [rows, sortConfig, tableColumns],
+  );
   const totalPages = Math.max(1, Math.ceil(processedRows.length / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = currentPage * pageSize;
-  const visibleRows = pagination ? processedRows.slice(startIndex, endIndex) : processedRows;
+  const visibleRows = getVisibleRows({ currentPage, pagination, pageSize, processedRows });
 
   function handleSearch() {
     setPage(1);
@@ -182,6 +170,29 @@ function DataTablePage({
 }
 
 const collator = new Intl.Collator("vi", { numeric: true, sensitivity: "base" });
+
+function sortRows(rows, columns, sortConfig) {
+  if (!sortConfig) return rows;
+
+  const sortColumn = columns.find((column) => column.key === sortConfig.key);
+  if (!sortColumn) return rows;
+
+  return [...rows].sort((firstRow, secondRow) => {
+    const comparison = compareValues(
+      getComparableValue(sortColumn, firstRow),
+      getComparableValue(sortColumn, secondRow),
+      sortColumn,
+    );
+    return sortConfig.direction === "asc" ? comparison : -comparison;
+  });
+}
+
+function getVisibleRows({ currentPage, pagination, pageSize, processedRows }) {
+  if (!pagination) return processedRows;
+
+  const startIndex = (currentPage - 1) * pageSize;
+  return processedRows.slice(startIndex, startIndex + pageSize);
+}
 
 function getComparableValue(column, row) {
   if (column.sortValue) return column.sortValue(row) ?? "";

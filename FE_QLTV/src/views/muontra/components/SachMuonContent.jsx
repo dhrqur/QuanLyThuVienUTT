@@ -96,11 +96,7 @@ export function SachMuonSelector({ books, details, ticketId }) {
   function normalizeQuantity(sach) {
     setSelectedBooks((current) => {
       const quantity = Number(current[sach.MaSach]);
-      const maxQuantity = Math.max(
-        Number(sach.SoLuong || 0)
-          + Number(existingDetails.find((detail) => detail.MaSach === sach.MaSach)?.SoLuong || 0),
-        1,
-      );
+      const maxQuantity = getBookQuantityLimit(sach, existingDetails);
 
       return {
         ...current,
@@ -173,10 +169,7 @@ export function SachMuonSelector({ books, details, ticketId }) {
         {filteredBooks.map((sach) => {
           const quantity = selectedBooks[sach.MaSach];
           const selected = Object.hasOwn(selectedBooks, sach.MaSach);
-          const borrowedQuantity = Number(
-            existingDetails.find((detail) => detail.MaSach === sach.MaSach)?.SoLuong || 0,
-          );
-          const maxQuantity = Math.max(Number(sach.SoLuong || 0) + borrowedQuantity, 1);
+          const maxQuantity = getBookQuantityLimit(sach, existingDetails);
 
           return (
             <div className={`flex items-center gap-3 rounded-lg border p-3 ${selected ? "border-orange-300 bg-orange-50" : "border-slate-100 bg-white hover:border-slate-200"}`} key={sach.MaSach}>
@@ -243,4 +236,11 @@ function normalizeSearchText(value) {
     .toLowerCase()
     .replace(/đ/g, "d")
     .trim();
+}
+
+function getBookQuantityLimit(book, existingDetails) {
+  const borrowedQuantity = Number(
+    existingDetails.find((detail) => detail.MaSach === book.MaSach)?.SoLuong || 0,
+  );
+  return Math.max(Number(book.SoLuong || 0) + borrowedQuantity, 1);
 }
