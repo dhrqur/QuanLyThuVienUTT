@@ -2,18 +2,6 @@ const NhanVienService = require("../services/nhanvien.service");
 const { handleControllerError: handleError } = require("../utils/http");
 
 class NhanVienController {
-    constructor() {
-        this.getAll = this.getAll.bind(this);
-        this.getById = this.getById.bind(this);
-        this.search = this.search.bind(this);
-        this.login = this.login.bind(this);
-        this.logout = this.logout.bind(this);
-        this.getStatistics = this.getStatistics.bind(this);
-        this.create = this.create.bind(this);
-        this.update = this.update.bind(this);
-        this.delete = this.delete.bind(this);
-    }
-
     async getAll(req, res) {
         try {
             const data = await NhanVienService.getAll();

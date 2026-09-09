@@ -235,73 +235,28 @@ class MuonTraRepository {
         try {
             if (ownsConnection) await connection.beginTransaction();
 
-            const current = await this.#getMuonTraForUpdate(connection, maMT);
-
-            if (!current) {
-                throw new Error("Khong tim thay phieu muon");
-            }
-
-            if (current.NgayTra) {
-                throw new Error("Phieu muon da duoc tra");
-            }
-
-            const returnDateValue = String(ngayTra).slice(0, 10);
-            const borrowDateValue = String(current.NgayMuon).slice(0, 10);
-
-            if (returnDateValue < borrowDateValue) {
-                throw new Error("Ngay tra khong duoc nho hon ngay muon");
-            }
-
-            await this.#assertNhanVienExists(connection, employeeId);
-
-            const [details] = await connection.query(
-                "SELECT MaSach, SoLuong FROM chitietmuontra WHERE MaMT = ?",
-                [maMT]
+            const { current, details, rules, returnDateValue } = await this.#getReturnContext(
+                connection,
+                maMT,
+                ngayTra,
+                employeeId
             );
-
-            if (details.length === 0) {
-                throw new Error("Phieu muon khong co chi tiet sach");
-            }
-
-            const [ruleRows] = await connection.query(
-                "SELECT PhiQuaHanMoiNgay, PhiHuHongMoiBan, PhiLamMatMoiBan FROM quydinhthuvien WHERE MaQD = 1 FOR UPDATE"
-            );
-            if (!ruleRows[0]) throw new Error("Chua cau hinh quy dinh thu vien");
-            const rules = ruleRows[0];
 
             const returnDetails = new Map(chiTietTra.map((item) => [String(item.MaSach), item]));
 
             for (const item of details) {
                 const condition = returnDetails.get(String(item.MaSach)) || {};
-                const damaged = Number(condition.SoLuongHong || 0);
-                const lost = Number(condition.SoLuongMat || 0);
-                if (!Number.isInteger(damaged) || !Number.isInteger(lost) || damaged + lost > Number(item.SoLuong)) {
-                    throw new Error(`So luong sach hong, mat cua ${item.MaSach} khong hop le`);
-                }
-                const goodQuantity = Number(item.SoLuong) - damaged - lost;
-                await connection.query(
-                    "UPDATE sach SET SoLuong = COALESCE(SoLuong, 0) + ? WHERE MaSach = ?",
-                    [goodQuantity, item.MaSach]
-                );
-
-                if (damaged > 0) await this.#insertViolation(connection, {
-                    maMT, maSach: item.MaSach, type: "HU_HONG", quantity: damaged,
-                    overdueDays: null, rate: Number(rules.PhiHuHongMoiBan),
-                    amount: damaged * Number(rules.PhiHuHongMoiBan), description: condition.MoTa,
-                    date: ngayTra, employeeId
-                });
-                if (lost > 0) await this.#insertViolation(connection, {
-                    maMT, maSach: item.MaSach, type: "LAM_MAT", quantity: lost,
-                    overdueDays: null, rate: Number(rules.PhiLamMatMoiBan),
-                    amount: lost * Number(rules.PhiLamMatMoiBan), description: condition.MoTa,
-                    date: ngayTra, employeeId
+                await this.#processReturnedBook(connection, {
+                    maMT,
+                    item,
+                    condition,
+                    rules,
+                    ngayTra,
+                    employeeId
                 });
             }
 
-            const dueDateValue = String(current.HanTra).slice(0, 10);
-            const overdueDays = Math.max(0, Math.ceil(
-                (new Date(`${returnDateValue}T00:00:00`) - new Date(`${dueDateValue}T00:00:00`)) / 86400000
-            ));
+            const overdueDays = this.#calculateOverdueDays(returnDateValue, current.HanTra);
             if (overdueDays > 0) await this.#insertViolation(connection, {
                 maMT, maSach: null, type: "QUA_HAN",
                 quantity: details.reduce((total, item) => total + Number(item.SoLuong), 0),
@@ -326,6 +281,101 @@ class MuonTraRepository {
         } finally {
             if (ownsConnection) connection.release();
         }
+    }
+
+    async #getReturnContext(connection, maMT, ngayTra, employeeId) {
+        const current = await this.#getMuonTraForUpdate(connection, maMT);
+
+        if (!current) {
+            throw new Error("Khong tim thay phieu muon");
+        }
+
+        if (current.NgayTra) {
+            throw new Error("Phieu muon da duoc tra");
+        }
+
+        const returnDateValue = String(ngayTra).slice(0, 10);
+        const borrowDateValue = String(current.NgayMuon).slice(0, 10);
+
+        if (returnDateValue < borrowDateValue) {
+            throw new Error("Ngay tra khong duoc nho hon ngay muon");
+        }
+
+        await this.#assertNhanVienExists(connection, employeeId);
+
+        const [details] = await connection.query(
+            "SELECT MaSach, SoLuong FROM chitietmuontra WHERE MaMT = ?",
+            [maMT]
+        );
+
+        if (details.length === 0) {
+            throw new Error("Phieu muon khong co chi tiet sach");
+        }
+
+        const [ruleRows] = await connection.query(
+            "SELECT PhiQuaHanMoiNgay, PhiHuHongMoiBan, PhiLamMatMoiBan FROM quydinhthuvien WHERE MaQD = 1 FOR UPDATE"
+        );
+
+        if (!ruleRows[0]) {
+            throw new Error("Chua cau hinh quy dinh thu vien");
+        }
+
+        return { current, details, rules: ruleRows[0], returnDateValue };
+    }
+
+    async #processReturnedBook(connection, { maMT, item, condition, rules, ngayTra, employeeId }) {
+        const damaged = Number(condition.SoLuongHong || 0);
+        const lost = Number(condition.SoLuongMat || 0);
+
+        if (!Number.isInteger(damaged) || !Number.isInteger(lost) || damaged + lost > Number(item.SoLuong)) {
+            throw new Error(`So luong sach hong, mat cua ${item.MaSach} khong hop le`);
+        }
+
+        const goodQuantity = Number(item.SoLuong) - damaged - lost;
+        await connection.query(
+            "UPDATE sach SET SoLuong = COALESCE(SoLuong, 0) + ? WHERE MaSach = ?",
+            [goodQuantity, item.MaSach]
+        );
+
+        if (damaged > 0) {
+            await this.#insertViolation(connection, {
+                maMT,
+                maSach: item.MaSach,
+                type: "HU_HONG",
+                quantity: damaged,
+                overdueDays: null,
+                rate: Number(rules.PhiHuHongMoiBan),
+                amount: damaged * Number(rules.PhiHuHongMoiBan),
+                description: condition.MoTa,
+                date: ngayTra,
+                employeeId
+            });
+        }
+
+        if (lost > 0) {
+            await this.#insertViolation(connection, {
+                maMT,
+                maSach: item.MaSach,
+                type: "LAM_MAT",
+                quantity: lost,
+                overdueDays: null,
+                rate: Number(rules.PhiLamMatMoiBan),
+                amount: lost * Number(rules.PhiLamMatMoiBan),
+                description: condition.MoTa,
+                date: ngayTra,
+                employeeId
+            });
+        }
+    }
+
+    #calculateOverdueDays(returnDateValue, dueDate) {
+        const dueDateValue = String(dueDate).slice(0, 10);
+        const millisecondsPerDay = 86400000;
+
+        return Math.max(0, Math.ceil(
+            (new Date(`${returnDateValue}T00:00:00`) - new Date(`${dueDateValue}T00:00:00`))
+            / millisecondsPerDay
+        ));
     }
 
     async #insertViolation(connection, {

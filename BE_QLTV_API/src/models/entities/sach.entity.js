@@ -16,48 +16,24 @@ class Sach {
         return this.MaSach;
     }
 
-    setMaSach(MaSach) {
-        this.MaSach = MaSach;
-    }
-
     getMaTG() {
         return this.MaTG;
-    }
-
-    setMaTG(MaTG) {
-        this.MaTG = MaTG;
     }
 
     getMaNXB() {
         return this.MaNXB;
     }
 
-    setMaNXB(MaNXB) {
-        this.MaNXB = MaNXB;
-    }
-
     getMaTL() {
         return this.MaTL;
-    }
-
-    setMaTL(MaTL) {
-        this.MaTL = MaTL;
     }
 
     getTenSach() {
         return this.TenSach;
     }
 
-    setTenSach(TenSach) {
-        this.TenSach = TenSach;
-    }
-
     getNamXB() {
         return this.NamXB;
-    }
-
-    setNamXB(NamXB) {
-        this.NamXB = NamXB;
     }
 
     getSoLuong() {
@@ -76,16 +52,8 @@ class Sach {
         return this.MaNN;
     }
 
-    setMaNN(MaNN) {
-        this.MaNN = MaNN;
-    }
-
     getMaViTri() {
         return this.MaViTri;
-    }
-
-    setMaViTri(MaViTri) {
-        this.MaViTri = MaViTri;
     }
 
     toObject() {

@@ -23,12 +23,12 @@ class YeuCauMuonTraService {
         this.loanService = loanService;
     }
 
-    async getOwn(readerId, filters = {}) {
-        return await this.repository.getAll(filters, readerId);
+    getOwn(readerId, filters = {}) {
+        return this.repository.getAll(filters, readerId);
     }
 
-    async getAll(filters = {}) {
-        return await this.repository.getAll(filters);
+    getAll(filters = {}) {
+        return this.repository.getAll(filters);
     }
 
     async create(readerId, data) {
@@ -65,7 +65,7 @@ class YeuCauMuonTraService {
             return await this.repository.processReturn(
                 requestId,
                 employeeId,
-                async (request, connection) => await this.loanService.returnBooks(
+                (request, connection) => this.loanService.returnBooks(
                     request.MaMT,
                     data.NgayTra,
                     data.ChiTietTra || [],
