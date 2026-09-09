@@ -1,6 +1,6 @@
 # Hệ thống Quản lý Thư viện UTT
 
-Ứng dụng web quản lý thư viện dành cho cán bộ thư viện, được xây dựng theo mô hình React client, REST API và MySQL. Hệ thống bao phủ danh mục sách, độc giả, thẻ thư viện, mượn–trả, xử lý vi phạm, thu tiền phạt, báo cáo và nhật ký hoạt động.
+Ứng dụng web quản lý thư viện dành cho cán bộ thư viện và độc giả, được xây dựng theo mô hình React client, REST API và MySQL. Hệ thống bao phủ danh mục sách, độc giả, thẻ thư viện, mượn–trả, xử lý vi phạm, thu tiền phạt, báo cáo và nhật ký hoạt động.
 
 ## Tính năng
 
@@ -33,6 +33,15 @@
 - Giao diện responsive, toast thông báo và badge trạng thái.
 - Swagger UI để xem và thử REST API.
 
+### Cổng độc giả
+
+- Độc giả đăng nhập bằng mã sinh viên (`MaDG`), đổi mật khẩu tạm thời ở lần đăng nhập đầu tiên.
+- Xem hồ sơ, thẻ thư viện và cập nhật địa chỉ, email, số điện thoại.
+- Tra cứu sách theo tên, tác giả, thể loại, nhà xuất bản, ngôn ngữ hoặc vị trí kệ.
+- Lập giỏ sách và gửi yêu cầu mượn; gửi yêu cầu trả theo phiếu đang mở.
+- Theo dõi trạng thái chờ duyệt, đã duyệt, từ chối hoặc đã hủy.
+- Xem hạn trả, cảnh báo sắp đến hạn/quá hạn, vi phạm và tiền phạt.
+
 ## Công nghệ sử dụng
 
 | Thành phần | Công nghệ |
@@ -58,6 +67,10 @@ QuanLyThuVienUTT/
 │   │   ├── routes/          # Điều hướng và route bảo vệ
 │   │   ├── utils/           # Validation, format, export
 │   │   └── views/           # Các màn hình nghiệp vụ
+│   └── package.json
+├── fe-user/                 # React/Vite frontend dành cho độc giả
+│   ├── src/
+│   ├── test/
 │   └── package.json
 ├── BE_QLTV_API/             # Express REST API
 │   ├── scripts/migrations/  # Migration có thể chạy lại an toàn
@@ -134,6 +147,13 @@ Nếu database đã tồn tại từ phiên bản trước, chạy migration ch�
 npm run migrate:unique-contacts
 ```
 
+Tiếp theo chạy hai migration dành cho cổng độc giả. Migration xác thực chỉ thêm cột `Pass` vào bảng `docgia`; tên đăng nhập vẫn là `MaDG`:
+
+```bash
+npm run migrate:reader-auth
+npm run migrate:reader-requests
+```
+
 Khởi động API:
 
 ```bash
@@ -167,12 +187,25 @@ npm run dev
 
 Frontend mặc định chạy tại `http://localhost:5173`.
 
+### 4. Chạy cổng độc giả
+
+Mở thêm một terminal:
+
+```bash
+cd fe-user
+npm install
+npm run dev
+```
+
+Cổng độc giả mặc định chạy tại `http://localhost:5174`. Có thể sao chép `fe-user/.env.example` thành `fe-user/.env` để đổi địa chỉ API.
+
 ## Tài khoản mẫu
 
 | Vai trò | Tên đăng nhập | Mật khẩu |
 | --- | --- | --- |
 | Quản lý | `nv1` | `123456` |
 | Thủ thư | `nv2` | `123456` |
+| Độc giả | `DG001` | `123456` |
 
 Chỉ sử dụng các tài khoản này với dữ liệu mẫu. Khi triển khai thật, cần đổi mật khẩu và đặt `AUTH_SECRET` đủ mạnh.
 
@@ -198,6 +231,19 @@ Authorization: Bearer <access_token>
 | Method | Endpoint | Mô tả |
 | --- | --- | --- |
 | POST | `/api/nhanvien/dang-nhap` | Đăng nhập |
+| POST | `/api/docgia-auth/dang-nhap` | Độc giả đăng nhập bằng `MaDG` |
+| PUT | `/api/docgia-auth/doi-mat-khau` | Độc giả đổi mật khẩu |
+| GET/PATCH | `/api/docgia-portal/tai-khoan` | Xem/cập nhật hồ sơ cá nhân |
+| GET | `/api/docgia-portal/tong-quan` | Tổng quan thẻ, phiếu và cảnh báo |
+| GET | `/api/docgia-portal/sach` | Tra cứu sách có phân trang |
+| GET | `/api/docgia-portal/muon-tra` | Lịch sử mượn trả cá nhân |
+| GET | `/api/docgia-portal/vi-pham` | Vi phạm cá nhân |
+| GET/POST | `/api/docgia-portal/yeu-cau` | Xem/gửi yêu cầu mượn trả |
+| DELETE | `/api/docgia-portal/yeu-cau/:maYC` | Hủy yêu cầu đang chờ |
+| GET | `/api/yeucaudocgia` | Nhân viên xem yêu cầu độc giả |
+| PUT | `/api/yeucaudocgia/:maYC/duyet-muon` | Nhân viên duyệt mượn |
+| PUT | `/api/yeucaudocgia/:maYC/duyet-tra` | Nhân viên duyệt trả |
+| PUT | `/api/yeucaudocgia/:maYC/tu-choi` | Nhân viên từ chối yêu cầu |
 | GET | `/api/<module>` | Lấy danh sách |
 | GET | `/api/<module>/tim-kiem?keyword=...` | Tìm kiếm |
 | GET | `/api/<module>/<id>` | Lấy chi tiết |
@@ -223,12 +269,22 @@ npm run lint
 npm run build
 ```
 
+Cổng độc giả:
+
+```bash
+cd fe-user
+npm test
+npm run lint
+npm run build
+```
+
 Backend:
 
 ```bash
 cd BE_QLTV_API
 node --check src/server.js
 npm run migrate:unique-contacts
+npm test
 ```
 
 ## Triển khai
@@ -240,6 +296,8 @@ Repository đã có [vercel.json](vercel.json) để cài đặt và build `FE_Q
 ```env
 VITE_PUBLIC_API_URL=https://your-backend.example.com
 ```
+
+Để triển khai cổng độc giả thành dự án Vercel riêng, chọn Root Directory là `fe-user`; thư mục này đã có `vercel.json` cho SPA routing.
 
 ### Backend
 

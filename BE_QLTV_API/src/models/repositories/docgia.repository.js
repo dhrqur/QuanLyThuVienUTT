@@ -41,6 +41,28 @@ class DocGiaRepository {
         return rows[0];
     }
 
+    async getByIdWithPassword(maDG) {
+        const sql = `
+            SELECT ${DOCGIA_COLUMNS}, dg.Pass
+            FROM docgia dg
+            LEFT JOIN khoa k ON dg.MaKhoa = k.MaKhoa
+            LEFT JOIN lop l ON dg.MaLop = l.MaLop
+            WHERE dg.MaDG = ?
+        `;
+        const [rows] = await db.query(sql, [maDG]);
+
+        return rows[0];
+    }
+
+    async updatePassword(maDG, passwordHash) {
+        const [result] = await db.query(
+            "UPDATE docgia SET Pass = ? WHERE MaDG = ?",
+            [passwordHash, maDG]
+        );
+
+        return result.affectedRows > 0;
+    }
+
     async search(keyword) {
         const sql = `
             SELECT ${DOCGIA_COLUMNS}
@@ -93,11 +115,11 @@ class DocGiaRepository {
         };
     }
 
-    async create(docGia) {
+    async create(docGia, passwordHash) {
         const sql = `
             INSERT INTO docgia
-            (MaDG, MaKhoa, MaLop, TenDG, NamSinh, GioiTinh, DiaChi, Email, Sdt)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (MaDG, MaKhoa, MaLop, TenDG, NamSinh, GioiTinh, DiaChi, Email, Sdt, Pass)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const values = [
             docGia.getMaDG(),
@@ -108,7 +130,8 @@ class DocGiaRepository {
             docGia.getGioiTinh(),
             docGia.getDiaChi(),
             docGia.getEmail(),
-            docGia.getSdt()
+            docGia.getSdt(),
+            passwordHash
         ];
 
         const [result] = await db.query(sql, values);

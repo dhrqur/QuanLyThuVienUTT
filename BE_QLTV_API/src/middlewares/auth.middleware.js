@@ -22,6 +22,19 @@ function createAccessToken(employee) {
     });
 }
 
+function createReaderAccessToken(reader) {
+    return jwt.sign({
+        role: "Doc gia",
+        username: reader.MaDG,
+        mustChangePassword: Boolean(reader.mustChangePassword)
+    }, SECRET, {
+        subject: String(reader.MaDG),
+        expiresIn: TOKEN_TTL,
+        issuer: JWT_ISSUER,
+        audience: JWT_AUDIENCE
+    });
+}
+
 function authenticate(req, res, next) {
     const token = req.headers.authorization?.replace(/^Bearer\s+/i, "");
     if (!token) return res.status(401).json({ message: "Vui long dang nhap de tiep tuc" });
@@ -34,7 +47,8 @@ function authenticate(req, res, next) {
         req.user = {
             id: payload.sub,
             role: payload.role,
-            username: payload.username
+            username: payload.username,
+            mustChangePassword: Boolean(payload.mustChangePassword)
         };
         next();
     } catch (error) {
@@ -58,11 +72,26 @@ function authorizeRoles(...roles) {
 
 const requireManager = authorizeRoles("Quan ly");
 const requireLibraryStaff = authorizeRoles("Quan ly", "Thu thu");
+const requireReader = authorizeRoles("Doc gia");
+
+function requirePasswordChanged(req, res, next) {
+    if (req.user?.mustChangePassword) {
+        return res.status(403).json({
+            code: "PASSWORD_CHANGE_REQUIRED",
+            message: "Vui lòng đổi mật khẩu tạm thời trước khi tiếp tục"
+        });
+    }
+
+    next();
+}
 
 module.exports = {
     authenticate,
     authorizeRoles,
     createAccessToken,
+    createReaderAccessToken,
     requireLibraryStaff,
-    requireManager
+    requireManager,
+    requirePasswordChanged,
+    requireReader
 };

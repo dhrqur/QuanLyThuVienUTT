@@ -1,0 +1,12 @@
+{
+  "original_sha256": "c6487f1fc40812baa21fce67e84c57d4595dd32d7a63f697573314d390f8f4f5",
+  "original_bytes": 65489,
+  "original_lines": 4621,
+  "original_words": 9252,
+  "preamble_preserved": true,
+  "sections_detected": 146,
+  "sections_distributed": 146,
+  "unique_sections_distributed": 146,
+  "missing_sections": [],
+  "duplicate_sections": []
+}

@@ -2,6 +2,7 @@ const DocGia = require("../models/entities/docgia.entity");
 const DocGiaRepository = require("../models/repositories/docgia.repository");
 const { createHttpError: createError } = require("../utils/http");
 const { normalizeEmail, trimText } = require("../utils/validation");
+const { hashReaderPassword, DEFAULT_READER_PASSWORD } = require("./docgia-auth.service");
 
 class DocGiaService {
     async getAll() {
@@ -32,7 +33,9 @@ class DocGiaService {
 
         const docGia = new DocGia(data);
 
-        return await DocGiaRepository.create(docGia);
+        const passwordHash = await hashReaderPassword(DEFAULT_READER_PASSWORD);
+
+        return await DocGiaRepository.create(docGia, passwordHash);
     }
 
     async update(maDG, data) {

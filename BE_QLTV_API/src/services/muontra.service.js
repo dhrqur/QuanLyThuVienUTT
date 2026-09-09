@@ -85,15 +85,22 @@ class MuonTraService {
         }
     }
 
-    async returnBooks(maMT, ngayTra, chiTietTra, employeeId) {
-        const tonTai = await MuonTraRepository.getById(maMT);
-
-        if (!tonTai) {
-            throw createError("Khong tim thay phieu muon", 404);
+    async returnBooks(maMT, ngayTra, chiTietTra, employeeId, connection = null) {
+        if (!connection) {
+            const tonTai = await MuonTraRepository.getById(maMT);
+            if (!tonTai) {
+                throw createError("Khong tim thay phieu muon", 404);
+            }
         }
 
         try {
-            return await MuonTraRepository.returnBooks(maMT, ngayTra, chiTietTra, employeeId);
+            return await MuonTraRepository.returnBooks(
+                maMT,
+                ngayTra,
+                chiTietTra,
+                employeeId,
+                connection
+            );
         } catch (error) {
             throw createError(error.message, getBusinessStatusCode(error.message));
         }

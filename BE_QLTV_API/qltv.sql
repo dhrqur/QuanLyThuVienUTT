@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS `docgia` (
   `DiaChi` varchar(100) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `Email` varchar(50) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `Sdt` varchar(13) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `Pass` varchar(255) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   PRIMARY KEY (`MaDG`),
   UNIQUE KEY `uq_docgia_email` (`Email`),
   UNIQUE KEY `uq_docgia_sdt` (`Sdt`),
@@ -92,33 +93,35 @@ CREATE TABLE IF NOT EXISTS `docgia` (
   CONSTRAINT `fk_docgia_lop_khoa` FOREIGN KEY (`MaLop`, `MaKhoa`) REFERENCES `lop` (`MaLop`, `MaKhoa`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
--- Dumping data for table dbqltv.docgia: ~7 rows (approximately)
-INSERT INTO `docgia` (`MaDG`, `MaKhoa`, `MaLop`, `TenDG`, `NamSinh`, `GioiTinh`, `DiaChi`, `Email`, `Sdt`) VALUES
-	('DG001', 'KH001', 'L004', 'Ngọc Bích', '2005', 'Nữ', 'Hà Nội', 'nb@gmail.com', '0393916176'),
-	('DG002', 'KH001', 'L001', 'Nguyễn Ngọc Bích', '2004', 'Nữ', 'Hà Nội', 'bichnn02@gmail.com', '0393916177'),
-	('DG003', 'KH001', 'L001', 'Nguyễn Ngọc Linh', '2004', 'Nữ', 'Hà Nội', 'linhnn05@gmail.com', '0367123456'),
-	('DG004', 'KH001', 'L002', 'Lưu Đức Anh Dũng', '2003', 'Nam', 'Hà Nội', 'dunglda06@gmail.com', '0356123456'),
-	('DG005', 'KH001', 'L003', 'Đinh Hoàng Đức', '2003', 'Nam', 'Hà Nội', 'ducdh07@gmail.com', '0345123456'),
-	('DG006', 'KH001', 'L001', 'Nguyễn Nam Khánh', '2003', 'Nam', 'Hà Nội', 'khanhnn08@gmail.com', '0334123456'),
-	('DG007', 'KH001', 'L005', 'Phạm Minh Quân', '2005', 'Nam', 'Bắc Ninh', 'quan.pm@utt.edu.vn', '0945088052'),
-	('DG008', 'KH002', 'L022', 'Trần Quốc Bảo', '2004', 'Nam', 'Hải Dương', 'bao.tq@utt.edu.vn', '0912345608'),
-	('DG009', 'KH002', 'L024', 'Đỗ Anh Tuấn', '2005', 'Nam', 'Nam Định', 'tuan.da@utt.edu.vn', '0912345609'),
-	('DG010', 'KH003', 'L026', 'Vũ Khánh Ly', '2005', 'Nữ', 'Hà Nội', 'ly.vk@utt.edu.vn', '0912345610'),
-	('DG011', 'KH003', 'L027', 'Lê Thu Trang', '2004', 'Nữ', 'Thái Bình', 'trang.lt@utt.edu.vn', '0912345611'),
-	('DG012', 'KH004', 'L018', 'Nguyễn Đức Thành', '2004', 'Nam', 'Ninh Bình', 'thanh.nd@utt.edu.vn', '0912345612'),
-	('DG013', 'KH004', 'L020', 'Bùi Minh Châu', '2005', 'Nữ', 'Thanh Hóa', 'chau.bm@utt.edu.vn', '0912345613'),
-	('DG014', 'KH005', 'L014', 'Phan Hoàng Long', '2004', 'Nam', 'Hưng Yên', 'long.ph@utt.edu.vn', '0912345614'),
-	('DG015', 'KH005', 'L016', 'Đặng Ngọc Mai', '2005', 'Nữ', 'Hà Nam', 'mai.dn@utt.edu.vn', '0912345615'),
-	('DG016', 'KH006', 'L034', 'Hoàng Gia Huy', '2004', 'Nam', 'Vĩnh Phúc', 'huy.hg@utt.edu.vn', '0912345616'),
-	('DG017', 'KH006', 'L036', 'Ngô Phương Thảo', '2005', 'Nữ', 'Phú Thọ', 'thao.np@utt.edu.vn', '0912345617'),
-	('DG018', 'KH008', 'L030', 'Đinh Tiến Dũng', '2004', 'Nam', 'Hải Phòng', 'dung.dt@utt.edu.vn', '0912345618'),
-	('DG019', 'KH008', 'L032', 'Trịnh Hà My', '2005', 'Nữ', 'Quảng Ninh', 'my.th@utt.edu.vn', '0912345619'),
-	('DG020', 'KH001', 'L007', 'Mai Trung Kiên', '2005', 'Nam', 'Hà Nội', 'kien.mt@utt.edu.vn', '0912345620'),
-	('DG021', 'KH001', 'L010', 'Chu Quỳnh Anh', '2004', 'Nữ', 'Bắc Giang', 'anh.cq@utt.edu.vn', '0912345621'),
-	('DG022', 'KH002', 'L025', 'Tạ Văn Nam', '2005', 'Nam', 'Thái Nguyên', 'nam.tv@utt.edu.vn', '0912345622'),
-	('DG023', 'KH003', 'L028', 'Dương Bảo Ngọc', '2004', 'Nữ', 'Lào Cai', 'ngoc.db@utt.edu.vn', '0912345623'),
-	('DG024', 'KH004', 'L021', 'Đào Công Minh', '2005', 'Nam', 'Nghệ An', 'minh.dc@utt.edu.vn', '0912345624'),
-	('DG025', 'KH006', 'L037', 'Lý Thanh Hằng', '2005', 'Nữ', 'Hà Tĩnh', 'hang.lt@utt.edu.vn', '0912345625');
+-- Dumping data for table dbqltv.docgia: ~25 rows (approximately)
+-- Bcrypt hash for the temporary password 123456. The portal requires a change after login.
+SET @docgia_default_password_hash = '$2b$12$c8X6s8oK/Sf3gZivONAY3u3izOCykdfr2sVaQobK2YwYQIuY9wx2i';
+INSERT INTO `docgia` (`MaDG`, `MaKhoa`, `MaLop`, `TenDG`, `NamSinh`, `GioiTinh`, `DiaChi`, `Email`, `Sdt`, `Pass`) VALUES
+	('DG001', 'KH001', 'L004', 'Ngọc Bích', '2005', 'Nữ', 'Hà Nội', 'nb@gmail.com', '0393916176', @docgia_default_password_hash),
+	('DG002', 'KH001', 'L001', 'Nguyễn Ngọc Bích', '2004', 'Nữ', 'Hà Nội', 'bichnn02@gmail.com', '0393916177', @docgia_default_password_hash),
+	('DG003', 'KH001', 'L001', 'Nguyễn Ngọc Linh', '2004', 'Nữ', 'Hà Nội', 'linhnn05@gmail.com', '0367123456', @docgia_default_password_hash),
+	('DG004', 'KH001', 'L002', 'Lưu Đức Anh Dũng', '2003', 'Nam', 'Hà Nội', 'dunglda06@gmail.com', '0356123456', @docgia_default_password_hash),
+	('DG005', 'KH001', 'L003', 'Đinh Hoàng Đức', '2003', 'Nam', 'Hà Nội', 'ducdh07@gmail.com', '0345123456', @docgia_default_password_hash),
+	('DG006', 'KH001', 'L001', 'Nguyễn Nam Khánh', '2003', 'Nam', 'Hà Nội', 'khanhnn08@gmail.com', '0334123456', @docgia_default_password_hash),
+	('DG007', 'KH001', 'L005', 'Phạm Minh Quân', '2005', 'Nam', 'Bắc Ninh', 'quan.pm@utt.edu.vn', '0945088052', @docgia_default_password_hash),
+	('DG008', 'KH002', 'L022', 'Trần Quốc Bảo', '2004', 'Nam', 'Hải Dương', 'bao.tq@utt.edu.vn', '0912345608', @docgia_default_password_hash),
+	('DG009', 'KH002', 'L024', 'Đỗ Anh Tuấn', '2005', 'Nam', 'Nam Định', 'tuan.da@utt.edu.vn', '0912345609', @docgia_default_password_hash),
+	('DG010', 'KH003', 'L026', 'Vũ Khánh Ly', '2005', 'Nữ', 'Hà Nội', 'ly.vk@utt.edu.vn', '0912345610', @docgia_default_password_hash),
+	('DG011', 'KH003', 'L027', 'Lê Thu Trang', '2004', 'Nữ', 'Thái Bình', 'trang.lt@utt.edu.vn', '0912345611', @docgia_default_password_hash),
+	('DG012', 'KH004', 'L018', 'Nguyễn Đức Thành', '2004', 'Nam', 'Ninh Bình', 'thanh.nd@utt.edu.vn', '0912345612', @docgia_default_password_hash),
+	('DG013', 'KH004', 'L020', 'Bùi Minh Châu', '2005', 'Nữ', 'Thanh Hóa', 'chau.bm@utt.edu.vn', '0912345613', @docgia_default_password_hash),
+	('DG014', 'KH005', 'L014', 'Phan Hoàng Long', '2004', 'Nam', 'Hưng Yên', 'long.ph@utt.edu.vn', '0912345614', @docgia_default_password_hash),
+	('DG015', 'KH005', 'L016', 'Đặng Ngọc Mai', '2005', 'Nữ', 'Hà Nam', 'mai.dn@utt.edu.vn', '0912345615', @docgia_default_password_hash),
+	('DG016', 'KH006', 'L034', 'Hoàng Gia Huy', '2004', 'Nam', 'Vĩnh Phúc', 'huy.hg@utt.edu.vn', '0912345616', @docgia_default_password_hash),
+	('DG017', 'KH006', 'L036', 'Ngô Phương Thảo', '2005', 'Nữ', 'Phú Thọ', 'thao.np@utt.edu.vn', '0912345617', @docgia_default_password_hash),
+	('DG018', 'KH008', 'L030', 'Đinh Tiến Dũng', '2004', 'Nam', 'Hải Phòng', 'dung.dt@utt.edu.vn', '0912345618', @docgia_default_password_hash),
+	('DG019', 'KH008', 'L032', 'Trịnh Hà My', '2005', 'Nữ', 'Quảng Ninh', 'my.th@utt.edu.vn', '0912345619', @docgia_default_password_hash),
+	('DG020', 'KH001', 'L007', 'Mai Trung Kiên', '2005', 'Nam', 'Hà Nội', 'kien.mt@utt.edu.vn', '0912345620', @docgia_default_password_hash),
+	('DG021', 'KH001', 'L010', 'Chu Quỳnh Anh', '2004', 'Nữ', 'Bắc Giang', 'anh.cq@utt.edu.vn', '0912345621', @docgia_default_password_hash),
+	('DG022', 'KH002', 'L025', 'Tạ Văn Nam', '2005', 'Nam', 'Thái Nguyên', 'nam.tv@utt.edu.vn', '0912345622', @docgia_default_password_hash),
+	('DG023', 'KH003', 'L028', 'Dương Bảo Ngọc', '2004', 'Nữ', 'Lào Cai', 'ngoc.db@utt.edu.vn', '0912345623', @docgia_default_password_hash),
+	('DG024', 'KH004', 'L021', 'Đào Công Minh', '2005', 'Nam', 'Nghệ An', 'minh.dc@utt.edu.vn', '0912345624', @docgia_default_password_hash),
+	('DG025', 'KH006', 'L037', 'Lý Thanh Hằng', '2005', 'Nữ', 'Hà Tĩnh', 'hang.lt@utt.edu.vn', '0912345625', @docgia_default_password_hash);
 
 -- Dumping structure for table dbqltv.kesach
 CREATE TABLE IF NOT EXISTS `kesach` (
@@ -602,6 +605,38 @@ INSERT INTO `quydinhthuvien`
   (`MaQD`, `PhiQuaHanMoiNgay`, `PhiHuHongMoiBan`, `PhiLamMatMoiBan`)
 VALUES (1, 2000, 50000, 200000)
 ON DUPLICATE KEY UPDATE `MaQD` = VALUES(`MaQD`);
+
+-- Yêu cầu mượn/trả do độc giả gửi và thủ thư xử lý.
+CREATE TABLE IF NOT EXISTS `yeucaumuontra` (
+  `MaYC` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `LoaiYeuCau` enum('MUON','TRA') COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `MaDG` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `MaMT` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `TrangThai` enum('CHO_DUYET','DA_DUYET','TU_CHOI','DA_HUY') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'CHO_DUYET',
+  `LyDoTuChoi` varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `NgayYeuCau` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `NgayXuLy` datetime DEFAULT NULL,
+  `MaNVXuLy` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  PRIMARY KEY (`MaYC`),
+  KEY `idx_yeucau_docgia_trangthai` (`MaDG`, `TrangThai`),
+  KEY `idx_yeucau_loai_trangthai` (`LoaiYeuCau`, `TrangThai`),
+  KEY `idx_yeucau_mamt` (`MaMT`),
+  CONSTRAINT `fk_yeucau_docgia` FOREIGN KEY (`MaDG`) REFERENCES `docgia` (`MaDG`),
+  CONSTRAINT `fk_yeucau_muontra` FOREIGN KEY (`MaMT`) REFERENCES `muontra` (`MaMT`),
+  CONSTRAINT `fk_yeucau_nhanvien` FOREIGN KEY (`MaNVXuLy`) REFERENCES `nhanvien` (`MaNV`),
+  CONSTRAINT `chk_yeucau_tra_phieumuon` CHECK (`LoaiYeuCau` = 'MUON' OR `MaMT` IS NOT NULL)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+
+CREATE TABLE IF NOT EXISTS `chitietyeucaumuon` (
+  `MaYC` bigint unsigned NOT NULL,
+  `MaSach` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `SoLuong` int NOT NULL,
+  PRIMARY KEY (`MaYC`, `MaSach`),
+  KEY `idx_chitietyeucau_sach` (`MaSach`),
+  CONSTRAINT `fk_chitietyeucau_yeucau` FOREIGN KEY (`MaYC`) REFERENCES `yeucaumuontra` (`MaYC`) ON DELETE CASCADE,
+  CONSTRAINT `fk_chitietyeucau_sach` FOREIGN KEY (`MaSach`) REFERENCES `sach` (`MaSach`),
+  CONSTRAINT `chk_chitietyeucau_soluong` CHECK (`SoLuong` > 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 -- Đồng bộ các trạng thái phụ thuộc thời gian sau khi nạp dữ liệu mẫu.
 UPDATE `muontra`

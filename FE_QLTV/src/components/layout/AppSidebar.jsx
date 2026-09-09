@@ -8,6 +8,7 @@ import {
   CreditCard,
   GraduationCap,
   History,
+  Inbox,
   Languages,
   LayoutDashboard,
   Library,
@@ -49,6 +50,7 @@ const navGroups = [
   {
     label: "Nghiệp vụ",
     items: [
+      { label: "Yêu cầu độc giả", href: "/yeu-cau-doc-gia", icon: Inbox },
       { label: "Mượn trả", href: "/muon-tra", icon: ClipboardList },
       { label: "Xử lý vi phạm", href: "/xu-ly-vi-pham", icon: ShieldAlert },
       { label: "Quy định thư viện", href: "/quy-dinh-thu-vien", icon: Settings2, managerOnly: true },

@@ -124,4 +124,26 @@ export const api = {
       await apiClient.put(`/muontra/${encodeURIComponent(maMT)}/tra-sach`, data),
     );
   },
+
+  async getReaderRequests(params = {}) {
+    return unwrap(await apiClient.get("/yeucaudocgia", { params }));
+  },
+
+  async approveReaderBorrowRequest(maYC, data) {
+    return unwrap(
+      await apiClient.put(`/yeucaudocgia/${encodeURIComponent(maYC)}/duyet-muon`, data),
+    );
+  },
+
+  async approveReaderReturnRequest(maYC, data) {
+    return unwrap(
+      await apiClient.put(`/yeucaudocgia/${encodeURIComponent(maYC)}/duyet-tra`, data),
+    );
+  },
+
+  async rejectReaderRequest(maYC, data) {
+    return unwrap(
+      await apiClient.put(`/yeucaudocgia/${encodeURIComponent(maYC)}/tu-choi`, data),
+    );
+  },
 };

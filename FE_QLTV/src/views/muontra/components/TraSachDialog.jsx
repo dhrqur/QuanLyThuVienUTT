@@ -20,7 +20,15 @@ import { formatCurrency } from "@/utils/numberUtils";
 import { getOverdueDays } from "@/views/muontra/muonTraUtils";
 import { getApiErrorMessage } from "@/lib/api";
 
-function TraSachDialog({ books, details, onReturned, row, rules }) {
+function TraSachDialog({
+  books,
+  details,
+  onReturned,
+  row,
+  rules,
+  successTitle = "Trả sách thành công",
+  triggerLabel = "Trả sách",
+}) {
   const canReturn = !row.NgayTra;
   const [open, setOpen] = useState(false);
   const [returnDate, setReturnDate] = useState(getLocalDateValue);
@@ -45,7 +53,7 @@ function TraSachDialog({ books, details, onReturned, row, rules }) {
       <DialogTrigger asChild>
         <Button className="border-emerald-200 bg-emerald-50 px-1.5 text-emerald-700" size="xs" variant="outline">
           <RotateCcw className="size-3" />
-          Trả sách
+          {triggerLabel}
         </Button>
       </DialogTrigger>
       <DialogContent className="p-0 sm:max-w-3xl" onOpenAutoFocus={(event) => event.preventDefault()}>
@@ -123,7 +131,7 @@ function TraSachDialog({ books, details, onReturned, row, rules }) {
                   })),
                 });
                 setOpen(false);
-                toast.success("Trả sách thành công", {
+                toast.success(successTitle, {
                   description: totalFine > 0
                     ? `Đã thu ${formatCurrency(totalFine)} và cập nhật xử lý vi phạm cho phiếu ${row.MaMT}.`
                     : `Phiếu ${row.MaMT} đã được cập nhật, không phát sinh tiền phạt.`,

@@ -74,6 +74,11 @@ const BADGE_DEFINITIONS = {
     className: "border-slate-200 bg-slate-50 text-slate-700",
     aliases: ["da huy", "huy", "cancelled", "canceled"],
   },
+  rejected: {
+    label: "Từ chối",
+    className: "border-rose-200 bg-rose-50 text-rose-700",
+    aliases: ["tu choi", "rejected"],
+  },
   unpaid: {
     label: "Chưa thu",
     className: "border-amber-200 bg-amber-50 text-amber-700",

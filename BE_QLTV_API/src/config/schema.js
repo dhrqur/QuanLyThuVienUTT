@@ -4,6 +4,46 @@ async function ensureRuntimeSchema() {
     await ensureLibraryRulesTable();
     await ensureViolationsTable();
     await ensureAuditLogTable();
+    await ensureReaderRequestTables();
+}
+
+async function ensureReaderRequestTables() {
+    await db.query(`
+        CREATE TABLE IF NOT EXISTS yeucaumuontra (
+            MaYC bigint unsigned NOT NULL AUTO_INCREMENT,
+            LoaiYeuCau enum('MUON','TRA') COLLATE utf8mb4_unicode_520_ci NOT NULL,
+            MaDG varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+            MaMT varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+            TrangThai enum('CHO_DUYET','DA_DUYET','TU_CHOI','DA_HUY')
+                COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'CHO_DUYET',
+            LyDoTuChoi varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+            NgayYeuCau datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            NgayXuLy datetime DEFAULT NULL,
+            MaNVXuLy varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+            PRIMARY KEY (MaYC),
+            KEY idx_yeucau_docgia_trangthai (MaDG, TrangThai),
+            KEY idx_yeucau_loai_trangthai (LoaiYeuCau, TrangThai),
+            KEY idx_yeucau_mamt (MaMT),
+            CONSTRAINT fk_yeucau_docgia FOREIGN KEY (MaDG) REFERENCES docgia (MaDG),
+            CONSTRAINT fk_yeucau_muontra FOREIGN KEY (MaMT) REFERENCES muontra (MaMT),
+            CONSTRAINT fk_yeucau_nhanvien FOREIGN KEY (MaNVXuLy) REFERENCES nhanvien (MaNV),
+            CONSTRAINT chk_yeucau_tra_phieumuon CHECK (LoaiYeuCau = 'MUON' OR MaMT IS NOT NULL)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci
+    `);
+
+    await db.query(`
+        CREATE TABLE IF NOT EXISTS chitietyeucaumuon (
+            MaYC bigint unsigned NOT NULL,
+            MaSach varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+            SoLuong int NOT NULL,
+            PRIMARY KEY (MaYC, MaSach),
+            KEY idx_chitietyeucau_sach (MaSach),
+            CONSTRAINT fk_chitietyeucau_yeucau
+                FOREIGN KEY (MaYC) REFERENCES yeucaumuontra (MaYC) ON DELETE CASCADE,
+            CONSTRAINT fk_chitietyeucau_sach FOREIGN KEY (MaSach) REFERENCES sach (MaSach),
+            CONSTRAINT chk_chitietyeucau_soluong CHECK (SoLuong > 0)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci
+    `);
 }
 
 async function ensureLibraryRulesTable() {
@@ -135,4 +175,4 @@ async function removeLegacyAuditColumns() {
     await db.query(`ALTER TABLE nhatkyhethong ${columnsToDrop}`);
 }
 
-module.exports = { ensureRuntimeSchema };
+module.exports = { ensureReaderRequestTables, ensureRuntimeSchema };

@@ -18,19 +18,38 @@ const thongke = require("./routes/thongke.routes");
 const xulyvipham = require("./routes/xulyvipham.routes");
 const quydinhthuvien = require("./routes/quydinhthuvien.routes");
 const nhatkyhethong = require("./routes/nhatkyhethong.routes");
+const docgiaAuth = require("./routes/docgia-auth.routes");
+const docgiaPortal = require("./routes/docgia-portal.routes");
+const yeuCauDocGia = require("./routes/yeucaudocgia.routes");
 const { auditActivity } = require("./middlewares/audit.middleware");
 const {
     authenticate,
     requireLibraryStaff,
-    requireManager
+    requireManager,
+    requirePasswordChanged,
+    requireReader
 } = require("./middlewares/auth.middleware");
 const cors = require("cors");
 
 const app = express();
 const swaggerSpec = require("./config/swagger");
 
+app.disable("x-powered-by");
+app.use((req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("Referrer-Policy", "no-referrer");
+    if (process.env.NODE_ENV === "production") {
+        res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+    }
+    next();
+});
+
 const allowedOrigins = new Set([
     "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
     "https://quan-ly-thu-vien-utt.vercel.app",
     ...(process.env.CLIENT_URL || "")
         .split(",")
@@ -48,12 +67,20 @@ app.use(cors({
 
         return callback(new Error(`Origin ${origin} is not allowed by CORS`));
     },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Authorization", "Content-Type", "ngrok-skip-browser-warning"]
 }));
 app.use(express.json());
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api/nhanvien", nhanvien);
+app.use("/api/docgia-auth", docgiaAuth);
+app.use(
+    "/api/docgia-portal",
+    authenticate,
+    requireReader,
+    requirePasswordChanged,
+    docgiaPortal
+);
 app.use("/api", authenticate, requireLibraryStaff, auditActivity);
 app.use("/api/sach", sach);
 app.use("/api/theloai", theloai);
@@ -68,6 +95,7 @@ app.use("/api/thethuvien", thethuvien);
 app.use("/api/muontra", muontra);
 app.use("/api/xulyvipham", xulyvipham);
 app.use("/api/quydinhthuvien", quydinhthuvien);
+app.use("/api/yeucaudocgia", yeuCauDocGia);
 app.use("/api/thongke", requireManager, thongke);
 app.use("/api/nhatkyhethong", requireManager, nhatkyhethong);
 

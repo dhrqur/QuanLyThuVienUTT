@@ -228,11 +228,12 @@ class MuonTraRepository {
         }
     }
 
-    async returnBooks(maMT, ngayTra, chiTietTra = [], employeeId) {
-        const connection = await db.getConnection();
+    async returnBooks(maMT, ngayTra, chiTietTra = [], employeeId, existingConnection = null) {
+        const connection = existingConnection || await db.getConnection();
+        const ownsConnection = !existingConnection;
 
         try {
-            await connection.beginTransaction();
+            if (ownsConnection) await connection.beginTransaction();
 
             const current = await this.#getMuonTraForUpdate(connection, maMT);
 
@@ -314,13 +315,16 @@ class MuonTraRepository {
                 [ngayTra, "Đã trả", maMT]
             );
 
-            await connection.commit();
-            return await this.getById(maMT);
+            if (ownsConnection) {
+                await connection.commit();
+                return await this.getById(maMT);
+            }
+            return true;
         } catch (error) {
-            await connection.rollback();
+            if (ownsConnection) await connection.rollback();
             throw error;
         } finally {
-            connection.release();
+            if (ownsConnection) connection.release();
         }
     }
 
