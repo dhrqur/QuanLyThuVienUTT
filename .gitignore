@@ -19,3 +19,10 @@ FE_QLTV/dist/
 YEU_CAU_CHUC_NANG_DAY_DU.docx
 YEU_CAU_CHUC_NANG_DAY_DU_A4_DE_CHINH_SUA.docx
 YEU_CAU_CHUC_NANG_DAY_DU_A4_DOC.docx
+
+# Planning and non-runtime text documents
+/tasks/*.md
+/SPEC-reader-*.md
+/CAPABILITY-MAP-reader-portal.md
+/README.md
+/README-COPY-ME.md
