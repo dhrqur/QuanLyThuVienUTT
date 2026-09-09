@@ -8,23 +8,41 @@ import ReaderLayout from "@/components/layout/ReaderLayout";
 import { errorMessage, readerApi } from "@/lib/api";
 import { formatDateTime } from "@/utils/format";
 
+function getRequestFilters(status) {
+  return status ? { trangThai: status } : {};
+}
+
 export default function RequestsPage() {
   const [status, setStatus] = useState("");
   const [requests, setRequests] = useState(null);
   const [error, setError] = useState("");
-  const load = useCallback(async () => {
-    try { setError(""); setRequests(await readerApi.requests(status ? { trangThai: status } : {})); }
-    catch (requestError) { setError(errorMessage(requestError)); }
+  const loadRequests = useCallback(async () => {
+    try {
+      setError("");
+      setRequests(await readerApi.requests(getRequestFilters(status)));
+    } catch (requestError) {
+      setError(errorMessage(requestError));
+    }
   }, [status]);
-  useEffect(() => { const timer = setTimeout(() => void load(), 0); return () => clearTimeout(timer); }, [load]);
 
-  async function cancel(id) {
+  useEffect(() => {
+    const timer = setTimeout(() => void loadRequests(), 0);
+    return () => clearTimeout(timer);
+  }, [loadRequests]);
+
+  async function cancelRequest(id) {
     if (!window.confirm("Bạn chắc chắn muốn hủy yêu cầu này?")) return;
-    try { await readerApi.cancelRequest(id); toast.success("Đã hủy yêu cầu"); await load(); }
-    catch (requestError) { toast.error(errorMessage(requestError, "Không thể hủy yêu cầu.")); }
+
+    try {
+      await readerApi.cancelRequest(id);
+      toast.success("Đã hủy yêu cầu");
+      await loadRequests();
+    } catch (requestError) {
+      toast.error(errorMessage(requestError, "Không thể hủy yêu cầu."));
+    }
   }
 
-  return <ReaderLayout><div className="space-y-6"><header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="text-sm font-bold text-accent">THEO DÕI</p><h1 className="mt-1 text-2xl font-black text-brand sm:text-3xl">Yêu cầu của tôi</h1><p className="mt-1 text-sm text-slate-500">Theo dõi quá trình thủ thư xử lý yêu cầu mượn và trả sách.</p></div><label><span className="sr-only">Lọc trạng thái</span><select className="field min-w-44" onChange={(event) => setStatus(event.target.value)} value={status}><option value="">Tất cả trạng thái</option><option value="CHO_DUYET">Chờ duyệt</option><option value="DA_DUYET">Đã duyệt</option><option value="TU_CHOI">Từ chối</option><option value="DA_HUY">Đã hủy</option></select></label></header>{!requests && !error ? <LoadingState /> : error ? <ErrorState message={error} retry={load} /> : requests.length ? <div className="space-y-4">{requests.map((request) => <RequestCard cancel={cancel} key={request.MaYC} request={request} />)}</div> : <EmptyState message="Các yêu cầu mượn hoặc trả sách sẽ xuất hiện tại đây." />}</div></ReaderLayout>;
+  return <ReaderLayout><div className="space-y-6"><header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="text-sm font-bold text-accent">THEO DÕI</p><h1 className="mt-1 text-2xl font-black text-brand sm:text-3xl">Yêu cầu của tôi</h1><p className="mt-1 text-sm text-slate-500">Theo dõi quá trình thủ thư xử lý yêu cầu mượn và trả sách.</p></div><label><span className="sr-only">Lọc trạng thái</span><select className="field min-w-44" onChange={(event) => setStatus(event.target.value)} value={status}><option value="">Tất cả trạng thái</option><option value="CHO_DUYET">Chờ duyệt</option><option value="DA_DUYET">Đã duyệt</option><option value="TU_CHOI">Từ chối</option><option value="DA_HUY">Đã hủy</option></select></label></header>{!requests && !error ? <LoadingState /> : error ? <ErrorState message={error} retry={loadRequests} /> : requests.length ? <div className="space-y-4">{requests.map((request) => <RequestCard cancel={cancelRequest} key={request.MaYC} request={request} />)}</div> : <EmptyState message="Các yêu cầu mượn hoặc trả sách sẽ xuất hiện tại đây." />}</div></ReaderLayout>;
 }
 
 function RequestCard({ cancel, request }) {

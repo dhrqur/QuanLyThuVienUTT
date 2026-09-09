@@ -8,26 +8,51 @@ import { errorMessage, readerApi } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/utils/format";
 import { getLoanAlert } from "@/utils/loanStatus";
 
+function getReturnRequestFilters() {
+  return { trangThai: "CHO_DUYET", loaiYeuCau: "TRA" };
+}
+
+async function loadLoanPageData() {
+  const [loans, violations, returnRequests] = await Promise.all([
+    readerApi.loans(),
+    readerApi.violations(),
+    readerApi.requests(getReturnRequestFilters()),
+  ]);
+
+  return { loans, violations, returnRequests };
+}
+
 export default function LoansPage() {
   const [tab, setTab] = useState("loans");
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
-  const load = useCallback(async () => {
+  const loadLoans = useCallback(async () => {
     try {
       setError("");
-      const [loans, violations, requests] = await Promise.all([readerApi.loans(), readerApi.violations(), readerApi.requests({ trangThai: "CHO_DUYET", loaiYeuCau: "TRA" })]);
-      setData({ loans, violations, returnRequests: requests });
-    } catch (requestError) { setError(errorMessage(requestError)); }
+      setData(await loadLoanPageData());
+    } catch (requestError) {
+      setError(errorMessage(requestError));
+    }
   }, []);
-  useEffect(() => { const timer = setTimeout(() => void load(), 0); return () => clearTimeout(timer); }, [load]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => void loadLoans(), 0);
+    return () => clearTimeout(timer);
+  }, [loadLoans]);
 
   const pendingLoanIds = useMemo(() => new Set(data?.returnRequests.map((item) => item.MaMT) || []), [data]);
+
   async function requestReturn(loanId) {
-    try { await readerApi.createRequest({ LoaiYeuCau: "TRA", MaMT: loanId }); toast.success("Đã gửi yêu cầu trả sách"); await load(); }
-    catch (requestError) { toast.error(errorMessage(requestError, "Không thể gửi yêu cầu trả sách.")); }
+    try {
+      await readerApi.createRequest({ LoaiYeuCau: "TRA", MaMT: loanId });
+      toast.success("Đã gửi yêu cầu trả sách");
+      await loadLoans();
+    } catch (requestError) {
+      toast.error(errorMessage(requestError, "Không thể gửi yêu cầu trả sách."));
+    }
   }
 
-  return <ReaderLayout><div className="space-y-6"><header><p className="text-sm font-bold text-accent">LỊCH SỬ</p><h1 className="mt-1 text-2xl font-black text-brand sm:text-3xl">Mượn trả & quá hạn</h1><p className="mt-1 text-sm text-slate-500">Theo dõi hạn trả, tiền phạt dự kiến và các vi phạm đã ghi nhận.</p></header><div className="flex gap-2 border-b border-slate-200" role="tablist"><Tab active={tab === "loans"} label="Phiếu mượn" onClick={() => setTab("loans")} /><Tab active={tab === "violations"} label="Vi phạm & tiền phạt" onClick={() => setTab("violations")} /></div>{!data && !error ? <LoadingState /> : error ? <ErrorState message={error} retry={load} /> : tab === "loans" ? <LoanList loans={data.loans} pendingLoanIds={pendingLoanIds} requestReturn={requestReturn} /> : <ViolationList violations={data.violations} />}</div></ReaderLayout>;
+  return <ReaderLayout><div className="space-y-6"><header><p className="text-sm font-bold text-accent">LỊCH SỬ</p><h1 className="mt-1 text-2xl font-black text-brand sm:text-3xl">Mượn trả & quá hạn</h1><p className="mt-1 text-sm text-slate-500">Theo dõi hạn trả, tiền phạt dự kiến và các vi phạm đã ghi nhận.</p></header><div className="flex gap-2 border-b border-slate-200" role="tablist"><Tab active={tab === "loans"} label="Phiếu mượn" onClick={() => setTab("loans")} /><Tab active={tab === "violations"} label="Vi phạm & tiền phạt" onClick={() => setTab("violations")} /></div>{!data && !error ? <LoadingState /> : error ? <ErrorState message={error} retry={loadLoans} /> : tab === "loans" ? <LoanList loans={data.loans} pendingLoanIds={pendingLoanIds} requestReturn={requestReturn} /> : <ViolationList violations={data.violations} />}</div></ReaderLayout>;
 }
 
 function Tab({ active, label, onClick }) {
