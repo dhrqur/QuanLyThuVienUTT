@@ -1,13 +1,12 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
-const { buildLoanIdFromRequest } = require("../src/models/repositories/yeucaumuontra.repository");
+const { buildNextLoanId } = require("../src/models/repositories/yeucaumuontra.repository");
 const {
     validateCreateRequest,
     validateRejectRequest,
     validateRequestList
 } = require("../src/middlewares/yeucaumuontra.middleware");
-const { YeuCauMuonTraService } = require("../src/services/yeucaumuontra.service");
 
 function createResponse() {
     return {
@@ -24,9 +23,10 @@ function createResponse() {
     };
 }
 
-test("borrow request loan id is deterministic and fits the existing key", () => {
-    assert.equal(buildLoanIdFromRequest(42), "MTY0000042");
-    assert.throws(() => buildLoanIdFromRequest(10000000), /không hợp lệ/i);
+test("borrow request loan id continues the existing MT sequence", () => {
+    assert.equal(buildNextLoanId([]), "MT001");
+    assert.equal(buildNextLoanId(["MT001", "MT025", "MTY0000042"]), "MT026");
+    assert.equal(buildNextLoanId(["MT998", "MT999"]), "MT1000");
 });
 
 test("borrow request rejects duplicated books", () => {
@@ -63,11 +63,11 @@ test("borrow request limits the number of distinct books", () => {
     assert.equal(res.statusCode, 400);
 });
 
-test("return request requires a loan id and does not accept reader identity", () => {
-    const req = { body: { LoaiYeuCau: "TRA", MaDG: "DG002" } };
+test("return request is rejected", () => {
+    const req = { body: { LoaiYeuCau: "TRA", MaMT: "MT001" } };
     const res = createResponse();
 
-    validateCreateRequest(req, res, () => assert.fail("must reject identity input"));
+    validateCreateRequest(req, res, () => assert.fail("must reject return requests"));
 
     assert.equal(res.statusCode, 400);
 });
@@ -82,7 +82,7 @@ test("rejection requires a meaningful reason", () => {
 });
 
 test("request filters are normalized without mutating Express query", () => {
-    const query = Object.freeze({ trangThai: "cho_duyet", loaiYeuCau: "tra" });
+    const query = Object.freeze({ trangThai: "cho_duyet" });
     const req = { query };
     const res = createResponse();
 
@@ -91,42 +91,6 @@ test("request filters are normalized without mutating Express query", () => {
     assert.equal(req.query, query);
     assert.deepEqual(req.requestFilters, {
         trangThai: "CHO_DUYET",
-        loaiYeuCau: "TRA",
         keyword: ""
     });
-});
-
-test("return approval uses the linked loan and one shared transaction", async () => {
-    const calls = [];
-    const transaction = { id: "transaction" };
-    const request = {
-        MaYC: 9,
-        MaDG: "DG001",
-        MaMT: "MT001",
-        LoaiYeuCau: "TRA",
-        TrangThai: "CHO_DUYET"
-    };
-    const repository = {
-        async processReturn(requestId, employeeId, returnLoan) {
-            calls.push(["process", requestId, employeeId]);
-            await returnLoan(request, transaction);
-            return { ...request, TrangThai: "DA_DUYET" };
-        }
-    };
-    const loanService = {
-        async returnBooks(loanId, returnDate, details, employeeId, connection) {
-            calls.push(["return", loanId, returnDate, details, employeeId, connection]);
-        }
-    };
-    const service = new YeuCauMuonTraService(repository, loanService);
-
-    await service.approveReturn(9, {
-        NgayTra: "2026-09-09",
-        ChiTietTra: []
-    }, "NV001");
-
-    assert.deepEqual(calls, [
-        ["process", 9, "NV001"],
-        ["return", "MT001", "2026-09-09", [], "NV001", transaction]
-    ]);
 });

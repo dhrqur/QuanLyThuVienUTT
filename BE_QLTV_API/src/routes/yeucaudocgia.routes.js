@@ -1,7 +1,6 @@
 const express = require("express");
 
 const controller = require("../controllers/yeucaumuontra.controller");
-const { validateTraSach } = require("../middlewares/muontra.middleware");
 const {
     validateApproveBorrow,
     validateRejectRequest,
@@ -19,12 +18,6 @@ router.put(
     controller.approveBorrow.bind(controller)
 );
 router.put(
-    "/:maYC/duyet-tra",
-    validateRequestId,
-    validateTraSach,
-    controller.approveReturn.bind(controller)
-);
-router.put(
     "/:maYC/tu-choi",
     validateRequestId,
     validateRejectRequest,
@@ -32,4 +25,3 @@ router.put(
 );
 
 module.exports = router;
-

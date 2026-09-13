@@ -1,11 +1,14 @@
 const db = require("../../config/db");
 
-function buildLoanIdFromRequest(requestId) {
-    const numericId = Number(requestId);
-    if (!Number.isInteger(numericId) || numericId < 1 || numericId > 9999999) {
-        throw new Error("Mã yêu cầu không hợp lệ để tạo phiếu mượn");
-    }
-    return `MTY${String(numericId).padStart(7, "0")}`;
+function buildNextLoanId(loanIds) {
+    const highestNumber = loanIds.reduce((highest, loanId) => {
+        const match = /^MT(\d+)$/.exec(String(loanId));
+        if (!match) return highest;
+
+        return Math.max(highest, Number(match[1]));
+    }, 0);
+
+    return `MT${String(highestNumber + 1).padStart(3, "0")}`;
 }
 
 class YeuCauMuonTraRepository {
@@ -38,10 +41,7 @@ class YeuCauMuonTraRepository {
             params.push(filters.trangThai);
         }
 
-        if (filters.loaiYeuCau) {
-            conditions.push("yc.LoaiYeuCau = ?");
-            params.push(filters.loaiYeuCau);
-        }
+        conditions.push("yc.LoaiYeuCau = 'MUON'");
 
         if (filters.keyword) {
             const keyword = `%${filters.keyword}%`;
@@ -76,23 +76,15 @@ class YeuCauMuonTraRepository {
             await connection.beginTransaction();
             await this.#assertReaderExists(connection, readerId);
 
-            let loanId = null;
-            if (data.LoaiYeuCau === "MUON") {
-                await this.#assertReaderCanRequestBorrow(connection, readerId);
-                await this.#assertBooksAvailable(connection, data.ChiTiet);
-            } else {
-                loanId = String(data.MaMT).trim();
-                await this.#assertLoanCanBeReturned(connection, readerId, loanId);
-            }
+            await this.#assertReaderCanRequestBorrow(connection, readerId);
+            await this.#assertBooksAvailable(connection, data.ChiTiet);
 
             const [result] = await connection.query(`
                 INSERT INTO yeucaumuontra (LoaiYeuCau, MaDG, MaMT)
-                VALUES (?, ?, ?)
-            `, [data.LoaiYeuCau, readerId, loanId]);
+                VALUES ('MUON', ?, NULL)
+            `, [readerId]);
 
-            if (data.LoaiYeuCau === "MUON") {
-                await this.#insertBorrowRequestDetails(connection, result.insertId, data.ChiTiet);
-            }
+            await this.#insertBorrowRequestDetails(connection, result.insertId, data.ChiTiet);
 
             await connection.commit();
             return await this.getById(result.insertId);
@@ -109,7 +101,7 @@ class YeuCauMuonTraRepository {
         try {
             await connection.beginTransaction();
             const request = await this.#getForUpdate(connection, requestId);
-            if (!request || String(request.MaDG) !== String(readerId)) {
+            if (!request || request.LoaiYeuCau !== "MUON" || String(request.MaDG) !== String(readerId)) {
                 throw new Error("Không tìm thấy yêu cầu");
             }
             if (request.TrangThai !== "CHO_DUYET") {
@@ -137,7 +129,7 @@ class YeuCauMuonTraRepository {
             await this.#assertEmployeeExists(connection, employeeId);
             await this.#assertReaderCanRequestBorrow(connection, request.MaDG, requestId);
             const details = await this.#getBorrowRequestDetails(connection, requestId);
-            const loanId = buildLoanIdFromRequest(requestId);
+            const loanId = await this.#getNextLoanId(connection);
             await this.#assertBorrowBooksAvailable(connection, details);
             await this.#createLoanFromRequest(connection, {
                 loanId,
@@ -163,7 +155,7 @@ class YeuCauMuonTraRepository {
         try {
             await connection.beginTransaction();
             const request = await this.#getForUpdate(connection, requestId);
-            if (!request) throw new Error("Không tìm thấy yêu cầu");
+            if (!request || request.LoaiYeuCau !== "MUON") throw new Error("Không tìm thấy yêu cầu");
             if (request.TrangThai !== "CHO_DUYET") throw new Error("Yêu cầu đã được xử lý");
             await this.#assertEmployeeExists(connection, employeeId);
             await connection.query(`
@@ -171,24 +163,6 @@ class YeuCauMuonTraRepository {
                 SET TrangThai = 'TU_CHOI', LyDoTuChoi = ?, NgayXuLy = NOW(), MaNVXuLy = ?
                 WHERE MaYC = ?
             `, [reason, employeeId, requestId]);
-            await connection.commit();
-            return await this.getById(requestId);
-        } catch (error) {
-            await connection.rollback();
-            throw error;
-        } finally {
-            connection.release();
-        }
-    }
-
-    async processReturn(requestId, employeeId, returnLoan) {
-        const connection = await db.getConnection();
-        try {
-            await connection.beginTransaction();
-            const request = await this.#getReturnRequestForApproval(connection, requestId);
-            await this.#assertEmployeeExists(connection, employeeId);
-            await returnLoan(request, connection);
-            await this.#approveReturnRequest(connection, requestId, employeeId);
             await connection.commit();
             return await this.getById(requestId);
         } catch (error) {
@@ -229,6 +203,13 @@ class YeuCauMuonTraRepository {
         }
 
         return details;
+    }
+
+    async #getNextLoanId(connection) {
+        const [loans] = await connection.query(
+            "SELECT MaMT FROM muontra WHERE MaMT REGEXP '^MT[0-9]+$' FOR UPDATE"
+        );
+        return buildNextLoanId(loans.map((loan) => loan.MaMT));
     }
 
     async #assertBorrowBooksAvailable(connection, details) {
@@ -272,24 +253,6 @@ class YeuCauMuonTraRepository {
             SET MaMT = ?, TrangThai = 'DA_DUYET', NgayXuLy = NOW(), MaNVXuLy = ?
             WHERE MaYC = ?
         `, [loanId, employeeId, requestId]);
-    }
-
-    async #getReturnRequestForApproval(connection, requestId) {
-        const request = await this.#getForUpdate(connection, requestId);
-
-        if (!request) throw new Error("Không tìm thấy yêu cầu");
-        if (request.LoaiYeuCau !== "TRA") throw new Error("Đây không phải yêu cầu trả sách");
-        if (request.TrangThai !== "CHO_DUYET") throw new Error("Yêu cầu đã được xử lý");
-
-        return request;
-    }
-
-    async #approveReturnRequest(connection, requestId, employeeId) {
-        await connection.query(`
-            UPDATE yeucaumuontra
-            SET TrangThai = 'DA_DUYET', NgayXuLy = NOW(), MaNVXuLy = ?
-            WHERE MaYC = ?
-        `, [employeeId, requestId]);
     }
 
     async #getForUpdate(connection, requestId) {
@@ -348,24 +311,8 @@ class YeuCauMuonTraRepository {
         }
     }
 
-    async #assertLoanCanBeReturned(connection, readerId, loanId) {
-        const [loans] = await connection.query(
-            "SELECT MaMT FROM muontra WHERE MaMT = ? AND MaDG = ? AND NgayTra IS NULL FOR UPDATE",
-            [loanId, readerId]
-        );
-        if (!loans[0]) throw new Error("Không tìm thấy phiếu mượn đang mở của độc giả");
-        const [requests] = await connection.query(`
-            SELECT MaYC FROM yeucaumuontra
-            WHERE MaMT = ? AND LoaiYeuCau = 'TRA' AND TrangThai = 'CHO_DUYET'
-            LIMIT 1 FOR UPDATE
-        `, [loanId]);
-        if (requests[0]) throw new Error("Phiếu mượn đã có yêu cầu trả đang chờ duyệt");
-    }
-
     async #attachDetails(requests) {
-        const borrowIds = requests
-            .filter((request) => request.LoaiYeuCau === "MUON")
-            .map((request) => request.MaYC);
+        const borrowIds = requests.map((request) => request.MaYC);
         if (!borrowIds.length) return requests.map((request) => ({ ...request, ChiTiet: [] }));
         const [details] = await db.query(`
             SELECT ct.MaYC, ct.MaSach, s.TenSach, ct.SoLuong
@@ -388,4 +335,4 @@ class YeuCauMuonTraRepository {
 }
 
 module.exports = new YeuCauMuonTraRepository();
-module.exports.buildLoanIdFromRequest = buildLoanIdFromRequest;
+module.exports.buildNextLoanId = buildNextLoanId;
