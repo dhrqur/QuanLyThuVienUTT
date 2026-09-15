@@ -135,6 +135,7 @@ export const api = {
     );
   },
 
+<<<<<<< HEAD
   async confirmReaderPickup(maYC, data) {
     return unwrap(
       await apiClient.put(`/yeucaudocgia/${encodeURIComponent(maYC)}/da-lay`, data),
@@ -147,6 +148,8 @@ export const api = {
     );
   },
 
+=======
+>>>>>>> origin/main
   async rejectReaderRequest(maYC, data) {
     return unwrap(
       await apiClient.put(`/yeucaudocgia/${encodeURIComponent(maYC)}/tu-choi`, data),

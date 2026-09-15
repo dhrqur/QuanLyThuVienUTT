@@ -50,10 +50,7 @@ function DashboardView() {
   const selectedMonthLabel = formatMonth(selectedMonth);
 
   const timeline = useMemo(() => buildMonthTimeline(selectedMonth, dashboard.hoatDongTheoNgay), [dashboard.hoatDongTheoNgay, selectedMonth]);
-  const timelineTotals = useMemo(() => timeline.reduce((totals, item) => ({
-    loans: totals.loans + item.loans,
-    returns: totals.returns + item.returns,
-  }), { loans: 0, returns: 0 }), [timeline]);
+  const timelineTotals = useMemo(() => getTimelineTotals(timeline), [timeline]);
   const kpis = [
     { icon: BookCopy, label: "Kho sách", value: totalCopies, unit: "bản", note: `${formatNumber(tongQuan.TongDauSach)} đầu sách trong danh mục`, tone: "blue" },
     { icon: RotateCcw, label: "Đang lưu thông", value: circulatingCopies, unit: "bản", note: `${formatNumber(tongQuan.PhieuChuaHoanTat)} phiếu chưa hoàn tất · Vòng quay ${formatPercent(rotationRate)}`, tone: "orange", trend: getTrend(xuHuong.MuonKyNay, xuHuong.MuonKyTruoc) },
@@ -340,19 +337,62 @@ function buildMonthTimeline(monthKey, rows) {
   });
 }
 
-function getTrend(currentValue, previousValue) {
-  const current = number(currentValue); const previous = number(previousValue);
-  if (current === previous) return null;
-  const change = previous ? Math.round(Math.abs((current - previous) / previous) * 100) : 100;
-  return { direction: current > previous ? "up" : "down", label: `${change}%`, title: "So với tháng liền trước" };
+function getTimelineTotals(timeline) {
+  return timeline.reduce(
+    (totals, item) => ({
+      loans: totals.loans + item.loans,
+      returns: totals.returns + item.returns,
+    }),
+    { loans: 0, returns: 0 },
+  );
 }
 
-function getInitials(name) { const words = String(name ?? "DG").trim().split(/\s+/); return words.slice(-2).map((word) => word.charAt(0).toUpperCase()).join(""); }
-function getMonthKey(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`; }
-function formatMonth(value) { const [year, month] = value.split("-"); return `Tháng ${Number(month)}/${year}`; }
-function formatLongDate(date) { return new Intl.DateTimeFormat("vi-VN", { weekday: "long", day: "2-digit", month: "long", year: "numeric" }).format(date); }
+function getTrend(currentValue, previousValue) {
+  const current = number(currentValue);
+  const previous = number(previousValue);
+  if (current === previous) return null;
+
+  const change = previous ? Math.round(Math.abs((current - previous) / previous) * 100) : 100;
+  return {
+    direction: current > previous ? "up" : "down",
+    label: `${change}%`,
+    title: "So với tháng liền trước",
+  };
+}
+
+function getInitials(name) {
+  const words = String(name ?? "DG").trim().split(/\s+/);
+  return words.slice(-2).map((word) => word.charAt(0).toUpperCase()).join("");
+}
+
+function getMonthKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function formatMonth(value) {
+  const [year, month] = value.split("-");
+  return `Tháng ${Number(month)}/${year}`;
+}
+
+function formatLongDate(date) {
+  return new Intl.DateTimeFormat("vi-VN", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
 const number = toNumber;
-function percent(value, total) { return total ? value / total * 100 : 0; }
-function formatPercent(value) { return `${new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 1 }).format(number(value))}%`; }
+
+function percent(value, total) {
+  return total ? value / total * 100 : 0;
+}
+
+function formatPercent(value) {
+  return `${new Intl.NumberFormat("vi-VN", {
+    maximumFractionDigits: 1,
+  }).format(number(value))}%`;
+}
 
 export default DashboardView;

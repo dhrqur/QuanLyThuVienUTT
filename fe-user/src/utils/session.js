@@ -9,12 +9,12 @@ export function getSession() {
   }
 }
 
-export function saveSession(data) {
+export function saveSession(loginResponse) {
   const session = {
-    id: data.user.MaDG,
-    name: data.user.TenDG,
-    token: data.token,
-    mustChangePassword: Boolean(data.mustChangePassword),
+    id: loginResponse.user.MaDG,
+    name: loginResponse.user.TenDG,
+    token: loginResponse.token,
+    mustChangePassword: Boolean(loginResponse.mustChangePassword),
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
   return session;

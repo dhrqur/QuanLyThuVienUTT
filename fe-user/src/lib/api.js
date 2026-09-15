@@ -4,8 +4,9 @@ import { clearSession, getSession } from "@/utils/session";
 
 const localOrigin = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:3000";
 const publicOrigin = import.meta.env.VITE_PUBLIC_API_URL || "https://quanlythuvienutt.onrender.com";
-const isLocal = typeof window !== "undefined" && ["localhost", "127.0.0.1"].includes(window.location.hostname);
-const apiOrigin = import.meta.env.VITE_API_URL || (isLocal ? localOrigin : publicOrigin);
+const isLocalBrowser = typeof window !== "undefined"
+  && ["localhost", "127.0.0.1"].includes(window.location.hostname);
+const apiOrigin = import.meta.env.VITE_API_URL || (isLocalBrowser ? localOrigin : publicOrigin);
 
 const client = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || `${apiOrigin.replace(/\/+$/, "")}/api`,
@@ -33,7 +34,7 @@ client.interceptors.response.use(
   },
 );
 
-function data(response) {
+function getResponseData(response) {
   return response.data?.data;
 }
 
@@ -42,15 +43,37 @@ export function errorMessage(error, fallback = "Không thể kết nối máy ch
 }
 
 export const readerApi = {
-  async login(MaDG, Pass) { return data(await client.post("/docgia-auth/dang-nhap", { MaDG, Pass })); },
-  async changePassword(payload) { return data(await client.put("/docgia-auth/doi-mat-khau", payload)); },
-  async dashboard() { return data(await client.get("/docgia-portal/tong-quan")); },
-  async profile() { return data(await client.get("/docgia-portal/tai-khoan")); },
-  async updateProfile(payload) { return data(await client.patch("/docgia-portal/tai-khoan", payload)); },
-  async catalog(params) { return data(await client.get("/docgia-portal/sach", { params })); },
-  async loans() { return data(await client.get("/docgia-portal/muon-tra")); },
-  async violations() { return data(await client.get("/docgia-portal/vi-pham")); },
-  async requests(params = {}) { return data(await client.get("/docgia-portal/yeu-cau", { params })); },
-  async createRequest(payload) { return data(await client.post("/docgia-portal/yeu-cau", payload)); },
-  async cancelRequest(maYC) { return data(await client.delete(`/docgia-portal/yeu-cau/${encodeURIComponent(maYC)}`)); },
+  async login(MaDG, Pass) {
+    return getResponseData(await client.post("/docgia-auth/dang-nhap", { MaDG, Pass }));
+  },
+  async changePassword(payload) {
+    return getResponseData(await client.put("/docgia-auth/doi-mat-khau", payload));
+  },
+  async dashboard() {
+    return getResponseData(await client.get("/docgia-portal/tong-quan"));
+  },
+  async profile() {
+    return getResponseData(await client.get("/docgia-portal/tai-khoan"));
+  },
+  async updateProfile(payload) {
+    return getResponseData(await client.patch("/docgia-portal/tai-khoan", payload));
+  },
+  async catalog(params) {
+    return getResponseData(await client.get("/docgia-portal/sach", { params }));
+  },
+  async loans() {
+    return getResponseData(await client.get("/docgia-portal/muon-tra"));
+  },
+  async violations() {
+    return getResponseData(await client.get("/docgia-portal/vi-pham"));
+  },
+  async requests(params = {}) {
+    return getResponseData(await client.get("/docgia-portal/yeu-cau", { params }));
+  },
+  async createRequest(payload) {
+    return getResponseData(await client.post("/docgia-portal/yeu-cau", payload));
+  },
+  async cancelRequest(maYC) {
+    return getResponseData(await client.delete(`/docgia-portal/yeu-cau/${encodeURIComponent(maYC)}`));
+  },
 };

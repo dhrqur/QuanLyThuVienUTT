@@ -31,41 +31,28 @@ function validateBorrowDetails(details, res) {
 }
 
 function validateCreateRequest(req, res, next) {
-    if (hasUnexpectedFields(req.body, ["LoaiYeuCau", "MaMT", "ChiTiet"])) {
+    if (hasUnexpectedFields(req.body, ["LoaiYeuCau", "ChiTiet"])) {
         return res.status(400).json({ message: "Dữ liệu yêu cầu có trường không hợp lệ" });
     }
 
     const type = trimText(req.body.LoaiYeuCau).toUpperCase();
-    if (!['MUON', 'TRA'].includes(type)) {
-        return res.status(400).json({ message: "Loại yêu cầu không hợp lệ" });
-    }
+    if (type !== "MUON") return res.status(400).json({ message: "Chỉ hỗ trợ yêu cầu mượn sách" });
 
-    if (type === "MUON") {
-        if (!isEmpty(req.body.MaMT)) {
-            return res.status(400).json({ message: "Yêu cầu mượn không được gửi mã phiếu" });
-        }
-        const error = validateBorrowDetails(req.body.ChiTiet, res);
-        if (error) return error;
-    } else if (isEmpty(req.body.MaMT) || req.body.ChiTiet !== undefined) {
-        return res.status(400).json({ message: "Yêu cầu trả phải có đúng mã phiếu mượn" });
-    }
+    const error = validateBorrowDetails(req.body.ChiTiet, res);
+    if (error) return error;
 
     req.body.LoaiYeuCau = type;
     next();
 }
 
 function validateRequestList(req, res, next) {
-    if (hasUnexpectedFields(req.query, ["trangThai", "loaiYeuCau", "keyword"])) {
+    if (hasUnexpectedFields(req.query, ["trangThai", "keyword"])) {
         return res.status(400).json({ message: "Bộ lọc yêu cầu có trường không hợp lệ" });
     }
 
     const status = trimText(req.query.trangThai).toUpperCase();
-    const type = trimText(req.query.loaiYeuCau).toUpperCase();
     if (status && !["CHO_DUYET", "DA_DUYET", "DA_LAY", "TU_CHOI", "DA_HUY"].includes(status)) {
         return res.status(400).json({ message: "Trạng thái yêu cầu không hợp lệ" });
-    }
-    if (type && !["MUON", "TRA"].includes(type)) {
-        return res.status(400).json({ message: "Loại yêu cầu không hợp lệ" });
     }
     if (trimText(req.query.keyword).length > 100) {
         return res.status(400).json({ message: "Từ khóa không được vượt quá 100 ký tự" });
@@ -73,7 +60,6 @@ function validateRequestList(req, res, next) {
 
     req.requestFilters = {
         trangThai: status,
-        loaiYeuCau: type,
         keyword: trimText(req.query.keyword)
     };
     next();

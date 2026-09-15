@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Inbox, RefreshCw, Search } from "lucide-react";
 import { toast } from "sonner";
 
@@ -8,20 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api, getApiErrorMessage } from "@/lib/api";
 import { formatDisplayDate } from "@/utils/dateUtils";
-import TraSachDialog from "@/views/muontra/components/TraSachDialog";
 import {
   ApproveBorrowDialog,
   RejectRequestDialog,
 } from "@/views/yeucaudocgia/components/RequestActionDialogs";
 
-const EMPTY_RULES = { PhiQuaHanMoiNgay: 0, PhiHuHongMoiBan: 0, PhiLamMatMoiBan: 0 };
-
 function YeuCauDocGiaView() {
   const [requests, setRequests] = useState([]);
-  const [loans, setLoans] = useState([]);
-  const [books, setBooks] = useState([]);
-  const [rules, setRules] = useState(EMPTY_RULES);
-  const [filters, setFilters] = useState({ trangThai: "CHO_DUYET", loaiYeuCau: "", keyword: "" });
+  const [filters, setFilters] = useState({ trangThai: "CHO_DUYET", keyword: "" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -29,17 +23,8 @@ function YeuCauDocGiaView() {
     setLoading(true);
     setError("");
     try {
-      const params = Object.fromEntries(Object.entries(filters).filter(([, value]) => value));
-      const [requestResponse, loanResponse, bookResponse, ruleResponse] = await Promise.all([
-        api.getReaderRequests(params),
-        api.getAll("muontra"),
-        api.getAll("sach"),
-        api.getLibraryRules(),
-      ]);
-      setRequests(requestResponse.data ?? []);
-      setLoans(loanResponse.data ?? []);
-      setBooks(bookResponse.data ?? []);
-      setRules(ruleResponse.data ?? EMPTY_RULES);
+      const data = await loadRequestPageData(filters);
+      setRequests(data.requests);
     } catch (loadError) {
       setError(getApiErrorMessage(loadError));
     } finally {
@@ -51,11 +36,6 @@ function YeuCauDocGiaView() {
     const loadTimer = window.setTimeout(() => { void loadData(); }, 0);
     return () => window.clearTimeout(loadTimer);
   }, [loadData]);
-
-  const loansById = useMemo(
-    () => Object.fromEntries(loans.map((loan) => [loan.MaMT, loan])),
-    [loans],
-  );
 
   async function perform(action, successMessage) {
     try {
@@ -81,23 +61,17 @@ function YeuCauDocGiaView() {
           </Button>
         </header>
 
-        <div className="mt-5 grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_180px_180px]">
+        <div className="mt-5 grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_180px]">
           <label className="relative">
             <span className="sr-only">Tìm yêu cầu</span>
             <Search className="absolute left-3 top-3 size-4 text-slate-400" />
             <Input
               className="h-10 bg-white pl-9"
               onChange={(event) => setFilters((current) => ({ ...current, keyword: event.target.value }))}
-              placeholder="Tìm mã yêu cầu, độc giả, phiếu mượn..."
+              placeholder="Tìm mã yêu cầu hoặc độc giả..."
               value={filters.keyword}
             />
           </label>
-          <FilterSelect
-            label="Loại yêu cầu"
-            onChange={(value) => setFilters((current) => ({ ...current, loaiYeuCau: value }))}
-            options={[['', 'Tất cả loại'], ['MUON', 'Mượn sách'], ['TRA', 'Trả sách']]}
-            value={filters.loaiYeuCau}
-          />
           <FilterSelect
             label="Trạng thái"
             onChange={(value) => setFilters((current) => ({ ...current, trangThai: value }))}
@@ -115,14 +89,7 @@ function YeuCauDocGiaView() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {requests.map((request) => (
-                    <RequestRow
-                      books={books}
-                      key={request.MaYC}
-                      loan={loansById[request.MaMT]}
-                      onAction={perform}
-                      request={request}
-                      rules={rules}
-                    />
+                    <RequestRow key={request.MaYC} onAction={perform} request={request} />
                   ))}
                 </tbody>
               </table>
@@ -134,26 +101,45 @@ function YeuCauDocGiaView() {
   );
 }
 
-function RequestRow({ books, loan, onAction, request, rules }) {
+function RequestRow({ onAction, request }) {
   const pending = request.TrangThai === "CHO_DUYET";
-  const description = request.LoaiYeuCau === "MUON"
-    ? request.ChiTiet.map((item) => `${item.TenSach || item.MaSach} × ${item.SoLuong}`).join(", ")
-    : `Trả phiếu ${request.MaMT}`;
+  const description = getRequestDescription(request);
   return (
     <tr className="align-top">
-      <td className="px-4 py-3"><strong>#{request.MaYC}</strong><p className="mt-1 text-xs text-slate-500">{request.LoaiYeuCau === "MUON" ? "Mượn sách" : "Trả sách"}</p></td>
+      <td className="px-4 py-3"><strong>#{request.MaYC}</strong><p className="mt-1 text-xs text-slate-500">Mượn sách</p></td>
       <td className="px-4 py-3"><strong>{request.TenDG}</strong><p className="mt-1 text-xs text-slate-500">{request.MaDG}</p></td>
       <td className="max-w-sm px-4 py-3 text-slate-600"><p className="line-clamp-2" title={description}>{description}</p>{request.LyDoTuChoi && <p className="mt-1 text-xs text-rose-600">{request.LyDoTuChoi}</p>}</td>
       <td className="px-4 py-3 text-slate-600">{formatDisplayDate(request.NgayYeuCau)}</td>
       <td className="px-4 py-3"><StatusBadge status={request.TrangThai} /></td>
       <td className="px-4 py-3"><div className="flex justify-end gap-2">
+<<<<<<< HEAD
         {pending && request.LoaiYeuCau === "MUON" && <ApproveBorrowDialog onApprove={(data) => onAction(() => api.approveReaderBorrowRequest(request.MaYC, data), "Đã duyệt yêu cầu mượn")} request={request} />}
         {request.TrangThai === "DA_DUYET" && request.LoaiYeuCau === "MUON" && <ApproveBorrowDialog pickup onApprove={(data) => onAction(() => api.confirmReaderPickup(request.MaYC, data), "Đã xác nhận độc giả lấy sách")} request={request} />}
         {pending && request.LoaiYeuCau === "TRA" && loan && <TraSachDialog books={books} details={loan.ChiTiet ?? []} onReturned={(data) => onAction(() => api.approveReaderReturnRequest(request.MaYC, data), "Đã duyệt yêu cầu trả")} row={loan} rules={rules} successTitle="Duyệt trả sách thành công" triggerLabel="Duyệt trả" />}
+=======
+        {pending && <ApproveBorrowDialog onApprove={(data) => onAction(() => api.approveReaderBorrowRequest(request.MaYC, data), "Đã duyệt yêu cầu mượn")} request={request} />}
+>>>>>>> origin/main
         {pending && <RejectRequestDialog onReject={(data) => onAction(() => api.rejectReaderRequest(request.MaYC, data), "Đã từ chối yêu cầu")} request={request} />}
       </div></td>
     </tr>
   );
+}
+
+async function loadRequestPageData(filters) {
+  const params = Object.fromEntries(
+    Object.entries(filters).filter(([, value]) => value),
+  );
+  const requestResponse = await api.getReaderRequests(params);
+
+  return {
+    requests: requestResponse.data ?? [],
+  };
+}
+
+function getRequestDescription(request) {
+  return request.ChiTiet
+    .map((item) => `${item.TenSach || item.MaSach} × ${item.SoLuong}`)
+    .join(", ");
 }
 
 function FilterSelect({ label, onChange, options, value }) {

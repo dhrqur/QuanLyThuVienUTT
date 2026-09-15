@@ -88,7 +88,6 @@ class DocGiaAuthService {
 }
 
 module.exports = new DocGiaAuthService();
-module.exports.BCRYPT_ROUNDS = BCRYPT_ROUNDS;
 module.exports.DEFAULT_READER_PASSWORD = DEFAULT_READER_PASSWORD;
 module.exports.DocGiaAuthService = DocGiaAuthService;
 module.exports.hashReaderPassword = hashReaderPassword;

@@ -11,13 +11,21 @@ import { getLoanAlert } from "@/utils/loanStatus";
 export default function DashboardPage() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
-  const load = useCallback(async () => {
-    try { setError(""); setData(await readerApi.dashboard()); }
-    catch (requestError) { setError(errorMessage(requestError)); }
+  const loadDashboard = useCallback(async () => {
+    try {
+      setError("");
+      setData(await readerApi.dashboard());
+    } catch (requestError) {
+      setError(errorMessage(requestError));
+    }
   }, []);
-  useEffect(() => { const timer = setTimeout(() => void load(), 0); return () => clearTimeout(timer); }, [load]);
 
-  return <ReaderLayout>{!data && !error ? <LoadingState /> : error ? <ErrorState message={error} retry={load} /> : <Dashboard data={data} />}</ReaderLayout>;
+  useEffect(() => {
+    const timer = setTimeout(() => void loadDashboard(), 0);
+    return () => clearTimeout(timer);
+  }, [loadDashboard]);
+
+  return <ReaderLayout>{!data && !error ? <LoadingState /> : error ? <ErrorState message={error} retry={loadDashboard} /> : <Dashboard data={data} />}</ReaderLayout>;
 }
 
 function Dashboard({ data }) {

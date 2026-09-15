@@ -21,175 +21,132 @@ function useCurrentBorrowDate(req, res, next) {
     next();
 }
 
-function validateChiTiet(chiTiet, res) {
+function sendValidationError(res, message) {
+    return res.status(400).json({ message });
+}
+
+function validateBorrowDetails(chiTiet, res) {
     if (!Array.isArray(chiTiet) || chiTiet.length === 0) {
-        return res.status(400).json({
-            message: "Vui long nhap danh sach sach muon"
-        });
+        return sendValidationError(res, "Vui long nhap danh sach sach muon");
     }
 
-    const duplicated = new Set();
+    const duplicatedBookIds = new Set();
 
-    for (const item of chiTiet) {
-        if (!item || isEmpty(item.MaSach) || isEmpty(item.SoLuong)) {
-            return res.status(400).json({
-                message: "Chi tiet muon tra phai co MaSach va SoLuong"
-            });
+    for (const detail of chiTiet) {
+        if (!detail || isEmpty(detail.MaSach) || isEmpty(detail.SoLuong)) {
+            return sendValidationError(res, "Chi tiet muon tra phai co MaSach va SoLuong");
         }
 
-        if (String(item.MaSach).trim().length > 10) {
-            return res.status(400).json({
-                message: "Ma sach khong duoc vuot qua 10 ky tu"
-            });
+        if (String(detail.MaSach).trim().length > 10) {
+            return sendValidationError(res, "Ma sach khong duoc vuot qua 10 ky tu");
         }
 
-        if (duplicated.has(item.MaSach)) {
-            return res.status(400).json({
-                message: "Khong duoc nhap trung sach trong cung mot phieu muon"
-            });
+        if (duplicatedBookIds.has(detail.MaSach)) {
+            return sendValidationError(res, "Khong duoc nhap trung sach trong cung mot phieu muon");
         }
 
-        duplicated.add(item.MaSach);
+        duplicatedBookIds.add(detail.MaSach);
 
-        if (isNaN(item.SoLuong) || Number(item.SoLuong) <= 0 || Number(item.SoLuong) % 1 !== 0) {
-            return res.status(400).json({
-                message: "So luong sach muon khong hop le"
-            });
+        if (isNaN(detail.SoLuong) || Number(detail.SoLuong) <= 0 || Number(detail.SoLuong) % 1 !== 0) {
+            return sendValidationError(res, "So luong sach muon khong hop le");
         }
     }
 
     return null;
 }
 
+function getLoanHeaderError(loan) {
+    if (isEmpty(loan.MaMT) || isEmpty(loan.MaDG) || isEmpty(loan.MaNV) || isEmpty(loan.HanTra)) {
+        return "Vui long nhap day du thong tin phieu muon";
+    }
+
+    if (String(loan.MaMT).trim().length > 10) return "Ma phieu muon khong duoc vuot qua 10 ky tu";
+    if (String(loan.MaDG).trim().length > 10) return "Ma doc gia khong duoc vuot qua 10 ky tu";
+    if (String(loan.MaNV).trim().length > 10) return "Ma nhan vien khong duoc vuot qua 10 ky tu";
+    if (isNaN(Date.parse(loan.NgayMuon))) return "Ngay muon khong hop le";
+    if (isNaN(Date.parse(loan.HanTra))) return "Han tra khong hop le";
+    if (String(loan.NgayMuon).slice(0, 10) > getCurrentDate()) return "Ngay muon khong duoc lon hon ngay hien tai";
+    if (String(loan.HanTra).slice(0, 10) <= String(loan.NgayMuon).slice(0, 10)) return "Han tra phai lon hon ngay muon";
+    if (!isEmpty(loan.TrangThai) && String(loan.TrangThai).trim().length > 20) return "Trang thai khong duoc vuot qua 20 ky tu";
+
+    return null;
+}
+
 function validateMuonTra(req, res, next) {
     if (hasUnexpectedFields(req.body, allowedMuonTraFields)) {
-        return res.status(400).json({
-            message: "Du lieu phieu muon co truong khong hop le"
-        });
+        return sendValidationError(res, "Du lieu phieu muon co truong khong hop le");
     }
 
     if (isEmpty(req.body.NgayMuon)) {
         req.body.NgayMuon = getCurrentDate();
     }
 
-    const {
-        MaMT,
-        MaDG,
-        MaNV,
-        NgayMuon,
-        HanTra,
-        TrangThai,
-        ChiTiet
-    } = req.body;
+    const headerError = getLoanHeaderError(req.body);
 
-    if (
-        isEmpty(MaMT) ||
-        isEmpty(MaDG) ||
-        isEmpty(MaNV) ||
-        isEmpty(HanTra)
-    ) {
-        return res.status(400).json({
-            message: "Vui long nhap day du thong tin phieu muon"
-        });
+    if (headerError) {
+        return sendValidationError(res, headerError);
     }
 
-    if (String(MaMT).trim().length > 10) {
-        return res.status(400).json({
-            message: "Ma phieu muon khong duoc vuot qua 10 ky tu"
-        });
-    }
+    const detailError = validateBorrowDetails(req.body.ChiTiet, res);
 
-    if (String(MaDG).trim().length > 10) {
-        return res.status(400).json({
-            message: "Ma doc gia khong duoc vuot qua 10 ky tu"
-        });
-    }
-
-    if (String(MaNV).trim().length > 10) {
-        return res.status(400).json({
-            message: "Ma nhan vien khong duoc vuot qua 10 ky tu"
-        });
-    }
-
-    if (isNaN(Date.parse(NgayMuon))) {
-        return res.status(400).json({
-            message: "Ngay muon khong hop le"
-        });
-    }
-
-    if (isNaN(Date.parse(HanTra))) {
-        return res.status(400).json({
-            message: "Han tra khong hop le"
-        });
-    }
-
-    if (String(NgayMuon).slice(0, 10) > getCurrentDate()) {
-        return res.status(400).json({
-            message: "Ngay muon khong duoc lon hon ngay hien tai"
-        });
-    }
-
-    if (String(HanTra).slice(0, 10) <= String(NgayMuon).slice(0, 10)) {
-        return res.status(400).json({
-            message: "Han tra phai lon hon ngay muon"
-        });
-    }
-
-    if (!isEmpty(TrangThai) && String(TrangThai).trim().length > 20) {
-        return res.status(400).json({
-            message: "Trang thai khong duoc vuot qua 20 ky tu"
-        });
-    }
-
-    const chiTietError = validateChiTiet(ChiTiet, res);
-
-    if (chiTietError) {
-        return chiTietError;
+    if (detailError) {
+        return detailError;
     }
 
     next();
 }
 
 function validateSearchMuonTra(req, res, next) {
-    const { keyword } = req.query;
-
-    if (isEmpty(keyword)) {
-        return res.status(400).json({
-            message: "Vui long nhap tu khoa tim kiem phieu muon"
-        });
+    if (isEmpty(req.query.keyword)) {
+        return sendValidationError(res, "Vui long nhap tu khoa tim kiem phieu muon");
     }
 
     next();
+}
+
+function validateReturnDetails(details, res) {
+    if (!Array.isArray(details)) {
+        return sendValidationError(res, "Chi tiet tra sach khong hop le");
+    }
+
+    for (const detail of details) {
+        if (hasUnexpectedFields(detail, ["MaSach", "SoLuongHong", "SoLuongMat", "MoTa"])) {
+            return sendValidationError(res, "Chi tiet tra sach co truong khong hop le");
+        }
+
+        const quantities = [detail.SoLuongHong, detail.SoLuongMat];
+
+        if (isEmpty(detail.MaSach) || quantities.some((value) => !Number.isFinite(Number(value)) || Number(value) < 0)) {
+            return sendValidationError(res, "So luong hoac tien phat khong hop le");
+        }
+
+        if (!quantities.every(Number.isInteger)) {
+            return sendValidationError(res, "So luong sach vi pham phai la so nguyen");
+        }
+    }
+
+    return null;
 }
 
 function validateTraSach(req, res, next) {
     const { NgayTra, ChiTietTra = [] } = req.body;
 
     if (hasUnexpectedFields(req.body, ["NgayTra", "ChiTietTra"])) {
-        return res.status(400).json({
-            message: "Du lieu tra sach co truong khong hop le"
-        });
+        return sendValidationError(res, "Du lieu tra sach co truong khong hop le");
     }
 
     if (isEmpty(NgayTra) || isNaN(Date.parse(NgayTra))) {
-        return res.status(400).json({
-            message: "Ngay tra khong hop le"
-        });
+        return sendValidationError(res, "Ngay tra khong hop le");
     }
-
 
     if (String(NgayTra).slice(0, 10) > getCurrentDate()) {
-        return res.status(400).json({
-            message: "Ngay tra khong duoc lon hon ngay hien tai"
-        });
+        return sendValidationError(res, "Ngay tra khong duoc lon hon ngay hien tai");
     }
 
-    if (!Array.isArray(ChiTietTra)) return res.status(400).json({ message: "Chi tiet tra sach khong hop le" });
-    for (const item of ChiTietTra) {
-        if (hasUnexpectedFields(item, ["MaSach", "SoLuongHong", "SoLuongMat", "MoTa"])) return res.status(400).json({ message: "Chi tiet tra sach co truong khong hop le" });
-        const values = [item.SoLuongHong, item.SoLuongMat];
-        if (isEmpty(item.MaSach) || values.some((value) => !Number.isFinite(Number(value)) || Number(value) < 0)) return res.status(400).json({ message: "So luong hoac tien phat khong hop le" });
-        if (![item.SoLuongHong, item.SoLuongMat].every(Number.isInteger)) return res.status(400).json({ message: "So luong sach vi pham phai la so nguyen" });
+    const detailError = validateReturnDetails(ChiTietTra, res);
+
+    if (detailError) {
+        return detailError;
     }
 
     next();

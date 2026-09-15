@@ -55,16 +55,6 @@ class YeuCauMuonTraController {
             return handleError(res, error);
         }
     }
-
-    async approveReturn(req, res) {
-        try {
-            const data = await service.approveReturn(req.params.maYC, req.body, req.user.id);
-            return res.status(200).json({ message: "Duyệt yêu cầu trả thành công", data });
-        } catch (error) {
-            return handleError(res, error);
-        }
-    }
-
     async reject(req, res) {
         try {
             const data = await service.reject(

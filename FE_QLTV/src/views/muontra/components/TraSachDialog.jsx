@@ -33,8 +33,7 @@ function TraSachDialog({
   const [open, setOpen] = useState(false);
   const [returnDate, setReturnDate] = useState(getLocalDateValue);
   const [conditions, setConditions] = useState({});
-  const totalFine = getOverdueDays(row.HanTra, returnDate) * Number(rules.PhiQuaHanMoiNgay)
-    + getConditionFine(conditions, rules);
+  const totalFine = getTotalFine({ conditions, dueDate: row.HanTra, returnDate, rules });
 
   function updateCondition(bookId, key, value) {
     setConditions((current) => ({
@@ -116,20 +115,9 @@ function TraSachDialog({
             className="bg-emerald-600 font-bold"
             onClick={async () => {
               try {
-                const invalid = details.find((detail) => {
-                  const condition = conditions[detail.MaSach] ?? {};
-                  return Number(condition.SoLuongHong || 0) + Number(condition.SoLuongMat || 0) > Number(detail.SoLuong);
-                });
+                const invalid = findInvalidReturnDetail(details, conditions);
                 if (invalid) throw new Error(`Tổng số sách hỏng và mất của ${invalid.MaSach} vượt quá số đã mượn.`);
-                await onReturned({
-                  NgayTra: returnDate,
-                  ChiTietTra: details.map((detail) => ({
-                    MaSach: detail.MaSach,
-                    SoLuongHong: Number(conditions[detail.MaSach]?.SoLuongHong || 0),
-                    SoLuongMat: Number(conditions[detail.MaSach]?.SoLuongMat || 0),
-                    MoTa: conditions._note || "",
-                  })),
-                });
+                await onReturned(createReturnPayload(details, conditions, returnDate));
                 setOpen(false);
                 toast.success(successTitle, {
                   description: totalFine > 0
@@ -155,7 +143,53 @@ function TraSachDialog({
 }
 
 function ReturnInput({ max, onChange, value }) {
-  return <Input className="h-9 text-center font-bold" max={max} min="0" onChange={(event) => onChange(event.target.value === "" ? "" : Math.max(0, Math.min(Number(event.target.value), Number(max))))} placeholder="0" type="number" value={value} />;
+  function handleChange(event) {
+    const nextValue = event.target.value;
+    if (nextValue === "") {
+      onChange("");
+      return;
+    }
+
+    onChange(Math.max(0, Math.min(Number(nextValue), Number(max))));
+  }
+
+  return (
+    <Input
+      className="h-9 text-center font-bold"
+      max={max}
+      min="0"
+      onChange={handleChange}
+      placeholder="0"
+      type="number"
+      value={value}
+    />
+  );
+}
+
+function findInvalidReturnDetail(details, conditions) {
+  return details.find((detail) => {
+    const condition = conditions[detail.MaSach] ?? {};
+    const damagedCopies = Number(condition.SoLuongHong || 0);
+    const lostCopies = Number(condition.SoLuongMat || 0);
+    return damagedCopies + lostCopies > Number(detail.SoLuong);
+  });
+}
+
+function createReturnPayload(details, conditions, returnDate) {
+  return {
+    NgayTra: returnDate,
+    ChiTietTra: details.map((detail) => ({
+      MaSach: detail.MaSach,
+      SoLuongHong: Number(conditions[detail.MaSach]?.SoLuongHong || 0),
+      SoLuongMat: Number(conditions[detail.MaSach]?.SoLuongMat || 0),
+      MoTa: conditions._note || "",
+    })),
+  };
+}
+
+function getTotalFine({ conditions, dueDate, returnDate, rules }) {
+  const overdueFine = getOverdueDays(dueDate, returnDate) * Number(rules.PhiQuaHanMoiNgay);
+  return overdueFine + getConditionFine(conditions, rules);
 }
 
 function getBookFine(condition, rules) {
@@ -163,7 +197,10 @@ function getBookFine(condition, rules) {
 }
 
 function getConditionFine(conditions, rules) {
-  return Object.entries(conditions).reduce((total, [key, item]) => key === "_note" ? total : total + getBookFine(item, rules), 0);
+  return Object.entries(conditions).reduce((total, [bookId, condition]) => {
+    if (bookId === "_note") return total;
+    return total + getBookFine(condition, rules);
+  }, 0);
 }
 
 export default TraSachDialog;

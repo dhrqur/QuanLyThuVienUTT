@@ -18,7 +18,7 @@ export default function LoginPage() {
     return <Navigate replace to={existingSession.mustChangePassword ? "/doi-mat-khau" : "/"} />;
   }
 
-  async function submit(event) {
+  async function handleLogin(event) {
     event.preventDefault();
     setSubmitting(true);
     try {
@@ -48,7 +48,7 @@ export default function LoginPage() {
           <div className="card p-6 shadow-sm sm:p-8">
             <h1 className="text-2xl font-black text-brand">Đăng nhập độc giả</h1>
             <p className="mt-2 text-sm text-slate-500">Dùng mã sinh viên và mật khẩu của bạn.</p>
-            <form className="mt-7 space-y-5" onSubmit={submit}>
+            <form className="mt-7 space-y-5" onSubmit={handleLogin}>
               <label className="block"><span className="mb-2 block text-sm font-extrabold text-slate-700">Mã sinh viên</span><input autoComplete="username" autoFocus className="field" maxLength="10" onChange={(event) => setForm({ ...form, MaDG: event.target.value })} placeholder="Ví dụ: DG001" required value={form.MaDG} /></label>
               <label className="block"><span className="mb-2 block text-sm font-extrabold text-slate-700">Mật khẩu</span><span className="relative block"><input autoComplete="current-password" className="field pr-12" maxLength="72" minLength="6" onChange={(event) => setForm({ ...form, Pass: event.target.value })} required type={showPassword ? "text" : "password"} value={form.Pass} /><button aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} className="absolute inset-y-0 right-0 grid w-12 place-items-center text-slate-500" onClick={() => setShowPassword((value) => !value)} type="button">{showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}</button></span></label>
               <button className="button-primary w-full" disabled={submitting} type="submit">{submitting ? "Đang đăng nhập..." : "Đăng nhập"}</button>

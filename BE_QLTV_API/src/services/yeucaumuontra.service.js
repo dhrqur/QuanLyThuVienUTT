@@ -1,4 +1,3 @@
-const MuonTraService = require("./muontra.service");
 const YeuCauMuonTraRepository = require("../models/repositories/yeucaumuontra.repository");
 const { getCurrentDate } = require("../utils/date");
 const { createHttpError: createError } = require("../utils/http");
@@ -18,17 +17,16 @@ function toRequestError(error) {
 }
 
 class YeuCauMuonTraService {
-    constructor(repository = YeuCauMuonTraRepository, loanService = MuonTraService) {
+    constructor(repository = YeuCauMuonTraRepository) {
         this.repository = repository;
-        this.loanService = loanService;
     }
 
-    async getOwn(readerId, filters = {}) {
-        return await this.repository.getAll(filters, readerId);
+    getOwn(readerId, filters = {}) {
+        return this.repository.getAll(filters, readerId);
     }
 
-    async getAll(filters = {}) {
-        return await this.repository.getAll(filters);
+    getAll(filters = {}) {
+        return this.repository.getAll(filters);
     }
 
     async create(readerId, data) {
@@ -62,24 +60,6 @@ class YeuCauMuonTraService {
                 dueDate,
                 employeeId,
                 getCurrentDate()
-            );
-        } catch (error) {
-            throw toRequestError(error);
-        }
-    }
-
-    async approveReturn(requestId, data, employeeId) {
-        try {
-            return await this.repository.processReturn(
-                requestId,
-                employeeId,
-                async (request, connection) => await this.loanService.returnBooks(
-                    request.MaMT,
-                    data.NgayTra,
-                    data.ChiTietTra || [],
-                    employeeId,
-                    connection
-                )
             );
         } catch (error) {
             throw toRequestError(error);

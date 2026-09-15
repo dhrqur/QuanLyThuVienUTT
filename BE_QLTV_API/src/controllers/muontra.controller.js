@@ -2,17 +2,6 @@ const MuonTraService = require("../services/muontra.service");
 const { handleControllerError: handleError } = require("../utils/http");
 
 class MuonTraController {
-    constructor() {
-        this.getAll = this.getAll.bind(this);
-        this.getById = this.getById.bind(this);
-        this.search = this.search.bind(this);
-        this.getStatistics = this.getStatistics.bind(this);
-        this.create = this.create.bind(this);
-        this.update = this.update.bind(this);
-        this.returnBooks = this.returnBooks.bind(this);
-        this.delete = this.delete.bind(this);
-    }
-
     async getAll(req, res) {
         try {
             const data = await MuonTraService.getAll();
