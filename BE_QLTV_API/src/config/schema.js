@@ -14,7 +14,7 @@ async function ensureReaderRequestTables() {
             LoaiYeuCau enum('MUON','TRA') COLLATE utf8mb4_unicode_520_ci NOT NULL,
             MaDG varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
             MaMT varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-            TrangThai enum('CHO_DUYET','DA_DUYET','TU_CHOI','DA_HUY')
+            TrangThai enum('CHO_DUYET','DA_DUYET','TU_CHOI','DA_HUY','DA_LAY')
                 COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'CHO_DUYET',
             LyDoTuChoi varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
             NgayYeuCau datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -30,6 +30,16 @@ async function ensureReaderRequestTables() {
             CONSTRAINT chk_yeucau_tra_phieumuon CHECK (LoaiYeuCau = 'MUON' OR MaMT IS NOT NULL)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci
     `);
+
+    const [statusColumns] = await db.query(`
+        SELECT COLUMN_TYPE FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'yeucaumuontra' AND column_name = 'TrangThai'
+    `);
+    if (!statusColumns[0].COLUMN_TYPE.includes("'DA_LAY'")) {
+        await db.query(`ALTER TABLE yeucaumuontra MODIFY COLUMN TrangThai
+            enum('CHO_DUYET','DA_DUYET','TU_CHOI','DA_HUY','DA_LAY')
+            COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'CHO_DUYET'`);
+    }
 
     await db.query(`
         CREATE TABLE IF NOT EXISTS chitietyeucaumuon (

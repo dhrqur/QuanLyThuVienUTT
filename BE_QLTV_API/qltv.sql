@@ -612,7 +612,7 @@ CREATE TABLE IF NOT EXISTS `yeucaumuontra` (
   `LoaiYeuCau` enum('MUON','TRA') COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `MaDG` varchar(10) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `MaMT` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `TrangThai` enum('CHO_DUYET','DA_DUYET','TU_CHOI','DA_HUY') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'CHO_DUYET',
+  `TrangThai` enum('CHO_DUYET','DA_DUYET','TU_CHOI','DA_HUY','DA_LAY') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'CHO_DUYET',
   `LyDoTuChoi` varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `NgayYeuCau` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `NgayXuLy` datetime DEFAULT NULL,

@@ -62,22 +62,27 @@ const BADGE_DEFINITIONS = {
   pending: {
     label: "Đang chờ",
     className: "border-amber-200 bg-amber-50 text-amber-700",
-    aliases: ["dang cho", "cho duyet", "pending"],
+    aliases: ["dang cho", "cho duyet", "cho_duyet", "pending"],
   },
   approved: {
     label: "Đã duyệt",
     className: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    aliases: ["da duyet", "approved"],
+    aliases: ["da duyet", "da_duyet", "approved"],
+  },
+  pickedUp: {
+    label: "Đã lấy",
+    className: "border-cyan-200 bg-cyan-50 text-cyan-700",
+    aliases: ["da lay", "da_lay"],
   },
   cancelled: {
     label: "Đã hủy",
     className: "border-slate-200 bg-slate-50 text-slate-700",
-    aliases: ["da huy", "huy", "cancelled", "canceled"],
+    aliases: ["da huy", "da_huy", "huy", "cancelled", "canceled"],
   },
   rejected: {
     label: "Từ chối",
     className: "border-rose-200 bg-rose-50 text-rose-700",
-    aliases: ["tu choi", "rejected"],
+    aliases: ["tu choi", "tu_choi", "rejected"],
   },
   unpaid: {
     label: "Chưa thu",

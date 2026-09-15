@@ -122,7 +122,7 @@ class YeuCauMuonTraRepository {
         }
     }
 
-    async approveBorrow(requestId, dueDate, employeeId, borrowDate) {
+    async approveBorrow(requestId, employeeId) {
         const connection = await db.getConnection();
         try {
             await connection.beginTransaction();
@@ -130,8 +130,39 @@ class YeuCauMuonTraRepository {
             if (!request) throw new Error("Không tìm thấy yêu cầu");
             if (request.LoaiYeuCau !== "MUON") throw new Error("Đây không phải yêu cầu mượn sách");
             if (request.TrangThai !== "CHO_DUYET") throw new Error("Yêu cầu đã được xử lý");
+            await this.#assertEmployeeExists(connection, employeeId);
+            await this.#assertReaderCanRequestBorrow(connection, request.MaDG, requestId);
+            await connection.query(`
+                UPDATE yeucaumuontra
+                SET TrangThai = 'DA_DUYET', NgayXuLy = NOW(), MaNVXuLy = ?
+                WHERE MaYC = ?
+            `, [employeeId, requestId]);
+            await connection.commit();
+            return await this.getById(requestId);
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
+    }
+
+    async confirmPickup(requestId, dueDate, employeeId, borrowDate) {
+        const connection = await db.getConnection();
+        try {
+            await connection.beginTransaction();
+            const request = await this.#getForUpdate(connection, requestId);
+            if (!request) throw new Error("Không tìm thấy yêu cầu");
+            if (request.LoaiYeuCau !== "MUON") throw new Error("Đây không phải yêu cầu mượn sách");
+            if (request.TrangThai !== "DA_DUYET") throw new Error("Chỉ được xác nhận lấy sách cho yêu cầu đã duyệt");
 
             await this.#assertEmployeeExists(connection, employeeId);
+            // Legacy approvals already created a loan and deducted stock.
+            if (request.MaMT) {
+                await connection.query("UPDATE yeucaumuontra SET TrangThai = 'DA_LAY' WHERE MaYC = ?", [requestId]);
+                await connection.commit();
+                return await this.getById(requestId);
+            }
             await this.#assertReaderCanRequestBorrow(connection, request.MaDG, requestId);
             const [details] = await connection.query(
                 "SELECT MaSach, SoLuong FROM chitietyeucaumuon WHERE MaYC = ? FOR UPDATE",
@@ -170,7 +201,7 @@ class YeuCauMuonTraRepository {
 
             await connection.query(`
                 UPDATE yeucaumuontra
-                SET MaMT = ?, TrangThai = 'DA_DUYET', NgayXuLy = NOW(), MaNVXuLy = ?
+                SET MaMT = ?, TrangThai = 'DA_LAY', NgayXuLy = NOW(), MaNVXuLy = ?
                 WHERE MaYC = ?
             `, [loanId, employeeId, requestId]);
             await connection.commit();
@@ -267,10 +298,10 @@ class YeuCauMuonTraRepository {
         const exclusion = excludedRequestId ? "AND MaYC <> ?" : "";
         const [requests] = await connection.query(`
             SELECT MaYC FROM yeucaumuontra
-            WHERE MaDG = ? AND LoaiYeuCau = 'MUON' AND TrangThai = 'CHO_DUYET' ${exclusion}
+            WHERE MaDG = ? AND LoaiYeuCau = 'MUON' AND TrangThai IN ('CHO_DUYET', 'DA_DUYET') ${exclusion}
             LIMIT 1 FOR UPDATE
         `, params);
-        if (requests[0]) throw new Error("Độc giả đã có yêu cầu mượn đang chờ duyệt");
+        if (requests[0]) throw new Error("Độc giả đã có yêu cầu mượn đang chờ duyệt hoặc chờ lấy sách");
     }
 
     async #assertBooksAvailable(connection, details) {

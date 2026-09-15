@@ -135,6 +135,12 @@ export const api = {
     );
   },
 
+  async confirmReaderPickup(maYC, data) {
+    return unwrap(
+      await apiClient.put(`/yeucaudocgia/${encodeURIComponent(maYC)}/da-lay`, data),
+    );
+  },
+
   async approveReaderReturnRequest(maYC, data) {
     return unwrap(
       await apiClient.put(`/yeucaudocgia/${encodeURIComponent(maYC)}/duyet-tra`, data),

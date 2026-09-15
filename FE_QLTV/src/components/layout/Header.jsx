@@ -1,6 +1,17 @@
 import { ChevronDown, LogOut } from "lucide-react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +23,7 @@ import { getCurrentUser, logout } from "@/utils/session";
 function Header() {
   const navigate = useNavigate();
   const user = getCurrentUser();
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -44,13 +56,27 @@ function Header() {
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem
               className="text-rose-600 focus:bg-rose-50 focus:text-rose-700"
-              onSelect={handleLogout}
+              onSelect={() => setLogoutOpen(true)}
             >
               <LogOut className="size-4" />
               Đăng xuất
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Xác nhận đăng xuất</AlertDialogTitle>
+              <AlertDialogDescription>Bạn có chắc muốn đăng xuất?</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Hủy</AlertDialogCancel>
+              <AlertDialogAction className="bg-rose-600 hover:bg-rose-700" onClick={handleLogout}>
+                <LogOut className="size-4" /> Đăng xuất
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </header>
   );

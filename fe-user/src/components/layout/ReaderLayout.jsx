@@ -1,4 +1,5 @@
 import { BookOpen, ClipboardList, Home, LogOut, Search, UserRound } from "lucide-react";
+import { useRef } from "react";
 import { NavLink, useNavigate } from "react-router";
 
 import { useCart } from "@/contexts/cart";
@@ -16,6 +17,7 @@ export default function ReaderLayout({ children }) {
   const session = getSession();
   const navigate = useNavigate();
   const { items } = useCart();
+  const logoutDialog = useRef(null);
   function logout() { clearSession(); navigate("/dang-nhap", { replace: true }); }
 
   return (
@@ -29,7 +31,7 @@ export default function ReaderLayout({ children }) {
         <div className="mt-auto border-t border-slate-100 pt-4">
           <p className="truncate text-sm font-black text-brand">{session?.name}</p>
           <p className="text-xs text-slate-500">{session?.id}</p>
-          <button className="mt-3 flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-sm font-bold text-rose-600 hover:bg-rose-50" onClick={logout}><LogOut className="size-4" />Đăng xuất</button>
+          <button className="mt-3 flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-sm font-bold text-rose-600 hover:bg-rose-50" onClick={() => logoutDialog.current.showModal()}><LogOut className="size-4" />Đăng xuất</button>
         </div>
       </aside>
       <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 lg:ml-60 lg:px-8">
@@ -40,6 +42,21 @@ export default function ReaderLayout({ children }) {
       <nav aria-label="Điều hướng di động" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-slate-200 bg-white px-1 pb-[env(safe-area-inset-bottom)] lg:hidden">
         {navigation.map(([to, label, Icon]) => <NavItem Icon={Icon} compact key={to} label={label} to={to} />)}
       </nav>
+      <dialog
+        ref={logoutDialog}
+        aria-labelledby="logout-title"
+        aria-describedby="logout-description"
+        className="fixed inset-0 m-auto w-[calc(100%_-_2rem)] max-w-sm rounded-lg border border-slate-200 bg-white p-6 text-slate-800 shadow-xl backdrop:bg-black/50"
+      >
+        <h2 className="text-lg font-bold" id="logout-title">Xác nhận đăng xuất</h2>
+        <p className="mt-2 text-sm text-slate-600" id="logout-description">Bạn có chắc muốn đăng xuất?</p>
+        <form method="dialog" className="mt-6 flex flex-wrap justify-end gap-3">
+          <button autoFocus className="button-secondary" type="submit">Hủy</button>
+          <button className="flex min-h-11 items-center gap-2 rounded-lg bg-rose-600 px-4 py-2 font-bold text-white hover:bg-rose-700" type="button" onClick={logout}>
+            <LogOut className="size-4" /> Đăng xuất
+          </button>
+        </form>
+      </dialog>
     </div>
   );
 }

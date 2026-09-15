@@ -11,7 +11,7 @@ Express/MySQL transaction, React/Vite cho cả frontend quản trị và portal 
 ## Commands
 
 - Backend test: `npm.cmd test`
-- Migration: `npm.cmd run migrate:reader-portal`
+- Migration (trong `BE_QLTV_API`): `npm.cmd run migrate:reader-requests`
 - Admin lint/build: `npm.cmd run lint`, `npm.cmd run build`
 
 ## Project Structure
@@ -25,7 +25,7 @@ Express/MySQL transaction, React/Vite cho cả frontend quản trị và portal 
 
 ```js
 await connection.beginTransaction();
-// Lock request, reader/card and stock before approving a borrow request.
+// Lock request, reader/card and stock before confirming pickup.
 await connection.commit();
 ```
 
@@ -35,14 +35,19 @@ Kiểm thử tạo/hủy/duyệt/từ chối; yêu cầu trùng; thẻ hết h�
 
 ## Boundaries
 
-- Always: kiểm tra lại điều kiện tại lúc duyệt và dùng transaction/row lock.
+- Always: kiểm tra lại điều kiện mượn và tồn kho tại lúc giao sách, dùng transaction/row lock.
 - Ask first: giữ chỗ tồn kho ngay khi độc giả gửi yêu cầu.
 - Never: trừ kho khi mới gửi; cho độc giả tự xác nhận trả/hư hỏng/mất sách.
 
 ## Success Criteria
 
-- Trạng thái yêu cầu: `CHO_DUYET`, `DA_DUYET`, `TU_CHOI`, `DA_HUY`.
-- Duyệt mượn sinh phiếu mượn, gắn thủ thư xử lý và trừ kho nguyên tử.
+- Trạng thái yêu cầu: `CHO_DUYET`, `DA_DUYET`, `DA_LAY`, `TU_CHOI`, `DA_HUY`.
+- `PUT /api/yeucaudocgia/:maYC/duyet-muon` nhận body `{}`: chỉ chuyển sang `DA_DUYET`, chưa tạo phiếu hay giữ/trừ kho.
+- `PUT /api/yeucaudocgia/:maYC/da-lay` nhận `{ "HanTra": "YYYY-MM-DD" }`: chỉ áp dụng cho yêu cầu mượn đã duyệt. Ngày mượn là ngày xác nhận; hạn trả phải sau ngày này.
+- Xác nhận lấy sách tạo phiếu, gắn thủ thư giao sách, trừ kho và chuyển sang `DA_LAY` nguyên tử. Lỗi giữ nguyên dữ liệu; xác nhận lặp bị từ chối.
+- Yêu cầu cũ đã duyệt và có `MaMT` chỉ chuyển trạng thái khi xác nhận; giữ phiếu, ngày mượn, hạn trả và tồn kho hiện có.
+- Yêu cầu chờ duyệt hoặc chờ lấy sách đều ngăn độc giả gửi thêm yêu cầu mượn.
+- Migration bổ sung giá trị enum `DA_LAY` cho database cũ; backend cũng kiểm tra schema khi khởi động.
 - Duyệt trả tái sử dụng quy tắc hoàn kho/vi phạm hiện có.
 - Độc giả thấy lý do từ chối, lịch sử, tiền phạt và cảnh báo còn tối đa 3 ngày hoặc quá hạn.
 

@@ -15,8 +15,13 @@ router.get("/", validateRequestList, controller.listAll.bind(controller));
 router.put(
     "/:maYC/duyet-muon",
     validateRequestId,
-    validateApproveBorrow,
     controller.approveBorrow.bind(controller)
+);
+router.put(
+    "/:maYC/da-lay",
+    validateRequestId,
+    validateApproveBorrow,
+    controller.confirmPickup.bind(controller)
 );
 router.put(
     "/:maYC/duyet-tra",

@@ -47,9 +47,17 @@ class YeuCauMuonTraService {
         }
     }
 
-    async approveBorrow(requestId, dueDate, employeeId) {
+    async approveBorrow(requestId, employeeId) {
         try {
-            return await this.repository.approveBorrow(
+            return await this.repository.approveBorrow(requestId, employeeId);
+        } catch (error) {
+            throw toRequestError(error);
+        }
+    }
+
+    async confirmPickup(requestId, dueDate, employeeId) {
+        try {
+            return await this.repository.confirmPickup(
                 requestId,
                 dueDate,
                 employeeId,

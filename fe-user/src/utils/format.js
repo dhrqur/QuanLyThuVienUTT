@@ -20,6 +20,7 @@ export function requestStatus(status) {
   const definitions = {
     CHO_DUYET: ["Chờ duyệt", "border-amber-200 bg-amber-50 text-amber-700"],
     DA_DUYET: ["Đã duyệt", "border-emerald-200 bg-emerald-50 text-emerald-700"],
+    DA_LAY: ["Đã lấy", "border-cyan-200 bg-cyan-50 text-cyan-700"],
     TU_CHOI: ["Từ chối", "border-rose-200 bg-rose-50 text-rose-700"],
     DA_HUY: ["Đã hủy", "border-slate-200 bg-slate-50 text-slate-600"],
   };

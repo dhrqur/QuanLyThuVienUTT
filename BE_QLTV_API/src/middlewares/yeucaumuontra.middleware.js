@@ -61,7 +61,7 @@ function validateRequestList(req, res, next) {
 
     const status = trimText(req.query.trangThai).toUpperCase();
     const type = trimText(req.query.loaiYeuCau).toUpperCase();
-    if (status && !["CHO_DUYET", "DA_DUYET", "TU_CHOI", "DA_HUY"].includes(status)) {
+    if (status && !["CHO_DUYET", "DA_DUYET", "DA_LAY", "TU_CHOI", "DA_HUY"].includes(status)) {
         return res.status(400).json({ message: "Trạng thái yêu cầu không hợp lệ" });
     }
     if (type && !["MUON", "TRA"].includes(type)) {

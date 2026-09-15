@@ -75,7 +75,6 @@ function YeuCauDocGiaView() {
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-600">Nghiệp vụ</p>
             <h1 className="mt-1 text-2xl font-black text-[#25245A]">Yêu cầu độc giả</h1>
-            <p className="mt-1 text-sm text-slate-500">Duyệt yêu cầu trước khi tồn kho và phiếu mượn thay đổi.</p>
           </div>
           <Button className="h-10 self-start" onClick={loadData} variant="outline">
             <RefreshCw /> Làm mới
@@ -102,7 +101,7 @@ function YeuCauDocGiaView() {
           <FilterSelect
             label="Trạng thái"
             onChange={(value) => setFilters((current) => ({ ...current, trangThai: value }))}
-            options={[['', 'Tất cả trạng thái'], ['CHO_DUYET', 'Chờ duyệt'], ['DA_DUYET', 'Đã duyệt'], ['TU_CHOI', 'Từ chối'], ['DA_HUY', 'Đã hủy']]}
+            options={[['', 'Tất cả trạng thái'], ['CHO_DUYET', 'Chờ duyệt'], ['DA_DUYET', 'Đã duyệt'], ['DA_LAY', 'Đã lấy'], ['TU_CHOI', 'Từ chối'], ['DA_HUY', 'Đã hủy']]}
             value={filters.trangThai}
           />
         </div>
@@ -149,6 +148,7 @@ function RequestRow({ books, loan, onAction, request, rules }) {
       <td className="px-4 py-3"><StatusBadge status={request.TrangThai} /></td>
       <td className="px-4 py-3"><div className="flex justify-end gap-2">
         {pending && request.LoaiYeuCau === "MUON" && <ApproveBorrowDialog onApprove={(data) => onAction(() => api.approveReaderBorrowRequest(request.MaYC, data), "Đã duyệt yêu cầu mượn")} request={request} />}
+        {request.TrangThai === "DA_DUYET" && request.LoaiYeuCau === "MUON" && <ApproveBorrowDialog pickup onApprove={(data) => onAction(() => api.confirmReaderPickup(request.MaYC, data), "Đã xác nhận độc giả lấy sách")} request={request} />}
         {pending && request.LoaiYeuCau === "TRA" && loan && <TraSachDialog books={books} details={loan.ChiTiet ?? []} onReturned={(data) => onAction(() => api.approveReaderReturnRequest(request.MaYC, data), "Đã duyệt yêu cầu trả")} row={loan} rules={rules} successTitle="Duyệt trả sách thành công" triggerLabel="Duyệt trả" />}
         {pending && <RejectRequestDialog onReject={(data) => onAction(() => api.rejectReaderRequest(request.MaYC, data), "Đã từ chối yêu cầu")} request={request} />}
       </div></td>

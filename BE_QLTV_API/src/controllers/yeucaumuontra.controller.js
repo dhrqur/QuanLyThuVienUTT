@@ -40,8 +40,17 @@ class YeuCauMuonTraController {
 
     async approveBorrow(req, res) {
         try {
-            const data = await service.approveBorrow(req.params.maYC, req.body.HanTra, req.user.id);
+            const data = await service.approveBorrow(req.params.maYC, req.user.id);
             return res.status(200).json({ message: "Duyệt yêu cầu mượn thành công", data });
+        } catch (error) {
+            return handleError(res, error);
+        }
+    }
+
+    async confirmPickup(req, res) {
+        try {
+            const data = await service.confirmPickup(req.params.maYC, req.body.HanTra, req.user.id);
+            return res.status(200).json({ message: "Xác nhận đã lấy sách thành công", data });
         } catch (error) {
             return handleError(res, error);
         }
