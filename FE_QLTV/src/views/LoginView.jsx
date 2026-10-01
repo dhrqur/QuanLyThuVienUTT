@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getCurrentUser, login } from "@/utils/session";
 import { canAccessPath, getDefaultRoute } from "@/utils/accessControl";
+import { validateLoginCredentials } from "@/utils/loginValidation";
 
 function LoginView() {
   const navigate = useNavigate();
@@ -24,15 +25,16 @@ function LoginView() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const errors = {
-      username: username.trim() ? "" : "Vui lòng nhập tên đăng nhập.",
-      password: password.trim() ? "" : "Vui lòng nhập mật khẩu.",
-    };
+    const errors = validateLoginCredentials(username, password);
     setFieldErrors(errors);
 
-    if (errors.username || errors.password) {
-      if (errors.username) usernameRef.current?.focus();
-      else passwordRef.current?.focus();
+    if (errors.username) {
+      usernameRef.current?.focus();
+      return;
+    }
+
+    if (errors.password) {
+      passwordRef.current?.focus();
       return;
     }
 
