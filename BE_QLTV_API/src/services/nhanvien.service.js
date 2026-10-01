@@ -58,8 +58,12 @@ class NhanVienService {
         const pass = String(data.Pass).trim();
         const nhanVien = await NhanVienRepository.getByUserWithPassword(user);
 
-        if (!nhanVien || !(await verifyPassword(pass, String(nhanVien.Pass)))) {
-            throw createError("Ten dang nhap hoac mat khau khong dung", 401);
+        if (!nhanVien) {
+            throw createError("Tên đăng nhập không đúng", 401);
+        }
+
+        if (!(await verifyPassword(pass, String(nhanVien.Pass)))) {
+            throw createError("Mật khẩu không đúng", 401);
         }
 
         if (!String(nhanVien.Pass).startsWith("$2")) {

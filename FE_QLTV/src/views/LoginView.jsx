@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { BookOpen, LockKeyhole, User } from "lucide-react";
 import { Navigate, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -13,7 +13,10 @@ function LoginView() {
   const location = useLocation();
   const [username, setUsername] = useState("nv1");
   const [password, setPassword] = useState("123456");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const usernameRef = useRef(null);
+  const passwordRef = useRef(null);
 
   if (getCurrentUser()) {
     return <Navigate replace to={getDefaultRoute(getCurrentUser())} />;
@@ -21,6 +24,18 @@ function LoginView() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const errors = {
+      username: username.trim() ? "" : "Vui lòng nhập tên đăng nhập.",
+      password: password.trim() ? "" : "Vui lòng nhập mật khẩu.",
+    };
+    setFieldErrors(errors);
+
+    if (errors.username || errors.password) {
+      if (errors.username) usernameRef.current?.focus();
+      else passwordRef.current?.focus();
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -34,8 +49,24 @@ function LoginView() {
         { replace: true },
       );
     } catch (error) {
+      const loginError = error?.response?.data?.message;
+
+      if (error?.response?.status === 401 && loginError === "Tên đăng nhập không đúng") {
+        setFieldErrors({ username: "Tên đăng nhập không đúng." });
+        usernameRef.current?.focus();
+        setLoading(false);
+        return;
+      }
+
+      if (error?.response?.status === 401 && loginError === "Mật khẩu không đúng") {
+        setFieldErrors({ password: "Mật khẩu không đúng." });
+        passwordRef.current?.focus();
+        setLoading(false);
+        return;
+      }
+
       toast.error("Đăng nhập thất bại", {
-        description: error?.response?.data?.message || error.message,
+        description: loginError || error.message,
       });
       setLoading(false);
       return;
@@ -80,28 +111,54 @@ function LoginView() {
           <label className="mb-2 text-sm font-bold text-slate-700" htmlFor="username">
             Tên đăng nhập
           </label>
-          <div className="relative mb-4">
-            <User className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-orange-400" />
-            <Input
-              className="h-11 rounded-xl border-orange-100 bg-orange-50/50 pl-10 font-semibold"
-              id="username"
-              onChange={(event) => setUsername(event.target.value)}
-              value={username}
-            />
+          <div className="mb-4">
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-orange-400" />
+              <Input
+                aria-describedby={fieldErrors.username ? "username-error" : undefined}
+                aria-invalid={Boolean(fieldErrors.username)}
+                className="h-11 rounded-xl border-orange-100 bg-orange-50/50 pl-10 font-semibold"
+                id="username"
+                onChange={(event) => {
+                  setUsername(event.target.value);
+                  if (fieldErrors.username) setFieldErrors((current) => ({ ...current, username: "" }));
+                }}
+                ref={usernameRef}
+                value={username}
+              />
+            </div>
+            {fieldErrors.username && (
+              <p className="mt-1 text-sm text-rose-600" id="username-error" role="alert">
+                {fieldErrors.username}
+              </p>
+            )}
           </div>
 
           <label className="mb-2 text-sm font-bold text-slate-700" htmlFor="password">
             Mật khẩu
           </label>
-          <div className="relative mb-4">
-            <LockKeyhole className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-orange-400" />
-            <Input
-              className="h-11 rounded-xl border-orange-100 bg-orange-50/50 pl-10 font-semibold"
-              id="password"
-              onChange={(event) => setPassword(event.target.value)}
-              type="password"
-              value={password}
-            />
+          <div className="mb-4">
+            <div className="relative">
+              <LockKeyhole className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-orange-400" />
+              <Input
+                aria-describedby={fieldErrors.password ? "password-error" : undefined}
+                aria-invalid={Boolean(fieldErrors.password)}
+                className="h-11 rounded-xl border-orange-100 bg-orange-50/50 pl-10 font-semibold"
+                id="password"
+                onChange={(event) => {
+                  setPassword(event.target.value);
+                  if (fieldErrors.password) setFieldErrors((current) => ({ ...current, password: "" }));
+                }}
+                ref={passwordRef}
+                type="password"
+                value={password}
+              />
+            </div>
+            {fieldErrors.password && (
+              <p className="mt-1 text-sm text-rose-600" id="password-error" role="alert">
+                {fieldErrors.password}
+              </p>
+            )}
           </div>
 
           <label className="mb-5 flex items-center gap-2 text-sm font-semibold text-slate-600">

@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { printLoanReceipt } from "@/utils/loanReceiptPdf";
 import TraSachDialog from "@/views/muontra/components/TraSachDialog";
+import QrScannerDialog from "@/components/common/QrScanner/QrScannerDialog";
+import { parseQrIdentifier } from "@/utils/qrCode";
+import { addScannedBook } from "@/views/muontra/loanQr";
 
 export function SachMuonDetail({ books, details: allDetails, onReturned, row, rules }) {
   const details = allDetails;
@@ -79,6 +82,14 @@ export function SachMuonSelector({ books, details, ticketId }) {
     });
   }
 
+  function scanBook(value) {
+    const bookId = parseQrIdentifier(value, "BOOK");
+    const nextSelectedBooks = addScannedBook(bookId, books, selectedBooks, existingDetails);
+    setSelectedBooks(nextSelectedBooks);
+    setKeyword("");
+    toast.success(`Đã chọn ${nextSelectedBooks[bookId]} bản sách ${bookId}.`);
+  }
+
   function updateQuantity(sach, value) {
     if (value === "") {
       setSelectedBooks((current) => ({ ...current, [sach.MaSach]: "" }));
@@ -108,6 +119,11 @@ export function SachMuonSelector({ books, details, ticketId }) {
   return (
     <fieldset className="space-y-3 rounded-xl border bg-slate-50/60 p-4 md:col-span-2">
       <legend className="px-1 text-sm font-extrabold">Sách mượn</legend>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <QrScannerDialog onScan={scanBook} title="Quét mã sách" />
+        <p className="text-xs text-slate-500">Mỗi lượt quét thêm một bản sách vào phiếu.</p>
+      </div>
 
       {selectedEntries.map(([bookId, quantity]) => (
         <input

@@ -49,7 +49,7 @@ const { auditActivity } = require("../middlewares/audit.middleware");
  *       400:
  *         description: Du lieu dang nhap khong hop le
  *       401:
- *         description: Ten dang nhap hoac mat khau khong dung
+ *         description: Ten dang nhap khong dung hoac mat khau khong dung
  */
 router.post("/dang-nhap", validateLogin, NhanVienController.login);
 

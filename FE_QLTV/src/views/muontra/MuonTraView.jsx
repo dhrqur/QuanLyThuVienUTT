@@ -5,6 +5,7 @@ import { formatDisplayDate, getLocalDateValue } from "@/utils/dateUtils";
 import { createLookup } from "@/utils/lookup";
 import { SachMuonDetail, SachMuonSelector } from "@/views/muontra/components/SachMuonContent";
 import { formatCurrency } from "@/utils/numberUtils";
+import LoanCardScanner from "@/views/muontra/components/LoanCardScanner";
 
 function MuonTraView() {
   const { data } = useApiLists(["docgia", "sach", "thethuvien", "muontra", "quydinhthuvien"]);
@@ -97,8 +98,17 @@ function MuonTraView() {
           row={row}
         />
       )}
-      renderFormExtra={({ row }) => (
-        <SachMuonSelector books={books} details={row?.ChiTiet ?? []} ticketId={row?.MaMT} />
+      renderFormExtra={({ isEdit, onFieldChange, row }) => (
+        <>
+          {!isEdit ? (
+            <LoanCardScanner
+              libraryCards={libraryCards}
+              onSelectReader={(readerId) => onFieldChange("MaDG", readerId)}
+              readerOptions={readerOptions}
+            />
+          ) : null}
+          <SachMuonSelector books={books} details={row?.ChiTiet ?? []} ticketId={row?.MaMT} />
+        </>
       )}
       pagination
       pageSize={10}

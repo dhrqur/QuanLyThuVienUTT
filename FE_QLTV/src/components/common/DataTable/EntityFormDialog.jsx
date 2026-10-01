@@ -120,7 +120,7 @@ function EntityFormDialog({
               rows={rows}
             />
           ))}
-          {renderFormExtra?.({ isEdit, row })}
+          {renderFormExtra?.({ formValues, isEdit, onFieldChange: handleFieldChange, row })}
         </form>
 
         <DialogFooter className="border-t border-slate-100 bg-slate-50 px-6 py-4">
