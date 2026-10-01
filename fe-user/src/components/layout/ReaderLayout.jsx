@@ -1,4 +1,5 @@
 import { BookOpen, ClipboardList, Home, LogOut, Search, UserRound } from "lucide-react";
+import { useRef } from "react";
 import { NavLink, useNavigate } from "react-router";
 
 import { useCart } from "@/contexts/cart";
@@ -16,6 +17,11 @@ export default function ReaderLayout({ children }) {
   const session = getSession();
   const navigate = useNavigate();
   const { items } = useCart();
+  const logoutDialogRef = useRef(null);
+
+  function openLogoutDialog() {
+    logoutDialogRef.current?.showModal();
+  }
 
   function logout() {
     clearSession();
@@ -42,7 +48,8 @@ export default function ReaderLayout({ children }) {
           <p className="text-xs text-slate-500">{session?.id}</p>
           <button
             className="mt-3 flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-sm font-bold text-rose-600 hover:bg-rose-50"
-            onClick={logout}
+            onClick={openLogoutDialog}
+            type="button"
           >
             <LogOut className="size-4" />
             Đăng xuất
@@ -65,6 +72,14 @@ export default function ReaderLayout({ children }) {
               Giỏ mượn: {items.length}
             </NavLink>
           )}
+          <button
+            aria-label="Đăng xuất"
+            className="flex size-11 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50 lg:hidden"
+            onClick={openLogoutDialog}
+            type="button"
+          >
+            <LogOut className="size-5" />
+          </button>
         </div>
       </header>
       <main
@@ -79,6 +94,34 @@ export default function ReaderLayout({ children }) {
           <NavItem Icon={Icon} compact key={to} label={label} to={to} />
         ))}
       </nav>
+      <dialog
+        aria-describedby="logout-description"
+        aria-labelledby="logout-title"
+        className="m-auto w-[calc(100%-2rem)] max-w-sm rounded-xl border border-slate-200 bg-white p-0 text-slate-800 shadow-xl backdrop:bg-slate-950/40"
+        ref={logoutDialogRef}
+      >
+        <div className="p-6">
+          <div className="mb-4 flex size-11 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+            <LogOut aria-hidden="true" className="size-5" />
+          </div>
+          <h2 className="text-lg font-black text-brand" id="logout-title">Xác nhận đăng xuất?</h2>
+          <p className="mt-2 text-sm text-slate-600" id="logout-description">
+            Bạn có chắc chắn muốn đăng xuất khỏi tài khoản hiện tại?
+          </p>
+          <div className="mt-6 flex justify-end gap-3">
+            <button className="button-secondary" onClick={() => logoutDialogRef.current?.close()} type="button">
+              Hủy
+            </button>
+            <button
+              className="min-h-11 rounded-lg bg-rose-600 px-4 font-extrabold text-white hover:bg-rose-700"
+              onClick={logout}
+              type="button"
+            >
+              Đăng xuất
+            </button>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 }
