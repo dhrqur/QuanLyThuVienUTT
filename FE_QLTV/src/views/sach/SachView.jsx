@@ -1,4 +1,6 @@
 import DataTablePage from "@/components/common/DataTable/DataTablePage";
+import QrCodeCell from "@/components/common/QrCodeCell";
+import QrExportAction from "@/components/common/QrExportAction";
 import { useApiLists } from "@/hooks/useApiLists";
 import { getSachStatus } from "@/views/sach/sachUtils";
 import { createLookup } from "@/utils/lookup";
@@ -244,10 +246,37 @@ function SachView() {
           badge: true,
           widthValue: 94,
         },
+        {
+          key: "QrImageUrl",
+          label: "QrImageUrl",
+          tableLabel: "Mã QR",
+          displayLabel: "Mã QR",
+          detailHidden: true,
+          formHidden: true,
+          renderCell: (row) => (
+            <QrCodeCell
+              entityLabel="sách"
+              filePrefix="ma-qr-sach"
+              identifier={row.MaSach}
+              qrImageUrl={row.QrImageUrl}
+            />
+          ),
+          sortable: false,
+          widthValue: 126,
+        },
       ]}
       entityName="Sách"
       pagination
       pageSize={10}
+      renderToolbarActions={({ rows }) => (
+        <QrExportAction
+          entityLabel="sách"
+          filePrefix="ma-qr-sach"
+          identifierKey="MaSach"
+          rows={rows}
+          zipFileName="ma-qr-sach.zip"
+        />
+      )}
       searchPlaceholder="Tìm mã sách, tên sách, tác giả..."
       title="Quản lý Sách"
     />

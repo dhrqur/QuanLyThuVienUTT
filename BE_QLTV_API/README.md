@@ -13,6 +13,9 @@ cho trang quản trị thủ thư (`FE_QLTV`) và cổng độc giả (`fe-user`
 
 Yêu cầu: Node.js LTS, MySQL và một cơ sở dữ liệu tên `qltv`.
 
+> MySQL của dự án chạy trong WSL. Dùng `DB_HOST=127.0.0.1` và
+> `DB_PORT=3306` dù chạy backend từ Windows hay WSL.
+
 ```powershell
 cd BE_QLTV_API
 npm install
@@ -52,8 +55,23 @@ Server mặc định chạy tại `http://localhost:3000`. Tài liệu Swagger c
 | `npm run migrate:finalize-schema` | Hoàn thiện schema cơ sở dữ liệu. |
 | `npm run migrate:reader-auth` | Thêm dữ liệu phục vụ đăng nhập độc giả. |
 | `npm run migrate:reader-requests` | Thêm bảng yêu cầu mượn/trả của độc giả. |
+| `npm run migrate:qr-assets` | Thêm cột lưu URL ảnh QR cho sách và thẻ thư viện. |
+| `npm run backfill:qr-assets` | Tạo QR PNG và URL cho toàn bộ sách/thẻ hiện có. |
 
 Chỉ chạy migration khi đã sao lưu cơ sở dữ liệu và hiểu thay đổi của migration.
+
+### Tạo lại QR cho dữ liệu hiện có
+
+Sau khi đã sao lưu cơ sở dữ liệu, chạy lần lượt:
+
+```powershell
+npm run migrate:qr-assets
+npm run backfill:qr-assets
+```
+
+Lệnh backfill có thể chạy lại an toàn: chỉ tạo PNG còn thiếu và chỉ cập nhật URL
+QR chưa đúng. Lệnh này ghi dữ liệu vào cơ sở dữ liệu được cấu hình trong `.env`
+và tạo file dưới `uploads/qr-books` và `uploads/qr-cards`.
 
 ## Cấu trúc thư mục
 

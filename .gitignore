@@ -14,6 +14,7 @@ FE_QLTV/dist/
 *.log
 .vite/
 .vercel/
+BE_QLTV_API/uploads/
 
 # Local generated requirement documents
 YEU_CAU_CHUC_NANG_DAY_DU.docx

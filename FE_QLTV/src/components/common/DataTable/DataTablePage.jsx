@@ -28,6 +28,7 @@ function DataTablePage({
   pageSize = 10,
   renderDetailExtra,
   renderFormExtra,
+  renderToolbarActions,
   searchPlaceholder = "Tìm kiếm...",
 }) {
   const [searchInput, setSearchInput] = useState("");
@@ -102,6 +103,7 @@ function DataTablePage({
                 rows={rows}
               />
             ) : null}
+            {renderToolbarActions?.({ rows })}
             {allowCreate ? <EntityFormDialog
               buildExtraPayload={buildExtraPayload}
               columns={columns}

@@ -1,6 +1,6 @@
 const db = require("../../config/db");
 
-const SACH_COLUMNS = "MaSach, MaTG, MaNXB, MaTL, TenSach, NamXB, SoLuong, MaNN, MaViTri";
+const SACH_COLUMNS = "MaSach, MaTG, MaNXB, MaTL, TenSach, NamXB, SoLuong, MaNN, MaViTri, QrImageUrl";
 
 class SachRepository {
     async getAll() {
@@ -33,7 +33,8 @@ class SachRepository {
                 s.MaNN,
                 nn.TenNN,
                 s.MaViTri,
-                ks.TenKe
+                ks.TenKe,
+                s.QrImageUrl
             FROM sach s
             LEFT JOIN tacgia tg ON s.MaTG = tg.MaTG
             LEFT JOIN nhaxuatban nxb ON s.MaNXB = nxb.MaNXB
@@ -162,6 +163,17 @@ class SachRepository {
             MaNN: sach.getMaNN(),
             MaViTri: sach.getMaViTri()
         };
+    }
+
+    async setQrImageUrl(maSach, qrImageUrl) {
+        const [result] = await db.query(
+            "UPDATE sach SET QrImageUrl = ? WHERE MaSach = ?",
+            [qrImageUrl, maSach]
+        );
+
+        if (result.affectedRows === 0) {
+            throw new Error("Khong the luu URL anh QR sach");
+        }
     }
 
     async delete(maSach) {

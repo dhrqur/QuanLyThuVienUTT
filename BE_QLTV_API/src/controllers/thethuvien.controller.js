@@ -34,6 +34,16 @@ class TheThuVienController {
         }
     }
 
+    async getQrImage(req, res) {
+        try {
+            const image = await TheThuVienService.getQrImage(req.params.maThe);
+
+            res.type("png").status(200).send(image);
+        } catch (error) {
+            handleError(res, error);
+        }
+    }
+
     async search(req, res) {
         try {
             const data = await TheThuVienService.search(req.query.keyword.trim());

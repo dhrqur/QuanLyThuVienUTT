@@ -59,6 +59,28 @@ router.get("/tim-kiem", validateSearchTheThuVien, TheThuVienController.search);
  *         description: Thong ke the thu vien thanh cong
  */
 router.get("/thong-ke", TheThuVienController.getStatistics);
+
+/**
+ * @swagger
+ * /api/thethuvien/{maThe}/qr:
+ *   get:
+ *     summary: Tải ảnh QR của thẻ thư viện
+ *     tags: [TheThuVien]
+ *     parameters:
+ *       - in: path
+ *         name: maThe
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Ảnh QR PNG
+ *         content:
+ *           image/png: {}
+ *       404:
+ *         description: Không tìm thấy ảnh QR
+ */
+router.get("/:maThe/qr", TheThuVienController.getQrImage);
 /**
  * @swagger
  * /api/thethuvien/{maThe}:

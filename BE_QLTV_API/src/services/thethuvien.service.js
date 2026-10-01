@@ -1,5 +1,6 @@
 const TheThuVien = require("../models/entities/thethuvien.entity");
 const TheThuVienRepository = require("../models/repositories/thethuvien.repository");
+const QrAssetService = require("./qr-asset.service");
 const { createHttpError: createError } = require("../utils/http");
 const { getCurrentDate } = require("../utils/date");
 
@@ -12,31 +13,36 @@ function getCardStatus(expirationDate) {
 }
 
 class TheThuVienService {
+    constructor(repository = TheThuVienRepository, qrAssetService = QrAssetService) {
+        this.repository = repository;
+        this.qrAssetService = qrAssetService;
+    }
+
     async getAll() {
-        return await TheThuVienRepository.getAll();
+        return await this.repository.getAll();
     }
 
     async getById(maThe) {
-        return await TheThuVienRepository.getById(maThe);
+        return await this.repository.getById(maThe);
     }
 
     async search(keyword) {
-        return await TheThuVienRepository.search(keyword);
+        return await this.repository.search(keyword);
     }
 
     async getStatistics() {
-        return await TheThuVienRepository.getStatistics();
+        return await this.repository.getStatistics();
     }
 
     async create(data) {
-        const tonTai = await TheThuVienRepository.getById(data.MaThe);
+        const tonTai = await this.repository.getById(data.MaThe);
 
         if (tonTai) {
             throw createError("Ma the thu vien da ton tai", 409);
         }
 
         const ngayCap = getCurrentDate();
-        const overlappingCard = await TheThuVienRepository.findOverlappingCard(
+        const overlappingCard = await this.repository.findOverlappingCard(
             data.MaDG,
             ngayCap,
             data.NgayHetHan
@@ -51,17 +57,52 @@ class TheThuVienService {
             TrangThai: getCardStatus(data.NgayHetHan)
         });
 
-        return await TheThuVienRepository.create(theThuVien);
+        const result = await this.repository.create(theThuVien);
+        let qrCreated = false;
+
+        try {
+            const qrAsset = await this.qrAssetService.createQrAsset("card", theThuVien.getMaThe());
+            qrCreated = true;
+            await this.repository.setQrImageUrl(theThuVien.getMaThe(), qrAsset.QrImageUrl);
+
+            return {
+                ...result,
+                QrImageUrl: qrAsset.QrImageUrl
+            };
+        } catch (error) {
+            if (qrCreated) {
+                await this.qrAssetService.deleteQrAsset("card", theThuVien.getMaThe()).catch(() => {});
+            }
+
+            await this.repository.delete(theThuVien.getMaThe()).catch(() => {});
+            throw createError("Không thể tạo mã QR cho thẻ thư viện", 500);
+        }
+    }
+
+    async getQrImage(maThe) {
+        const theThuVien = await this.repository.getById(maThe);
+
+        if (!theThuVien || !theThuVien.QrImageUrl) {
+            throw createError("Không tìm thấy ảnh QR của thẻ thư viện", 404);
+        }
+
+        const image = await this.qrAssetService.readQrAsset("card", maThe);
+
+        if (!image) {
+            throw createError("Không tìm thấy ảnh QR của thẻ thư viện", 404);
+        }
+
+        return image;
     }
 
     async update(maThe, data) {
-        const tonTai = await TheThuVienRepository.getById(maThe);
+        const tonTai = await this.repository.getById(maThe);
 
         if (!tonTai) {
             throw createError("Khong tim thay the thu vien", 404);
         }
 
-        const overlappingCard = await TheThuVienRepository.findOverlappingCard(
+        const overlappingCard = await this.repository.findOverlappingCard(
             data.MaDG,
             tonTai.NgayCap,
             data.NgayHetHan,
@@ -78,18 +119,23 @@ class TheThuVienService {
             TrangThai: getCardStatus(data.NgayHetHan)
         });
 
-        return await TheThuVienRepository.update(maThe, theThuVien);
+        const result = await this.repository.update(maThe, theThuVien);
+
+        return {
+            ...result,
+            QrImageUrl: tonTai.QrImageUrl ?? null
+        };
     }
 
     async delete(maThe) {
-        const tonTai = await TheThuVienRepository.getById(maThe);
+        const tonTai = await this.repository.getById(maThe);
 
         if (!tonTai) {
             throw createError("Khong tim thay the thu vien", 404);
         }
 
         try {
-            const deleted = await TheThuVienRepository.delete(maThe);
+            const deleted = await this.repository.delete(maThe);
 
             if (!deleted) {
                 throw createError("Khong the xoa the thu vien", 400);
@@ -102,8 +148,15 @@ class TheThuVienService {
             throw createError("Khong the xoa the thu vien vi dang duoc su dung", 400);
         }
 
+        await this.qrAssetService.deleteQrAsset("card", maThe).catch((error) => {
+            console.error(`Không thể xóa ảnh QR của thẻ thư viện ${maThe}:`, error.message);
+        });
+
         return true;
     }
 }
 
-module.exports = new TheThuVienService();
+const theThuVienService = new TheThuVienService();
+
+module.exports = theThuVienService;
+module.exports.TheThuVienService = TheThuVienService;

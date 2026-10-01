@@ -129,6 +129,10 @@ function SortIcon({ column, sortConfig }) {
 }
 
 function DataCell({ column, row }) {
+  if (column.renderCell) {
+    return <TableCell>{column.renderCell(row)}</TableCell>;
+  }
+
   const value = getDisplayValue(column, row);
 
   return (

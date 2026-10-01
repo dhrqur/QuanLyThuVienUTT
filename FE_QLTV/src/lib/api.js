@@ -1,5 +1,7 @@
 import axios from "axios";
 
+import { toApiClientPath } from "@/utils/qrApiPath";
+
 const LOCAL_API_URL = import.meta.env.VITE_LOCAL_API_URL || "http://localhost:3000";
 const PUBLIC_API_URL =
   import.meta.env.VITE_PUBLIC_API_URL ||
@@ -101,6 +103,10 @@ export const api = {
 
   async remove(module, id) {
     return unwrap(await apiClient.delete(buildResourcePath(module, id)));
+  },
+
+  async getQrImage(qrImageUrl) {
+    return (await apiClient.get(toApiClientPath(qrImageUrl), { responseType: "blob" })).data;
   },
 
   async login(User, Pass) {

@@ -20,7 +20,7 @@ class TheThuVienRepository {
     async getAll() {
         await this.syncStatuses();
         const sql = `
-            SELECT MaThe, MaDG, NgayCap, NgayHetHan, ${cardStatusSql} AS TrangThai
+            SELECT MaThe, MaDG, NgayCap, NgayHetHan, ${cardStatusSql} AS TrangThai, QrImageUrl
             FROM thethuvien
             ORDER BY MaThe
         `;
@@ -32,7 +32,7 @@ class TheThuVienRepository {
     async getById(maThe) {
         await this.syncStatuses();
         const sql = `
-            SELECT MaThe, MaDG, NgayCap, NgayHetHan, ${cardStatusSql} AS TrangThai
+            SELECT MaThe, MaDG, NgayCap, NgayHetHan, ${cardStatusSql} AS TrangThai, QrImageUrl
             FROM thethuvien
             WHERE MaThe = ?
         `;
@@ -44,7 +44,7 @@ class TheThuVienRepository {
     async search(keyword) {
         await this.syncStatuses();
         const sql = `
-            SELECT MaThe, MaDG, NgayCap, NgayHetHan, ${cardStatusSql} AS TrangThai
+            SELECT MaThe, MaDG, NgayCap, NgayHetHan, ${cardStatusSql} AS TrangThai, QrImageUrl
             FROM thethuvien
             WHERE MaThe LIKE ?
                 OR MaDG LIKE ?
@@ -121,6 +121,17 @@ class TheThuVienRepository {
             : [maDG, ngayHetHan, ngayCap];
         const [rows] = await db.query(sql, params);
         return rows[0] || null;
+    }
+
+    async setQrImageUrl(maThe, qrImageUrl) {
+        const [result] = await db.query(
+            "UPDATE thethuvien SET QrImageUrl = ? WHERE MaThe = ?",
+            [qrImageUrl, maThe]
+        );
+
+        if (result.affectedRows === 0) {
+            throw new Error("Khong the luu URL anh QR the thu vien");
+        }
     }
 
     async update(maThe, theThuVien) {

@@ -1,4 +1,6 @@
 import DataTablePage from "@/components/common/DataTable/DataTablePage";
+import QrCodeCell from "@/components/common/QrCodeCell";
+import QrExportAction from "@/components/common/QrExportAction";
 import { useApiLists } from "@/hooks/useApiLists";
 import { api } from "@/lib/api";
 import GiaHanTheDialog from "@/views/thethuvien/components/GiaHanTheDialog";
@@ -36,6 +38,24 @@ function TheThuVienView() {
           formHidden: true,
           widthValue: 170,
         },
+        {
+          key: "QrImageUrl",
+          label: "QrImageUrl",
+          tableLabel: "Mã QR",
+          displayLabel: "Mã QR",
+          detailHidden: true,
+          formHidden: true,
+          renderCell: (row) => (
+            <QrCodeCell
+              entityLabel="thẻ thư viện"
+              filePrefix="ma-qr-the-thu-vien"
+              identifier={row.MaThe}
+              qrImageUrl={row.QrImageUrl}
+            />
+          ),
+          sortable: false,
+          widthValue: 126,
+        },
       ]}
       entityName="Thẻ thư viện"
       renderDetailExtra={({ row, updateRow }) => (
@@ -55,6 +75,15 @@ function TheThuVienView() {
       )}
       pagination
       pageSize={10}
+      renderToolbarActions={({ rows }) => (
+        <QrExportAction
+          entityLabel="thẻ thư viện"
+          filePrefix="ma-qr-the-thu-vien"
+          identifierKey="MaThe"
+          rows={rows}
+          zipFileName="ma-qr-the-thu-vien.zip"
+        />
+      )}
       searchPlaceholder="Tìm mã thẻ hoặc độc giả..."
       title="Quản lý Thẻ thư viện"
     />

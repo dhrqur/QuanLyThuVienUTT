@@ -58,6 +58,28 @@ router.get("/thong-ke", SachController.getStatistics);
 
 /**
  * @swagger
+ * /api/sach/{maSach}/qr:
+ *   get:
+ *     summary: Tải ảnh QR của sách
+ *     tags: [Sach]
+ *     parameters:
+ *       - in: path
+ *         name: maSach
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Ảnh QR PNG
+ *         content:
+ *           image/png: {}
+ *       404:
+ *         description: Không tìm thấy ảnh QR
+ */
+router.get("/:maSach/qr", SachController.getQrImage);
+
+/**
+ * @swagger
  * /api/sach/{maSach}:
  *   get:
  *     summary: Lấy thông tin sách theo mã sách

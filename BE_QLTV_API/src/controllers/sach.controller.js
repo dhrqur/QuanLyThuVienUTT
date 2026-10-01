@@ -34,6 +34,16 @@ class SachController {
         }
     }
 
+    async getQrImage(req, res) {
+        try {
+            const image = await SachService.getQrImage(req.params.maSach);
+
+            res.type("png").status(200).send(image);
+        } catch (error) {
+            handleError(res, error);
+        }
+    }
+
     async search(req, res) {
         try {
             const data = await SachService.search(req.query.keyword.trim());
