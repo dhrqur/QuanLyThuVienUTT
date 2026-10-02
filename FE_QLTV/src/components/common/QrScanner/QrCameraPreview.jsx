@@ -23,12 +23,23 @@ function QrCameraPreview({ onScan }) {
         if (!navigator.mediaDevices?.getUserMedia) {
           throw new Error("Trình duyệt không hỗ trợ camera. Hãy dùng Chrome/Edge hoặc nhập mã bên dưới.");
         }
-        const reader = new BrowserQRCodeReader();
+        const reader = new BrowserQRCodeReader(undefined, {
+          delayBetweenScanAttempts: 150,
+          delayBetweenScanSuccess: 150,
+        });
         // Own getUserMedia so closing during permission/startup also releases tracks.
         // https://github.com/zxing-js/browser#scan-from-webcam
         const started = await session.start(
           videoRef.current,
-          () => navigator.mediaDevices.getUserMedia({ audio: false, video: true }),
+          () => navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+              facingMode: { ideal: "environment" },
+              frameRate: { ideal: 30 },
+              height: { ideal: 720 },
+              width: { ideal: 1280 },
+            },
+          }),
           (stream, video) => reader.decodeFromStream(stream, video, (result) => {
             if (!active || receivedResult || !result) return;
             receivedResult = true;
