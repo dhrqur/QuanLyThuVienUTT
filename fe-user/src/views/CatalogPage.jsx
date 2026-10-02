@@ -42,7 +42,7 @@ export default function CatalogPage() {
   }
   return <ReaderLayout><div className="space-y-6">
     <header><p className="text-sm font-bold text-accent">KHO SÁCH</p><h1 className="mt-1 text-2xl font-black text-brand sm:text-3xl">Tra cứu tài liệu</h1><p className="mt-1 text-sm text-slate-500">Tìm theo tên sách, tác giả, thể loại, nhà xuất bản hoặc vị trí kệ.</p></header>
-    <form className="card flex gap-2 p-3" onSubmit={search}><label className="relative flex-1"><span className="sr-only">Từ khóa tìm kiếm</span><Search className="absolute left-3 top-1/2 size-5 -translate-y-1/2 text-slate-400" /><input className="field pl-10" maxLength="100" onChange={(event) => setQuery(event.target.value)} placeholder="Nhập tên sách, tác giả..." value={query} /></label><button className="button-primary shrink-0" type="submit">Tìm kiếm</button></form>
+    <form className="card flex flex-col gap-2 p-3 sm:flex-row" onSubmit={search}><label className="relative min-w-0 flex-1"><span className="sr-only">Từ khóa tìm kiếm</span><Search className="absolute left-3 top-1/2 size-5 -translate-y-1/2 text-slate-400" /><input className="field pl-10" maxLength="100" onChange={(event) => setQuery(event.target.value)} placeholder="Nhập tên sách, tác giả..." value={query} /></label><button className="button-primary w-full shrink-0 sm:w-auto" type="submit">Tìm kiếm</button></form>
     {!catalog && !error ? <LoadingState /> : error ? <ErrorState message={error} retry={loadCatalog} /> : <CatalogContent catalog={catalog} page={page} setPage={setPage} />}
   </div></ReaderLayout>;
 }

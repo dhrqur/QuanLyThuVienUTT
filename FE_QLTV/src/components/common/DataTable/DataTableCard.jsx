@@ -48,7 +48,7 @@ function DataTableCard({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+    <div className="overflow-x-auto overscroll-x-contain rounded-lg border border-slate-200 bg-white [scrollbar-gutter:stable]">
       <Table>
         <TableHeader className="bg-orange-500">
           <TableRow>

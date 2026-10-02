@@ -44,17 +44,20 @@ class TheThuVienRepository {
     async search(keyword) {
         await this.syncStatuses();
         const sql = `
-            SELECT MaThe, MaDG, NgayCap, NgayHetHan, ${cardStatusSql} AS TrangThai, QrImageUrl
-            FROM thethuvien
-            WHERE MaThe LIKE ?
-                OR MaDG LIKE ?
-                OR NgayCap LIKE ?
-                OR NgayHetHan LIKE ?
-                OR ${cardStatusSql} LIKE ?
-            ORDER BY MaThe
+            SELECT ttv.MaThe, ttv.MaDG, ttv.NgayCap, ttv.NgayHetHan,
+                ttv.${cardStatusSql} AS TrangThai, ttv.QrImageUrl
+            FROM thethuvien ttv
+            LEFT JOIN docgia dg ON dg.MaDG = ttv.MaDG
+            WHERE ttv.MaThe LIKE ?
+                OR ttv.MaDG LIKE ?
+                OR dg.TenDG LIKE ?
+                OR ttv.NgayCap LIKE ?
+                OR ttv.NgayHetHan LIKE ?
+                OR ttv.${cardStatusSql} LIKE ?
+            ORDER BY ttv.MaThe
         `;
         const searchValue = `%${keyword}%`;
-        const values = Array(5).fill(searchValue);
+        const values = Array(6).fill(searchValue);
         const [rows] = await db.query(sql, values);
 
         return rows;

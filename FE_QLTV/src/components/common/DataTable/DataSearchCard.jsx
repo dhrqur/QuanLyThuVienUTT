@@ -35,13 +35,13 @@ function DataSearchCard({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button className="h-10 bg-orange-500 px-4 font-bold hover:bg-orange-600" onClick={onSearch} type="button">
+          <Button className="h-10 flex-1 bg-orange-500 px-4 font-bold hover:bg-orange-600 lg:flex-none" onClick={onSearch} type="button">
             Tìm kiếm
           </Button>
           {canReset ? (
-            <Button className="h-10 px-3 text-slate-500" onClick={onReset} title="Xóa tìm kiếm và sắp xếp" type="button" variant="ghost">
+            <Button className="h-10 flex-1 px-3 text-slate-500 lg:flex-none" onClick={onReset} title="Xóa tìm kiếm và sắp xếp" type="button" variant="ghost">
               <RotateCcw className="size-4" />
-              <span className="hidden sm:inline">Đặt lại</span>
+              <span>Đặt lại</span>
             </Button>
           ) : null}
         </div>

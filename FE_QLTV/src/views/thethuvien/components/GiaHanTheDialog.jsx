@@ -61,12 +61,12 @@ function GiaHanTheDialog({ onRenew, row }) {
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-lg p-0" onOpenAutoFocus={(event) => event.preventDefault()}>
-          <DialogHeader className="border-b border-slate-100 px-6 py-5">
+          <DialogHeader className="border-b border-slate-100 px-4 py-4 sm:px-6 sm:py-5">
             <DialogTitle className="text-xl font-extrabold text-slate-900">Gia hạn thẻ {row.MaThe}</DialogTitle>
             <DialogDescription className="sr-only">Chọn ngày hết hạn mới cho thẻ thư viện.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-5 px-6 py-6">
-            <div className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+          <div className="space-y-5 px-4 py-4 sm:px-6 sm:py-6">
+            <div className="grid gap-1 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm sm:grid-cols-[1fr_auto] sm:gap-x-6 sm:gap-y-3">
               <span className="font-medium text-slate-600">Ngày hết hạn hiện tại</span>
               <span className="font-bold text-slate-900">{formatDisplayDate(row.NgayHetHan)}</span>
               <span className="font-medium text-slate-600">Trạng thái hiện tại</span>
@@ -81,7 +81,7 @@ function GiaHanTheDialog({ onRenew, row }) {
               />
             </label>
           </div>
-          <DialogFooter className="border-t border-slate-100 bg-slate-50 px-6 py-4">
+          <DialogFooter className="border-t border-slate-100 bg-slate-50 px-4 py-3 sm:px-6 sm:py-4">
             <DialogClose asChild><Button type="button" variant="outline">Hủy</Button></DialogClose>
             <Button className="bg-orange-500 font-bold hover:bg-orange-600" disabled={!newExpirationDate} onClick={handleRenew}>
               Xác nhận gia hạn

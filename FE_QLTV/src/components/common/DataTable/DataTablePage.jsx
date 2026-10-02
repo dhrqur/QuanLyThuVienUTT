@@ -90,8 +90,8 @@ function DataTablePage({
     <MainLayout>
       <div className="space-y-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <h1 className="text-2xl font-black text-[#25245A]">{title}</h1>
-          <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-xl font-black text-[#25245A] sm:text-2xl">{title}</h1>
+          <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
             {excelEnabled ? (
               <ExcelActions
                 allowImport={excelImportEnabled}

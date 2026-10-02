@@ -102,12 +102,12 @@ function EntityFormDialog({
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-6xl p-0" onOpenAutoFocus={(event) => event.preventDefault()}>
-        <DialogHeader className="border-b border-slate-100 px-6 py-5">
+        <DialogHeader className="border-b border-slate-100 px-4 py-4 sm:px-6 sm:py-5">
           <DialogTitle className="text-xl font-extrabold text-slate-900">{dialogTitle}</DialogTitle>
           <DialogDescription className="sr-only">{dialogTitle}.</DialogDescription>
         </DialogHeader>
 
-        <form className="grid max-h-[65vh] gap-5 overflow-y-auto px-6 py-6 md:grid-cols-2" id={formId} noValidate onSubmit={handleSubmit}>
+        <form className="grid max-h-[65dvh] gap-4 overflow-y-auto px-4 py-4 sm:gap-5 sm:px-6 sm:py-6 md:grid-cols-2" id={formId} noValidate onSubmit={handleSubmit}>
           {formColumns.map((column) => (
             <FormField
               column={column}
@@ -123,7 +123,7 @@ function EntityFormDialog({
           {renderFormExtra?.({ formValues, isEdit, onFieldChange: handleFieldChange, row })}
         </form>
 
-        <DialogFooter className="border-t border-slate-100 bg-slate-50 px-6 py-4">
+        <DialogFooter className="border-t border-slate-100 bg-slate-50 px-4 py-3 sm:px-6 sm:py-4">
           <DialogClose asChild>
             <Button type="button" variant="outline">Hủy</Button>
           </DialogClose>

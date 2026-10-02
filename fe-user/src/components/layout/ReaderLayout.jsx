@@ -56,11 +56,11 @@ export default function ReaderLayout({ children }) {
           </button>
         </div>
       </aside>
-      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 lg:ml-60 lg:px-8">
+      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-3 sm:px-4 lg:ml-60 lg:px-8">
         <div className="lg:hidden">
           <Brand compact />
         </div>
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-3">
           <span className="hidden text-sm font-bold text-slate-600 sm:block">
             Xin chào, {session?.name}
           </span>
@@ -69,7 +69,8 @@ export default function ReaderLayout({ children }) {
               className="rounded-full bg-accent-soft px-3 py-1 text-xs font-black text-accent"
               to="/tra-cuu"
             >
-              Giỏ mượn: {items.length}
+              <span className="sm:hidden">Giỏ: {items.length}</span>
+              <span className="hidden sm:inline">Giỏ mượn: {items.length}</span>
             </NavLink>
           )}
           <button
@@ -83,13 +84,13 @@ export default function ReaderLayout({ children }) {
         </div>
       </header>
       <main
-        className="mx-auto max-w-[1440px] px-4 pb-24 pt-6 lg:ml-60 lg:px-8 lg:pb-10"
+        className="mx-auto max-w-[1440px] px-3 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-5 sm:px-4 sm:pt-6 lg:ml-60 lg:px-8 lg:pb-10"
         id="main-content"
         tabIndex="-1"
       >
         {children}
       </main>
-      <nav aria-label="Điều hướng di động" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-slate-200 bg-white px-1 pb-[env(safe-area-inset-bottom)] lg:hidden">
+      <nav aria-label="Điều hướng di động" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-slate-200 bg-white px-1 pb-[max(env(safe-area-inset-bottom),0.25rem)] lg:hidden">
         {navigation.map(([to, label, Icon]) => (
           <NavItem Icon={Icon} compact key={to} label={label} to={to} />
         ))}
@@ -156,7 +157,7 @@ function NavItem({ Icon, compact, label, to }) {
       to={to}
     >
       <Icon className={compact ? "size-5" : "size-[18px]"} />
-      {label}
+      <span className={compact ? "max-w-full truncate px-0.5" : undefined}>{label}</span>
     </NavLink>
   );
 }

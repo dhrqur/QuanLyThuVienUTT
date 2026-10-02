@@ -1,4 +1,4 @@
-import { ChevronDown, LogOut } from "lucide-react";
+import { ChevronDown, LogOut, Menu } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getCurrentUser, logout } from "@/utils/session";
 
-function Header() {
+function Header({ onMenuOpen }) {
   const navigate = useNavigate();
   const user = getCurrentUser();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
@@ -32,13 +32,23 @@ function Header() {
   };
 
   return (
-    <header className="relative z-20 flex h-16 shrink-0 items-center justify-between border-b border-slate-100 bg-white px-4">
-      <div className="relative h-8 w-[160px] shrink-0 overflow-hidden sm:h-9 sm:w-[190px] md:w-[220px]">
-        <img
-          alt="Trường Đại học Công nghệ Giao thông Vận tải"
-          className="absolute left-0 top-1/2 w-full -translate-y-1/2"
-          src="/logo_utt_transparent.png"
-        />
+    <header className="relative z-20 flex h-16 shrink-0 items-center justify-between border-b border-slate-100 bg-white px-3 sm:px-4">
+      <div className="flex min-w-0 items-center gap-2">
+        <button
+          aria-label="Mở menu điều hướng"
+          className="grid size-11 shrink-0 place-items-center rounded-xl text-[#25245A] transition hover:bg-slate-50 lg:hidden"
+          onClick={onMenuOpen}
+          type="button"
+        >
+          <Menu className="size-5" />
+        </button>
+        <div className="relative h-8 w-[132px] shrink-0 overflow-hidden sm:h-9 sm:w-[190px] md:w-[220px]">
+          <img
+            alt="Trường Đại học Công nghệ Giao thông Vận tải"
+            className="absolute left-0 top-1/2 w-full -translate-y-1/2"
+            src="/logo_utt_transparent.png"
+          />
+        </div>
       </div>
       <div className="ml-auto">
         <DropdownMenu>

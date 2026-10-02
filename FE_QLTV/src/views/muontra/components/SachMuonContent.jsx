@@ -20,25 +20,25 @@ export function SachMuonDetail({ books, details: allDetails, onReturned, row, ru
 
   return (
     <section className="mt-5 space-y-3">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="flex items-center gap-2 text-sm font-extrabold">
           <BookOpen className="size-4 text-orange-500" />Danh sách sách mượn
         </h3>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button onClick={handlePrintReceipt} size="sm" type="button" variant="outline">
             <FileText /> Xuất PDF
           </Button>
           <TraSachDialog books={books} details={details} onReturned={onReturned} row={row} rules={rules} />
         </div>
       </div>
-      <div className="overflow-hidden rounded-xl border border-slate-200">
-        <div className="grid grid-cols-[110px_1fr_100px] bg-orange-50 px-4 py-2 text-xs font-extrabold text-orange-800">
+      <div className="overflow-x-auto rounded-xl border border-slate-200">
+        <div className="grid min-w-[520px] grid-cols-[110px_1fr_100px] bg-orange-50 px-4 py-2 text-xs font-extrabold text-orange-800">
           <span>Mã sách</span><span>Tên sách</span><span className="text-center">Số lượng</span>
         </div>
         {details.map((detail) => {
           const sach = books.find((item) => item.MaSach === detail.MaSach);
           return (
-            <div className="grid grid-cols-[110px_1fr_100px] border-t px-4 py-3 text-sm" key={`${detail.MaMT}-${detail.MaSach}`}>
+            <div className="grid min-w-[520px] grid-cols-[110px_1fr_100px] border-t px-4 py-3 text-sm" key={`${detail.MaMT}-${detail.MaSach}`}>
               <strong>{detail.MaSach}</strong><span>{sach?.TenSach ?? "Không tìm thấy sách"}</span>
               <strong className="text-center">{detail.SoLuong}</strong>
             </div>

@@ -23,7 +23,7 @@ function EntityDetailDialog({ columns, entityName, renderDetailExtra, row, updat
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl p-0">
-        <DialogHeader className="border-b border-slate-100 px-6 py-5">
+        <DialogHeader className="border-b border-slate-100 px-4 py-4 sm:px-6 sm:py-5">
           <DialogTitle className="text-xl font-extrabold text-slate-900">
             Chi tiết {entityName.toLowerCase()}
           </DialogTitle>
@@ -32,11 +32,11 @@ function EntityDetailDialog({ columns, entityName, renderDetailExtra, row, updat
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid max-h-[65vh] overflow-y-auto px-6 py-5">
+        <div className="grid max-h-[70dvh] overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
           {visibleColumns.map((column) => (
-            <div className="grid grid-cols-[160px_1fr] border-b border-slate-100 py-3 text-sm" key={column.key}>
+            <div className="grid gap-1 border-b border-slate-100 py-3 text-sm sm:grid-cols-[160px_1fr] sm:gap-3" key={column.key}>
               <span className="font-bold text-slate-600">{column.displayLabel ?? column.label}</span>
-              <span className="font-medium text-slate-900">{getDisplayValue(column, row)}</span>
+              <span className="min-w-0 break-words font-medium text-slate-900">{getDisplayValue(column, row)}</span>
             </div>
           ))}
           {renderDetailExtra?.({ row, updateRow })}
